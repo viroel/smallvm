@@ -641,7 +641,7 @@ class MB_Compiler {
 
 		const todo = firstCmd ? [firstCmd] : [];
 		while (todo.length > 0) {
-			const cmd = todo.shift();
+			const cmd = todo.pop(); // depth-first, as GP (collectVars gp:1066): args before nextBlock
 			const sel = cmd.selector;
 			const inputs = cmd.inputs();
 
@@ -660,7 +660,11 @@ class MB_Compiler {
 				}
 			}
 
-			for (const input of inputs) {
+			// GP pushes nextBlock first, then the args reversed, so a stack pop
+			// visits args in order before the next block (gp:1087-1093).
+			if (cmd.nextBlock()) todo.push(cmd.nextBlock());
+			for (let i = inputs.length - 1; i >= 0; i--) {
+				const input = inputs[i];
 				if (input instanceof BlockMorph) {
 					todo.push(input);
 				} else if (input instanceof CommandSlotMorph) {
@@ -668,7 +672,6 @@ class MB_Compiler {
 					if (nested) todo.push(nested);
 				}
 			}
-			if (cmd.nextBlock()) todo.push(cmd.nextBlock());
 		}
 	}
 
