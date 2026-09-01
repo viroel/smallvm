@@ -6565,6 +6565,12 @@ msgstr "Y"
 msgid "kiot;rotation"
 msgstr "rotation"
 
+#. KidsIOT library choice. Move both motors at the same rate, but opposite to
+#. each other. If value is 50, motor A will move at speed 50 and motor B will
+#. move at speed -50. Useful for robots with wheels set at opposite sides.
+msgid "kiot;both opposite"
+msgstr "both, flipped"
+
 #. KidsIOT library choice
 msgid "kiot;clockwise"
 msgstr "clockwise"
@@ -8726,3 +8732,131 @@ msgstr "Report a byte array containing the UTF-8 bytes of the given string."
 msgid "Report the number of words of memory available. Stop button frees up memory."
 msgstr "Report the number of words of memory available. Stop button frees up memory."
 
+
+#. Library folder
+msgid "folder;EF_Libraries"
+msgstr "Elecfreaks"
+
+#. Library folder
+msgid "folder;Nezha_ESP32"
+msgstr "Nezha ESP32"
+
+#. Library folder
+msgid "folder;PlanetX"
+msgstr "PlanetX"
+
+#. EF library file labels
+msgid "lib;Board"
+msgstr "Board"
+
+#. EF library module labels
+msgid "lib;NEZHAEsp32_Board"
+msgstr "Board"
+
+#. EF library module descriptions
+msgid "libdesc:Board"
+msgstr ""
+"Onboard buttons\n"
+"RGB LED\n"
+"Screen display\n"
+"Sound control"
+
+msgid "lib;IOT"
+msgstr "IoT"
+
+msgid "lib;SpeechRecognition"
+msgstr "Speech Recognition"
+
+msgid "lib;AILensPro"
+msgstr "AI Lens Pro"
+
+msgid "lib;NEZHAEsp32_IOT"
+msgstr "IoT"
+
+msgid "lib;Speech Recognition"
+msgstr "Speech Recognition"
+
+msgid "lib;AI_Module"
+msgstr "AI Module"
+
+msgid "lib;Display"
+msgstr "Display"
+
+msgid "lib;Execute"
+msgstr "Execute"
+
+msgid "lib;Wireless"
+msgstr "Wireless"
+
+msgid "lib;Input"
+msgstr "Input"
+
+msgid "lib;Sport"
+msgstr "Sport"
+
+msgid "libdesc:AILensPro"
+msgstr ""
+"AI camera\n"
+"I2C communication\n"
+"App switching and RGB control\n"
+"Face recognition\n"
+"Self-learning\n"
+"Gesture recognition\n"
+"Sound-touch recording and upload"
+
+msgid "libdesc:AI_Module"
+msgstr ""
+"AI camera\n"
+"Gesture recognition sensor\n"
+"Color recognition sensor\n"
+"Voice recognition sensor"
+
+msgid "libdesc:Display"
+msgstr ""
+"Numeric display\n"
+"Rainbow LED\n"
+"OLED display\n"
+"Matrix display"
+
+msgid "libdesc:Execute"
+msgstr ""
+"Laser module\n"
+"Fan module\n"
+"LED module\n"
+"MP3 module"
+
+msgid "libdesc:Wireless"
+msgstr ""
+"ESP8266 WiFi module\n"
+"SmartIoT\n"
+"I2C joystick"
+
+msgid "libdesc:Input"
+msgstr ""
+"Button\n"
+"Collision sensor\n"
+"Ultrasonic sensor\n"
+"PIR sensor\n"
+"Temperature and humidity sensor\n"
+"Line-tracking sensor\n"
+"Sound sensor\n"
+"Light sensor\n"
+"Soil moisture sensor\n"
+"Water level sensor\n"
+"UV sensor\n"
+"Gas sensor\n"
+"PM2.5 sensor\n"
+"Dust sensor\n"
+"Potentiometer\n"
+"RFID sensor\n"
+"Environmental sensor\n"
+"Real-time clock\n"
+"Four-channel grayscale line-tracking sensor"
+
+msgid "libdesc:Sport"
+msgstr ""
+"Smart motors\n"
+"Car motion control"
+
+msgid "libdesc:Speech Recognition"
+msgstr "Speech recognition"

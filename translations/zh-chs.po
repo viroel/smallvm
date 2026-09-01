@@ -3804,8 +3804,8 @@ msgid "Created with GP"
 msgstr "使用 GP 开发"
 
 #. About window info
-msgid "More info at http://microblocks.fun"
-msgstr "访问 http://microblocks.fun 获取更多信息"
+msgid "More info at %1"
+msgstr "访问 %1 获取更多信息"
 
 #. Firmware file read error.
 #. %1 holds the firmware file name
@@ -4714,11 +4714,11 @@ msgstr "退出循环"
 
 #. Example value for the ( list < > ) block
 msgid "cat"
-msgstr "cat"
+msgstr "猫"
 
 #. Example value for the ( list < > ) block
 msgid "dog"
-msgstr "dog"
+msgstr "狗"
 
 #. Example value for the ( list < > ) block
 msgid "bird"
@@ -5428,7 +5428,7 @@ msgstr "_ 个伪随机数 从 _ 到 _ ，种子为 _"
 
 #. Example string for blocks that send a message via some communication channel.
 msgid "light"
-msgstr "light"
+msgstr "轻"
 
 #. Lists library block. It takes a list and replaces a few, some, most or (list of indices) items with some other element
 msgid "_ with _ items replaced by _"
@@ -6567,3 +6567,1749 @@ msgstr "搜索块和变量..."
 #. Examples folder
 msgid "folder;Widgets"
 msgstr "组件"
+
+#. KunPen Libraries block
+msgid "initialize AI camera over I2C"
+msgstr "IIC 初始化 AI 摄像头"
+
+#. KunPen Libraries block
+msgid "switch function to _"
+msgstr "切换功能到 _"
+
+#. KunPen Libraries block
+msgid "set RGB _"
+msgstr "设置 RGB _"
+
+#. KunPen Libraries block
+msgid "refresh recognition result"
+msgstr "刷新识别结果"
+
+#. KunPen Libraries block
+msgid "current application mode"
+msgstr "当前应用模式"
+
+#. KunPen Libraries block
+msgid "face status"
+msgstr "人脸状态"
+
+#. KunPen Libraries block
+msgid "face ID"
+msgstr "人脸 ID"
+
+#. KunPen Libraries block
+msgid "face label"
+msgstr "人脸标签"
+
+#. KunPen Libraries block
+msgid "face similarity"
+msgstr "人脸相似度"
+
+#. KunPen Libraries block
+msgid "face blink"
+msgstr "人脸眨眼"
+
+#. KunPen Libraries block
+msgid "face mouth open"
+msgstr "人脸张嘴"
+
+#. KunPen Libraries block
+msgid "face detected?"
+msgstr "检测到人脸"
+
+#. KunPen Libraries block
+msgid "recognized face detected?"
+msgstr "检测到已识别人脸"
+
+#. KunPen Libraries block
+msgid "face coordinate _"
+msgstr "人脸坐标 _"
+
+#. KunPen Libraries block
+msgid "self-learning status"
+msgstr "自主学习状态"
+
+#. KunPen Libraries block
+msgid "self-learning ID"
+msgstr "自主学习 ID"
+
+#. KunPen Libraries block
+msgid "self-learning label"
+msgstr "自主学习标签"
+
+#. KunPen Libraries block
+msgid "self-learning similarity"
+msgstr "自主学习相似度"
+
+#. KunPen Libraries block
+msgid "learned object detected?"
+msgstr "检测到已学习对象"
+
+#. KunPen Libraries block
+msgid "gesture status"
+msgstr "手势状态"
+
+#. KunPen Libraries block
+msgid "gesture ID"
+msgstr "手势 ID"
+
+#. KunPen Libraries block
+msgid "gesture label"
+msgstr "手势标签"
+
+#. KunPen Libraries block
+msgid "gesture similarity"
+msgstr "手势相似度"
+
+#. KunPen Libraries block
+msgid "gesture pose similarity"
+msgstr "手势姿态相似度"
+
+#. KunPen Libraries block
+msgid "learned gesture detected?"
+msgstr "检测到已学习手势"
+
+#. KunPen Libraries block
+msgid "send sound-touch path _ auto upload _"
+msgstr "发送声音触碰路径 _ 自动上传 _"
+
+#. KunPen Libraries block
+msgid "sound-touch recording _"
+msgstr "声音触碰录制 _"
+
+#. KunPen Libraries block
+msgid "upload sound-touch recording"
+msgstr "声音触碰上传"
+
+#. KunPen Libraries block
+msgid "sound-touch status"
+msgstr "声音触碰状态"
+
+#. KunPen Libraries block
+msgid "sound-touch BPM"
+msgstr "声音触碰 BPM"
+
+#. KunPen Libraries block
+msgid "sound-touch beat count"
+msgstr "声音触碰节拍数"
+
+#. KunPen Libraries block
+msgid "sound-touch duration (seconds)"
+msgstr "声音触碰时长(秒)"
+
+#. KunPen Libraries block
+msgid "sound-touch message"
+msgstr "声音触碰消息"
+
+#. KunPen Libraries block
+msgid "set I2C address _"
+msgstr "设置 I2C 地址 _"
+
+#. KunPen Libraries block
+msgid "set I/O chunk size _ interval _ ms"
+msgstr "设置 IO 分块 _ 间隔 _ ms"
+
+#. KunPen Libraries block
+msgid "switch to launcher"
+msgstr "切换到启动器"
+
+#. KunPen Libraries block
+msgid "refresh face result"
+msgstr "刷新人脸结果"
+
+#. KunPen Libraries block
+msgid "refresh self-learning result"
+msgstr "刷新自主学习结果"
+
+#. KunPen Libraries block
+msgid "refresh gesture result"
+msgstr "刷新手势结果"
+
+#. KunPen Libraries block
+msgid "refresh sound-touch result"
+msgstr "刷新声音触碰结果"
+
+#. KunPen Libraries block
+msgid "mode name _"
+msgstr "模式名称 _"
+
+#. KunPen Libraries block
+msgid "raw register read address _ length _"
+msgstr "原始寄存器读 地址 _ 长度 _"
+
+#. KunPen Libraries block
+msgid "raw register write address _ data _"
+msgstr "原始寄存器写 地址 _ 数据 _"
+
+#. KunPen Libraries block
+msgid "_aicam CRC8 _ length _"
+msgstr "_aicam CRC8 _ 长度 _"
+
+#. KunPen Libraries block
+msgid "_aicam read register _ length _"
+msgstr "_aicam 读寄存器 _ 长度 _"
+
+#. KunPen Libraries block
+msgid "_aicam write register _ data _"
+msgstr "_aicam 写寄存器 _ 数据 _"
+
+#. KunPen Libraries choice
+msgid "main menu"
+msgstr "主菜单"
+
+#. KunPen Libraries choice
+msgid "face recognition"
+msgstr "人脸识别"
+
+#. KunPen Libraries choice
+msgid "self learning"
+msgstr "自主学习"
+
+#. KunPen Libraries choice
+msgid "gesture recognition"
+msgstr "手势识别"
+
+#. KunPen Libraries choice
+msgid "remote file manager"
+msgstr "远程文件管理"
+
+#. KunPen Libraries choice
+msgid "photo album"
+msgstr "相册"
+
+#. KunPen Libraries choice
+msgid "take photo"
+msgstr "拍照"
+
+#. KunPen Libraries choice
+msgid "settings"
+msgstr "设置"
+
+#. KunPen Libraries choice
+msgid "sound touch"
+msgstr "声音触碰"
+
+#. KunPen Libraries choice
+msgid "red"
+msgstr "红色"
+
+#. KunPen Libraries choice
+msgid "green"
+msgstr "绿色"
+
+#. KunPen Libraries choice
+msgid "yellow"
+msgstr "黄色"
+
+#. KunPen Libraries choice
+msgid "cyan"
+msgstr "青色"
+
+#. KunPen Libraries choice
+msgid "purple"
+msgstr "紫色"
+
+#. KunPen Libraries choice
+msgid "center x"
+msgstr "中心 x"
+
+#. KunPen Libraries choice
+msgid "center y"
+msgstr "中心 y"
+
+#. KunPen Libraries choice
+msgid "top-left x"
+msgstr "左上 x"
+
+#. KunPen Libraries choice
+msgid "top-left y"
+msgstr "左上 y"
+
+#. KunPen Libraries choice
+msgid "bottom-right x"
+msgstr "右下 x"
+
+#. KunPen Libraries choice
+msgid "bottom-right y"
+msgstr "右下 y"
+
+#. KunPen Libraries block
+msgid "button _ _ event?"
+msgstr "按键 _ _ 事件?"
+
+#. NEZHAEsp32 Libraries block
+msgid "set color to _"
+msgstr "预设颜色 _"
+
+#. KunPen Libraries block
+msgid "set RGB _ to _"
+msgstr "RGB _ 设置为 _"
+
+#. KunPen Libraries block
+msgid "set all RGB LEDs to _"
+msgstr "RGB 灯全设置为 _"
+
+#. KunPen Libraries block
+msgid "turn off _ RGB LED"
+msgstr "RGB _ 关闭"
+
+#. KunPen Libraries block
+msgid "turn off all RGB LEDs"
+msgstr "RGB 灯全部关闭"
+
+#. NEZHAEsp32 Libraries block
+msgid "speed _ %"
+msgstr "速度 _ %"
+
+#. KunPen Libraries block
+msgid "_ title bar"
+msgstr "_ 标题栏"
+
+#. KunPen Libraries block
+msgid "screen background color _"
+msgstr "屏幕背景颜色 _"
+
+#. NEZHAEsp32 Libraries block
+msgid "set text _ to line _ color _"
+msgstr "设置文本 _ 到第 _ 行 颜色 _"
+
+#. NEZHAEsp32 Libraries block
+msgid "create text _ x _ y _ color _ and return object ID"
+msgstr "创建文本 _ x _ y _ 颜色 _ 并返回对象 ID"
+
+#. NEZHAEsp32 Libraries block
+msgid "update ID _ text _ x _ y _ color _"
+msgstr "修改 ID _ 文本 _ x _ y _ 颜色 _"
+
+#. NEZHAEsp32 Libraries block
+msgid "update ID _ text _ color _"
+msgstr "修改编号 _ 文本为 _ ，文本颜色为 _"
+
+#. KunPen Libraries block
+msgid "delete object ID _"
+msgstr "删除对象 ID _"
+
+#. NEZHAEsp32 Libraries block
+msgid "set screen pixel x _ y _ to _"
+msgstr "将屏幕（X _ ，Y _ ）处颜色改为 _"
+
+#. NEZHAEsp32 Libraries block
+msgid "play sound _"
+msgstr "播放音效 _"
+
+#. KunPen Libraries block
+msgid "set volume to _ %"
+msgstr "将音量设为 _ %"
+
+#. KunPen Libraries choice
+msgid "error"
+msgstr "错误"
+
+#. KunPen Libraries choice
+msgid "start"
+msgstr "启动"
+
+#. KunPen Libraries choice
+msgid "stop"
+msgstr "停止"
+
+#. KunPen Libraries choice
+msgid "pressed"
+msgstr "按下"
+
+#. KunPen Libraries choice
+msgid "released"
+msgstr "松开"
+
+#. KunPen Libraries choice
+msgid "show"
+msgstr "显示"
+
+#. KunPen Libraries choice
+msgid "hide"
+msgstr "隐藏"
+
+#. KunPen Libraries choice
+msgid "Chinese style"
+msgstr "中国风"
+
+#. KunPen Libraries choice
+msgid "country"
+msgstr "乡村"
+
+#. KunPen Libraries choice
+msgid "symphony"
+msgstr "交响"
+
+#. KunPen Libraries choice
+msgid "lyrical"
+msgstr "抒情"
+
+#. KunPen Libraries choice
+msgid "Japanese"
+msgstr "日式"
+
+#. KunPen Libraries choice
+msgid "punk"
+msgstr "朋克"
+
+#. KunPen Libraries choice
+msgid "pop"
+msgstr "流行"
+
+#. KunPen Libraries choice
+msgid "blues"
+msgstr "蓝调"
+
+#. KunPen Libraries choice
+msgid "door opening"
+msgstr "开门声"
+
+#. KunPen Libraries choice
+msgid "birthday song"
+msgstr "生日歌"
+
+#. KunPen Libraries choice
+msgid "wind"
+msgstr "风声"
+
+#. KunPen Libraries choice
+msgid "rain"
+msgstr "雨声"
+
+#. KunPen Libraries choice
+msgid "thunder"
+msgstr "打雷声"
+
+#. KunPen Libraries block
+msgid "move motor _ speed _ direction _ value _ mode _ delay _"
+msgstr "电机 _ 速度 _ 方向 _ 数值 _ 模式 _ 等待 _"
+
+#. KunPen Libraries block
+msgid "move motor _ to absolute angle _ mode _ delay _"
+msgstr "电机 _ 转到绝对角度 _ 模式 _ 等待 _"
+
+#. KunPen Libraries block
+msgid "stop motor _"
+msgstr "电机 _ 停止"
+
+#. KunPen Libraries block
+msgid "start motor _ speed _ %"
+msgstr "启动电机 _ 速度 _ %"
+
+#. KunPen Libraries block
+msgid "read motor _ relative angle (degrees x10)"
+msgstr "读取电机 _ 相对角度 (度 x10)"
+
+#. KunPen Libraries block
+msgid "read motor _ absolute angle (degrees x10)"
+msgstr "读取电机 _ 绝对角度 (度 x10)"
+
+#. KunPen Libraries block
+msgid "read motor _ speed (turns/sec x100)"
+msgstr "读取电机 _ 速度 (圈/秒 x100)"
+
+#. KunPen Libraries block
+msgid "reset motor _ angle"
+msgstr "电机 _ 角度归零"
+
+#. KunPen Libraries block
+msgid "set combo motors left _ right _"
+msgstr "设置组合电机 左 _ 右 _"
+
+#. KunPen Libraries block
+msgid "run combo motors speed _ direction _"
+msgstr "组合电机运行 速度 _ 方向 _"
+
+#. KunPen Libraries block
+msgid "stop combo motors"
+msgstr "停止组合电机"
+
+#. KunPen Libraries block
+msgid "set wheel perimeter _ _"
+msgstr "设置轮子周长 _ _"
+
+#. KunPen Libraries block
+msgid "move combo motors speed _ direction _ value _ unit _"
+msgstr "组合电机移动 速度 _ 方向 _ 数值 _ 单位 _"
+
+#. KunPen Libraries block
+msgid "start combo motors left speed _ right speed _"
+msgstr "组合电机启动 左速度 _ 右速度 _"
+
+#. KunPen Libraries block
+msgid "set wheel base _ _"
+msgstr "设置轮距 _ _"
+
+#. KunPen Libraries block
+msgid "set combo rotation calibration x100 _"
+msgstr "设置组合旋转校准 x100 _"
+
+#. KunPen Libraries block
+msgid "rotate combo motors angle _ speed _"
+msgstr "组合电机旋转 角度 _ 速度 _"
+
+#. KunPen Libraries block
+msgid "set gyroscope turn motors left _ right _"
+msgstr "设置陀螺仪转角电机 左 _ 右 _"
+
+#. KunPen Libraries block
+msgid "gyroscope turn _ degrees speed _ %"
+msgstr "陀螺仪指定转动 _ 度 速度 _ %"
+
+#. KunPen Libraries block
+msgid "gyroscope drive straight speed _ %"
+msgstr "陀螺仪走直线 速度 _ %"
+
+#. KunPen Libraries block
+msgid "stop gyroscope straight drive"
+msgstr "陀螺仪停止走直线"
+
+#. KunPen Libraries choice
+msgid "counterclockwise"
+msgstr "逆时针"
+
+#. KunPen Libraries choice
+msgid "shortest path"
+msgstr "最短路径"
+
+#. KunPen Libraries choice
+msgid "turns"
+msgstr "圈"
+
+#. KunPen Libraries choice
+msgid "degrees"
+msgstr "度"
+
+#. KunPen Libraries choice
+msgid "automatic delay"
+msgstr "自动等待"
+
+#. KunPen Libraries choice
+msgid "no delay"
+msgstr "不等待"
+
+#. KunPen Libraries choice
+msgid "forward"
+msgstr "向前"
+
+#. KunPen Libraries choice
+msgid "backward"
+msgstr "向后"
+
+#. KunPen Libraries choice
+msgid "cm"
+msgstr "厘米"
+
+#. KunPen Libraries choice
+msgid "inch"
+msgstr "英寸"
+
+#. KunPen Libraries choice
+msgid "motor estimate"
+msgstr "电机估算"
+
+#. KunPen Libraries choice
+msgid "gyroscope angle"
+msgstr "陀螺仪角度"
+
+#. KunPen Libraries choice
+msgid "normal"
+msgstr "正常"
+
+#. KunPen Libraries choice
+msgid "reversed"
+msgstr "反向"
+
+#. KunPen Libraries choice
+msgid "resist yaw"
+msgstr "抵抗偏航"
+
+#. KunPen Libraries choice
+msgid "follow yaw"
+msgstr "跟随偏航"
+
+#. KunPen Libraries block
+msgid "initialize AI camera"
+msgstr "摄像头 初始化"
+
+#. KunPen Libraries block
+msgid "AI camera switch function to _"
+msgstr "摄像头 切换功能为 _"
+
+#. KunPen Libraries block
+msgid "AI camera capture image"
+msgstr "摄像头 获取一帧图像"
+
+#. KunPen Libraries block
+msgid "AI camera image contains a ball?"
+msgstr "摄像头 图像中包含小球"
+
+#. KunPen Libraries block
+msgid "AI camera image contains _ ball?"
+msgstr "摄像头 图像中包含 _ 小球"
+
+#. KunPen Libraries block
+msgid "AI camera ball count"
+msgstr "摄像头 从图像中获取小球的总个数"
+
+#. KunPen Libraries block
+msgid "AI camera ball _ value"
+msgstr "摄像头 从图像中获取小球的 _"
+
+#. KunPen Libraries block
+msgid "AI camera image contains a face?"
+msgstr "摄像头 图像中包含人脸"
+
+#. KunPen Libraries block
+msgid "AI camera face count"
+msgstr "摄像头 从图像中获取人脸的总个数"
+
+#. KunPen Libraries block
+msgid "AI camera face _ value"
+msgstr "摄像头 从图像中获取人脸的 _"
+
+#. KunPen Libraries block
+msgid "AI camera image contains number card _?"
+msgstr "摄像头 图像中包含 _ 数字卡片"
+
+#. KunPen Libraries block
+msgid "AI camera image contains letter card _?"
+msgstr "摄像头 图像中包含 _ 字母卡片"
+
+#. KunPen Libraries block
+msgid "AI camera image contains traffic sign card _?"
+msgstr "摄像头 图像中包含 _ 交通符号卡片"
+
+#. KunPen Libraries block
+msgid "AI camera image contains _ card?"
+msgstr "摄像头 图像中包含 _ 卡片"
+
+#. KunPen Libraries block
+msgid "AI camera card count"
+msgstr "摄像头 从图像中获取卡片的总个数"
+
+#. KunPen Libraries block
+msgid "AI camera card _ value"
+msgstr "摄像头 从图像中获取卡片的 _ 值"
+
+#. KunPen Libraries block
+msgid "AI camera image contains _ color card?"
+msgstr "摄像头 图像中包含 _ 颜色卡片"
+
+#. KunPen Libraries block
+msgid "AI camera color-card count"
+msgstr "摄像头 从图像中获取颜色卡片的总个数"
+
+#. KunPen Libraries block
+msgid "AI camera color-card _ value"
+msgstr "摄像头 从图像中获取颜色卡片的 _ 值"
+
+#. KunPen Libraries block
+msgid "AI camera black-line _ value"
+msgstr "摄像头 从图像中获取黑线的 _ 值"
+
+#. KunPen Libraries block
+msgid "AI camera image contains black line offset _?"
+msgstr "摄像头 图像中包含向 _ 偏移的黑线"
+
+#. KunPen Libraries block
+msgid "AI camera learn object in view as _"
+msgstr "摄像头 学习画面中的对象为 _"
+
+#. KunPen Libraries block
+msgid "AI camera clear learned objects"
+msgstr "摄像头 清除已学习的对象"
+
+#. KunPen Libraries block
+msgid "AI camera image contains object _?"
+msgstr "摄像头 图像中包含对象 _"
+
+#. KunPen Libraries block
+msgid "AI camera object _ confidence"
+msgstr "摄像头 从图像中获取对象 _ 的置信度"
+
+#. KunPen Libraries block
+msgid "initialize gesture sensor"
+msgstr "手势识别传感器初始化"
+
+#. KunPen Libraries block
+msgid "gesture sensor current gesture"
+msgstr "手势识别传感器当前手势"
+
+#. KunPen Libraries block
+msgid "gesture sensor detected _?"
+msgstr "手势识别传感器识别到 _"
+
+#. KunPen Libraries block
+msgid "color sensor hue (0-360)"
+msgstr "颜色识别传感器色相(0~360)"
+
+#. KunPen Libraries block
+msgid "color sensor detected _?"
+msgstr "颜色识别传感器检测到 _ ?"
+
+#. KunPen Libraries block
+msgid "speech recognition sensor clear learned phrases"
+msgstr "语音识别传感器 清空已学习的词条"
+
+#. KunPen Libraries block
+msgid "speech recognition sensor enter learning mode"
+msgstr "语音识别传感器 进入学习模式"
+
+#. KunPen Libraries block
+msgid "speech recognition sensor heard _?"
+msgstr "语音识别传感器 听到 _"
+
+#. KunPen Libraries block
+msgid "speech recognition sensor current code"
+msgstr "语音识别传感器 当前识别码"
+
+#. KunPen Libraries choice
+msgid "humidity (0-100%)"
+msgstr "湿度(0~100%)"
+
+#. KunPen Libraries choice
+msgid "pressure (hPa)"
+msgstr "气压(hPa)"
+
+#. KunPen Libraries choice
+msgid "altitude (m)"
+msgstr "海拔(M)"
+
+#. KunPen Libraries choice
+msgid "right"
+msgstr "右"
+
+#. KunPen Libraries choice
+msgid "left"
+msgstr "左"
+
+#. KunPen Libraries choice
+msgid "up"
+msgstr "上"
+
+#. KunPen Libraries choice
+msgid "down"
+msgstr "下"
+
+#. KunPen Libraries choice
+msgid "wave"
+msgstr "挥手"
+
+#. KunPen Libraries choice
+msgid "hello Xiaoen"
+msgstr "你好小恩"
+
+#. KunPen Libraries choice
+msgid "turn headlights on"
+msgstr "打开车灯"
+
+#. KunPen Libraries choice
+msgid "turn headlights off"
+msgstr "关闭车灯"
+
+#. KunPen Libraries choice
+msgid "turn left"
+msgstr "向左转"
+
+#. KunPen Libraries choice
+msgid "turn right"
+msgstr "向右转"
+
+#. KunPen Libraries choice
+msgid "move forward"
+msgstr "向前进"
+
+#. KunPen Libraries choice
+msgid "move backward"
+msgstr "向后退"
+
+#. KunPen Libraries choice
+msgid "line-tracking mode"
+msgstr "巡线模式"
+
+#. KunPen Libraries choice
+msgid "obstacle-avoidance mode"
+msgstr "避障模式"
+
+#. KunPen Libraries choice
+msgid "park"
+msgstr "停车"
+
+#. KunPen Libraries choice
+msgid "start device"
+msgstr "启动设备"
+
+#. KunPen Libraries choice
+msgid "stop device"
+msgstr "停止设备"
+
+#. KunPen Libraries choice
+msgid "pause operation"
+msgstr "暂停运行"
+
+#. KunPen Libraries choice
+msgid "resume operation"
+msgstr "继续运行"
+
+#. KunPen Libraries choice
+msgid "increase level"
+msgstr "增加一档"
+
+#. KunPen Libraries choice
+msgid "decrease level"
+msgstr "降低一档"
+
+#. KunPen Libraries choice
+msgid "play music"
+msgstr "播放音乐"
+
+#. KunPen Libraries choice
+msgid "stop music"
+msgstr "关闭音乐"
+
+#. KunPen Libraries choice
+msgid "next track"
+msgstr "下一首"
+
+#. KunPen Libraries choice
+msgid "run function one"
+msgstr "执行功能一"
+
+#. KunPen Libraries choice
+msgid "run function two"
+msgstr "执行功能二"
+
+#. KunPen Libraries choice
+msgid "learned phrase 1"
+msgstr "自学习词条 1"
+
+#. KunPen Libraries choice
+msgid "learned phrase 2"
+msgstr "自学习词条 2"
+
+#. KunPen Libraries choice
+msgid "learned phrase 3"
+msgstr "自学习词条 3"
+
+#. KunPen Libraries choice
+msgid "learned phrase 4"
+msgstr "自学习词条 4"
+
+#. KunPen Libraries choice
+msgid "learned phrase 5"
+msgstr "自学习词条 5"
+
+#. KunPen Libraries choice
+msgid "learned phrase 6"
+msgstr "自学习词条 6"
+
+#. KunPen Libraries choice
+msgid "learned phrase 7"
+msgstr "自学习词条 7"
+
+#. KunPen Libraries choice
+msgid "learned phrase 8"
+msgstr "自学习词条 8"
+
+#. KunPen Libraries choice
+msgid "learned phrase 9"
+msgstr "自学习词条 9"
+
+#. KunPen Libraries choice
+msgid "learned phrase 10"
+msgstr "自学习词条 10"
+
+#. KunPen Libraries choice
+msgid "card recognition"
+msgstr "卡片识别"
+
+#. KunPen Libraries choice
+msgid "ball recognition"
+msgstr "小球识别"
+
+#. KunPen Libraries choice
+msgid "line tracking"
+msgstr "巡线识别"
+
+#. KunPen Libraries choice
+msgid "color recognition"
+msgstr "颜色识别"
+
+#. KunPen Libraries choice
+msgid "feature learning"
+msgstr "特征学习"
+
+#. KunPen Libraries choice
+msgid "x coordinate"
+msgstr "X坐标"
+
+#. KunPen Libraries choice
+msgid "y coordinate"
+msgstr "Y坐标"
+
+#. KunPen Libraries choice
+msgid "size"
+msgstr "尺寸"
+
+#. KunPen Libraries choice
+msgid "confidence"
+msgstr "置信度"
+
+#. KunPen Libraries choice
+msgid "ball ID"
+msgstr "小球ID"
+
+#. KunPen Libraries choice
+msgid "width"
+msgstr "宽"
+
+#. KunPen Libraries choice
+msgid "height"
+msgstr "高"
+
+#. KunPen Libraries choice
+msgid "color ID"
+msgstr "颜色ID"
+
+#. KunPen Libraries choice
+msgid "offset angle"
+msgstr "偏移角度"
+
+#. KunPen Libraries choice
+msgid "offset distance"
+msgstr "偏移距离"
+
+#. KunPen Libraries choice
+msgid "line length"
+msgstr "线段长度"
+
+#. KunPen Libraries choice
+msgid "turn around"
+msgstr "掉头"
+
+#. KunPen Libraries choice
+msgid "mouse"
+msgstr "老鼠"
+
+#. KunPen Libraries choice
+msgid "ruler"
+msgstr "尺子"
+
+#. KunPen Libraries choice
+msgid "pear"
+msgstr "梨"
+
+#. KunPen Libraries choice
+msgid "boat"
+msgstr "船"
+
+#. KunPen Libraries choice
+msgid "apple"
+msgstr "苹果"
+
+#. KunPen Libraries choice
+msgid "car"
+msgstr "汽车"
+
+#. KunPen Libraries choice
+msgid "pen"
+msgstr "笔"
+
+#. KunPen Libraries choice
+msgid "airplane"
+msgstr "飞机"
+
+#. KunPen Libraries choice
+msgid "clock"
+msgstr "钟表"
+
+#. KunPen Libraries choice
+msgid "grapes"
+msgstr "葡萄"
+
+#. KunPen Libraries choice
+msgid "cup"
+msgstr "杯子"
+
+#. KunPen Libraries choice
+msgid "magenta"
+msgstr "洋红"
+
+#. KunPen Libraries choice
+msgid "year"
+msgstr "年"
+
+#. KunPen Libraries choice
+msgid "month"
+msgstr "月"
+
+#. KunPen Libraries choice
+msgid "day"
+msgstr "日"
+
+#. KunPen Libraries choice
+msgid "weekday"
+msgstr "星期"
+
+#. KunPen Libraries choice
+msgid "slow"
+msgstr "慢"
+
+#. KunPen Libraries choice
+msgid "fast"
+msgstr "快"
+
+#. KunPen Libraries choice
+msgid "hour"
+msgstr "时"
+
+#. KunPen Libraries choice
+msgid "minute"
+msgstr "分"
+
+#. KunPen Libraries block
+msgid "connect rainbow LED to _ count _ mode _"
+msgstr "彩虹灯连接到 _ 灯数 _ 模式 _"
+
+#. KunPen Libraries block
+msgid "connect rainbow LED to _"
+msgstr "彩虹灯连接到 _"
+
+#. KunPen Libraries block
+msgid "count _ mode _"
+msgstr "总灯数为 _ 色彩模式为 _"
+
+#. KunPen Libraries block
+msgid "set rainbow LED color _"
+msgstr "彩虹灯显示颜色 _"
+
+#. KunPen Libraries block
+msgid "set rainbow LED pixel _ to _"
+msgstr "彩虹灯第 _ 颗设置为 _"
+
+#. KunPen Libraries block
+msgid "clear rainbow LED"
+msgstr "彩虹灯清除"
+
+#. KunPen Libraries block
+msgid "rainbow LED brightness _"
+msgstr "彩虹灯 亮度设为 _"
+
+#. KunPen Libraries block
+msgid "rainbow LED color _"
+msgstr "彩虹灯颜色 _"
+
+#. KunPen Libraries block
+msgid "rainbow LED range start _ length _"
+msgstr "彩虹灯范围 起点为 _ 长度为 _"
+
+#. KunPen Libraries block
+msgid "shift rainbow LED _"
+msgstr "彩虹灯平移 _"
+
+#. KunPen Libraries block
+msgid "rotate rainbow LED _"
+msgstr "彩虹灯旋转 _"
+
+#. KunPen Libraries block
+msgid "OLED line _ show text _"
+msgstr "OLED 第 _ 行 显示文本 _"
+
+#. KunPen Libraries block
+msgid "OLED line _ show number _"
+msgstr "OLED 第 _ 行 显示数字 _"
+
+#. KunPen Libraries block
+msgid "clear OLED"
+msgstr "OLED 清屏"
+
+#. KunPen Libraries block
+msgid "refresh matrix display"
+msgstr "点阵显示屏 刷新显示"
+
+#. KunPen Libraries block
+msgid "clear matrix display"
+msgstr "点阵显示屏 清屏"
+
+#. KunPen Libraries block
+msgid "matrix display turn on X _ Y _"
+msgstr "点阵显示屏 点亮 X _ Y _"
+
+#. EF Libraries block
+msgid "matrix display coordinate X _ Y _"
+msgstr "点阵显示屏 坐标 X _ Y _"
+
+#. KunPen Libraries block
+msgid "numeric display set port _"
+msgstr "数码管接口设置 _"
+
+#. KunPen Libraries block
+msgid "clear numeric display"
+msgstr "数码管清屏"
+
+#. KunPen Libraries choice
+msgid "carbon monoxide"
+msgstr "一氧化碳"
+
+#. KunPen Libraries choice
+msgid "carbon dioxide"
+msgstr "二氧化碳"
+
+#. KunPen Libraries choice
+msgid "smoke"
+msgstr "烟雾"
+
+#. KunPen Libraries choice
+msgid "alcohol"
+msgstr "酒精"
+
+#. KunPen Libraries choice
+msgid "temperature (C)"
+msgstr "温度(C)"
+
+#. KunPen Libraries choice
+msgid "humidity (0-100)"
+msgstr "湿度(0-100)"
+
+#. KunPen Libraries choice
+msgid "Celsius"
+msgstr "摄氏度"
+
+#. KunPen Libraries choice
+msgid "Fahrenheit"
+msgstr "华氏度"
+
+#. KunPen Libraries choice
+msgid "RGB(GRB order)"
+msgstr "RGB(GRB顺序)"
+
+#. KunPen Libraries choice
+msgid "RGB(RGB order)"
+msgstr "RGB(RGB顺序)"
+
+#. KunPen Libraries choice
+msgid "orange"
+msgstr "橙色"
+
+#. KunPen Libraries choice
+msgid "indigo"
+msgstr "靛色"
+
+#. KunPen Libraries choice
+msgid "violet"
+msgstr "紫罗兰"
+
+#. KunPen Libraries choice
+msgid "play"
+msgstr "播放"
+
+#. KunPen Libraries choice
+msgid "previous track"
+msgstr "上一首"
+
+#. KunPen Libraries choice
+msgid "pause"
+msgstr "暂停"
+
+#. KunPen Libraries choice
+msgid "smiley face"
+msgstr "笑脸"
+
+#. KunPen Libraries choice
+msgid "neutral face"
+msgstr "正常脸"
+
+#. KunPen Libraries choice
+msgid "smile"
+msgstr "笑脸"
+
+#. KunPen Libraries block
+msgid "laser module _ turn _"
+msgstr "激光模块 _ 切换到 _"
+
+#. KunPen Libraries block
+msgid "fan _ turn _"
+msgstr "风扇模块 _ 切换到 _"
+
+#. KunPen Libraries block
+msgid "LED _ turn _"
+msgstr "LED模块 _ 切换到 _"
+
+#. KunPen Libraries block
+msgid "brightness _ %"
+msgstr "亮度 _ %"
+
+#. KunPen Libraries block
+msgid "MP3 set port _"
+msgstr "MP3 连接到 _"
+
+#. KunPen Libraries block
+msgid "MP3 set volume _ (0-25)"
+msgstr "MP3 设置音量为 _ (0~25)"
+
+#. KunPen Libraries block
+msgid "MP3 play folder _ file _"
+msgstr "MP3 播放文件夹 _ 文件 _"
+
+#. KunPen Libraries block
+msgid "repeat _"
+msgstr "循环 _"
+
+#. KunPen Libraries block
+msgid "MP3 play track _"
+msgstr "MP3 播放序号 _"
+
+#. KunPen Libraries block
+msgid "MP3 loop folder _"
+msgstr "MP3 循环播放文件夹 _"
+
+#. KunPen Libraries block
+msgid "MP3 execute _"
+msgstr "MP3 执行 _"
+
+#. KunPen Libraries block
+msgid "joystick _ analog value"
+msgstr "摇杆 _ 模拟值"
+
+#. KunPen Libraries block
+msgid "joystick button _ is pressed"
+msgstr "摇杆 _ 被按下"
+
+#. KunPen Libraries block
+msgid "WiFi module set port _ baud rate _"
+msgstr "WiFi 模块设置连接口 _ 波特率 _"
+
+#. KunPen Libraries block
+msgid "WiFi connect SSID _ password _"
+msgstr "WiFi 连接 SSID _ 密码 _"
+
+#. KunPen Libraries block
+msgid "WiFi send AT _ wait _ ms"
+msgstr "WiFi 发送 AT _ 等待 _ ms"
+
+#. KunPen Libraries block
+msgid "WiFi read response"
+msgstr "WiFi 读取返回"
+
+#. KunPen Libraries block
+msgid "button _ key _ is pressed"
+msgstr "按钮 _ 的按键 _ 被按下"
+
+#. KunPen Libraries block
+msgid "when button _ key _ is pressed"
+msgstr "当按钮 _ 的按键 _ 被按下"
+
+#. KunPen Libraries block
+msgid "crash sensor _ pressed?"
+msgstr "碰撞传感器 _ 被按下"
+
+#. KunPen Libraries block
+msgid "ultrasonic sensor _ distance, unit _"
+msgstr "超声波传感器 _ 距离，单位 _"
+
+#. KunPen Libraries block
+msgid "PIR sensor _ detects motion?"
+msgstr "人体红外传感器 _ 检测到运动"
+
+#. KunPen Libraries block
+msgid "temperature and humidity sensor _ _ value"
+msgstr "温湿度传感器 _ 的 _ 值"
+
+#. KunPen Libraries block
+msgid "temperature sensor _ temperature, unit _"
+msgstr "温度传感器 _ 温度，单位 _"
+
+#. KunPen Libraries block
+msgid "line-tracking sensor _ detects _"
+msgstr "巡线传感器 _ 识别到 _"
+
+#. KunPen Libraries block
+msgid "noise sensor _ level (dB)"
+msgstr "噪音传感器 _ 分贝值(dB)"
+
+#. KunPen Libraries block
+msgid "light sensor _ level (lux)"
+msgstr "光线传感器 _ 光照强度(lux)"
+
+#. KunPen Libraries block
+msgid "soil moisture sensor _ value (0-100)"
+msgstr "土壤湿度传感器 _ 数值(0-100)"
+
+#. KunPen Libraries block
+msgid "water level sensor _ speed _ value (0-100)"
+msgstr "水位传感器 _ 采样速度 _ 数值(0-100)"
+
+#. KunPen Libraries block
+msgid "speed _"
+msgstr "速度 _"
+
+#. KunPen Libraries block
+msgid "UV sensor _ level (0-15)"
+msgstr "紫外线传感器 _ 强度(0-15)"
+
+#. KunPen Libraries block
+msgid "gas sensor _ _ concentration"
+msgstr "气体传感器 _ 的 _ 浓度值"
+
+#. KunPen Libraries block
+msgid "PM2.5 sensor _ concentration"
+msgstr "PM2.5 传感器 _ 浓度"
+
+#. KunPen Libraries block
+msgid "dust sensor _ value"
+msgstr "粉尘传感器 _ 数值"
+
+#. KunPen Libraries block
+msgid "trimpot _ analog value"
+msgstr "电位器 _ 模拟值"
+
+#. KunPen Libraries block
+msgid "RFID sensor detects card?"
+msgstr "RFID 传感器检测到卡片"
+
+#. KunPen Libraries block
+msgid "RFID sensor write data _ to card"
+msgstr "RFID 传感器将数据 _ 写入卡"
+
+#. KunPen Libraries block
+msgid "RFID sensor read data from card"
+msgstr "RFID 传感器从卡中读取数据"
+
+#. KunPen Libraries block
+msgid "BME280 sensor _ value"
+msgstr "环境传感器 _ 值"
+
+#. KunPen Libraries block
+msgid "real-time clock get _"
+msgstr "实时时钟获取 _"
+
+#. KunPen Libraries block
+msgid "real-time clock set to _ _"
+msgstr "实时时钟设置为 _ _"
+
+#. KunPen Libraries block
+msgid "return four-channel grayscale line sensor state value"
+msgstr "返回四路灰度巡线传感器状态值"
+
+#. EF Libraries block
+msgid "numeric display show _ (0-9999)"
+msgstr "数码管显示 _ （0～9999）"
+
+#. EF Libraries block
+msgid "numeric display digit _ (1-4) decimal point show _"
+msgstr "数码管第 _ 位（1-4）小数点，显示 _"
+
+#. EF Libraries block
+msgid "rainbow LED show gradient color"
+msgstr "彩虹灯显示渐变色"
+
+#. EF Libraries block
+msgid "generate RGB color _ _ _"
+msgstr "生成RGB颜色 _ _ _"
+
+#. EF Libraries block
+msgid "generate HSV color _ _ _"
+msgstr "生成HSV颜色 _ _ _"
+
+#. EF Libraries block
+msgid "5x5 matrix display emoji _"
+msgstr "5×5点阵显示 _"
+
+#. EF Libraries menu option
+msgid "crying face"
+msgstr "哭脸"
+
+#. EF Libraries menu option
+msgid "check mark"
+msgstr "对钩"
+
+#. EF Libraries menu option
+msgid "cross"
+msgstr "交叉"
+
+#. EF Libraries block
+msgid "smartiot connected"
+msgstr "smartiot已连接"
+
+#. EF Libraries block
+msgid "wifi connected"
+msgstr "wifi已连接"
+
+#. KunPen Libraries block
+msgid "four-channel grayscale line sensor channel _ detects _"
+msgstr "四路灰度巡线传感器通道 _ 识别到 _"
+
+#. KunPen Libraries block
+msgid "four-channel grayscale line sensor detects state _"
+msgstr "四路灰度巡线传感器识别到状态 _"
+
+#. KunPen Libraries block
+msgid "four-channel grayscale line sensor channel _ gray value"
+msgstr "四路灰度巡线传感器 通道 _ 灰度值"
+
+#. KunPen Libraries choice
+msgid "jazz music"
+msgstr "爵士"
+
+#. NEZHAEsp32 Libraries block
+msgid "play melody _ at tempo _ bpm"
+msgstr "播放旋律 _ 速度 _ bpm"
+
+#. KunPen Libraries block
+msgid "play tone _ Hz for _ ms"
+msgstr "播放音调 _ Hz，持续 _ ms"
+
+#. KunPen Libraries block
+msgid "stop all sounds"
+msgstr "停止所有声音"
+
+#. NEZHA ESP32 library file label
+msgid "Sport"
+msgstr "运动"
+
+#. NEZHA ESP32 library label
+msgid "SpeechRecognition"
+msgstr "语音识别"
+
+#. NEZHA ESP32 library label
+msgid "AILensPro"
+msgstr "AI摄像头 Pro"
+
+#. EF library file labels
+msgid "Board"
+msgstr "板载传感器"
+
+msgid "IOT"
+msgstr "IOT 物联网"
+
+msgid "SpeechRecognition"
+msgstr "语音识别"
+
+msgid "AILensPro"
+msgstr "AI摄像头 Pro"
+
+#. EF library module labels
+msgid "NEZHAEsp32_Board"
+msgstr "板载"
+
+msgid "NEZHAEsp32_IOT"
+msgstr "IOT 物联网"
+
+msgid "Speech Recognition"
+msgstr "语音识别"
+
+#. NEZHA ESP32 library label
+msgid "AI_Module"
+msgstr "AI模块"
+
+#. NEZHA ESP32 library label
+msgid "Display"
+msgstr "显示模块"
+
+#. NEZHA ESP32 library label
+msgid "Execute"
+msgstr "执行模块"
+
+#. NEZHA ESP32 library label
+msgid "Wireless"
+msgstr "无线模块"
+
+#. NEZHA ESP32 library label
+msgid "Input"
+msgstr "输入模块"
+
+#. NEZHA ESP32 library label
+msgid "Sport"
+msgstr "运动模块"
+
+#. EF library module descriptions
+msgid "libdesc:Board"
+msgstr ""
+"板载按键\n"
+"RGB 灯\n"
+"屏幕显示\n"
+"声音控制"
+
+msgid "libdesc:AILensPro"
+msgstr ""
+"AI 摄像头\n"
+"I2C 通信\n"
+"功能切换和 RGB 控制\n"
+"人脸识别\n"
+"自学习\n"
+"手势识别\n"
+"声触录音和上传"
+
+msgid "libdesc:AI_Module"
+msgstr ""
+"AI 摄像头\n"
+"手势识别传感器\n"
+"颜色识别传感器\n"
+"语音识别传感器"
+
+msgid "libdesc:Display"
+msgstr ""
+"数码管\n"
+"彩虹灯\n"
+"OLED 显示屏\n"
+"点阵显示屏"
+
+msgid "libdesc:Execute"
+msgstr ""
+"激光模块\n"
+"风扇模块\n"
+"LED 模块\n"
+"MP3 模块"
+
+msgid "libdesc:Wireless"
+msgstr ""
+"ESP8266 WiFi 模块\n"
+"SmartIoT\n"
+"I2C 摇杆"
+
+msgid "libdesc:Input"
+msgstr ""
+"按键\n"
+"碰撞传感器\n"
+"超声波传感器\n"
+"人体红外传感器\n"
+"温湿度传感器\n"
+"巡线传感器\n"
+"噪音传感器\n"
+"光线传感器\n"
+"土壤湿度传感器\n"
+"水位传感器\n"
+"紫外线传感器\n"
+"气体传感器\n"
+"PM2.5 传感器\n"
+"粉尘传感器\n"
+"电位器\n"
+"RFID 传感器\n"
+"环境传感器\n"
+"实时时钟\n"
+"四路灰度巡线传感器"
+
+msgid "libdesc:Sport"
+msgstr ""
+"智能电机\n"
+"小车运动控制"
+
+msgid "libdesc:Speech Recognition"
+msgstr "语音识别"
+
+#. Library folder label
+msgid "folder;EF_Libraries"
+msgstr "恩孚科技"
+
+#. Library folder label
+msgid "folder;Nezha_ESP32"
+msgstr "哪吒_ESP32"
+
+#. Library folder label
+msgid "folder;PlanetX"
+msgstr "行星系列"
+
+#. IOT library choice
+msgid "on"
+msgstr "开"
+
+#. IOT library choice
+msgid "off"
+msgstr "关"
+
+#. IOT library block
+msgid "Connect SmartIoT with userToken _ topic _"
+msgstr "连接 SmartIoT 用户令牌 _ 主题 _"
+
+#. NeZhaEsp32 library block
+msgid "set data to send SmartIoT Data 1 _ : Data 2 _ Data 3 _ Data 4 _ Data 5 _ Data 6 _ Data 7 _ Data 8 _"
+msgstr "设置发送到 SmartIoT 的数据 数据1 _：数据2 _ 数据3 _ 数据4 _ 数据5 _ 数据6 _ 数据7 _ 数据8 _"
+
+#. IOT library block
+msgid "Upload data to SmartIoT"
+msgstr "上传数据到 SmartIoT"
+
+#. IOT library block
+msgid "SmartIoT connection"
+msgstr "SmartIoT 已连接"
+
+#. IOT library block
+msgid "when SmartIoT switch _"
+msgstr "当 SmartIoT 开关 _"
+
+#. IOT library block
+msgid "SmartIoT switch _"
+msgstr "SmartIoT 开关 _"
+
+#. IOT library block
+msgid "when SmartIoT switch is _"
+msgstr "当 SmartIoT 开关为 _"
+
+#. IOT library block
+msgid "SmartIoT switch is _"
+msgstr "SmartIoT 开关为 _"
+
+#. IOT library block
+msgid "set SmartIoT server host _ port _"
+msgstr "设置 SmartIoT 服务器主机 _ 端口 _"
+
+#. IOT library block
+msgid "SmartIoT last response"
+msgstr "SmartIoT 最后响应"
+
+#. Smart Motor library choice
+msgid "M1"
+msgstr "M1"
+
+#. Smart Motor library choice
+msgid "M2"
+msgstr "M2"
+
+#. Smart Motor library choice
+msgid "M3"
+msgstr "M3"
+
+#. Smart Motor library choice
+msgid "M4"
+msgstr "M4"
+
+#. Smart Motor library choice
+msgid "mm"
+msgstr "毫米"
+
+#. Smart Motor library choice
+msgid "low"
+msgstr "低"
+
+#. Smart Motor library choice
+msgid "medium"
+msgstr "中"
+
+#. Smart Motor library choice
+msgid "high"
+msgstr "高"
+
+#. Smart Motor library choice
+msgid "no wait"
+msgstr "不等待"
+
+#. Smart Motor library choice
+msgid "wait until done"
+msgstr "等待完成"
+
+#. Smart Motor library choice
+msgid "heavy"
+msgstr "重"
+
+#. Smart Motor library block
+msgid "start motor _ speed _ % direction _"
+msgstr "电机 _ 以 _ %速度 _ 运行"
+
+#. Smart Motor library block
+msgid "read motor _ speed (degrees/sec)"
+msgstr "读取电机 _ 速度（度/秒）"
+
+#. Smart Motor library block
+msgid "read motor _ relative angle (degrees)"
+msgstr "读取电机 _ 相对角度（度）"
+
+#. Smart Motor library block
+msgid "read motor _ absolute angle (degrees)"
+msgstr "读取电机 _ 绝对角度（度）"
+
+#. Smart Motor library block
+msgid "set robot load _"
+msgstr "机器人 设置负重 _"
+
+#. Smart Motor library block
+msgid "set robot wheel diameter _ mm"
+msgstr "机器人 设置车轮直径 _ 毫米"
+
+#. Smart Motor library block
+msgid "set robot left wheel _ right wheel _"
+msgstr "机器人 设置左轮 _ ，设置右轮 _"
+
+#. Smart Motor library block
+msgid "run robot left wheel speed _ % right wheel speed _ %"
+msgstr "机器人 以 左轮 _ %速度，右轮 _ %速度运行"
+
+#. Smart Motor library block
+msgid "stop robot"
+msgstr "机器人停止"
+
+#. NeZhaEsp32 library block
+msgid "Main control reset"
+msgstr "主体位置初始化"
+
+#. NeZhaEsp32 library block
+msgid "Obtain the angle of the _ axis of the gyroscope (0-360 degrees)"
+msgstr "主体 _ 轴角度(0-360°)"
+
+#. NeZhaEsp32 library block
+msgid "Obtain the acceleration of the _ axis of the gyroscope (unit mg)"
+msgstr "主体 _ 轴加速度(单位: mg)"
+
+#. NeZhaEsp32 library block
+msgid "get light sensor value"
+msgstr "环境光亮度"
+
+#. NeZhaEsp32 library block
+msgid "Obtain the noise value"
+msgstr "环境噪音"
+
+#. Speech Recognition library choice
+msgid "CN"
+msgstr "中文"
+
+#. Speech Recognition library choice
+msgid "EN"
+msgstr "英文"
+
+#. Speech Recognition library block
+msgid "enable speech recognition _"
+msgstr "启用语音识别 _"
+
+#. Speech Recognition library block
+msgid "disable speech recognition"
+msgstr "禁用语音识别"
+
+#. Speech Recognition library block
+msgid "when _ is recognized"
+msgstr "当识别到 _ 时"
+
+#. Sport library block
+msgid "reset motor _ position : _"
+msgstr "电机 _ 位置归零 _"
+
+#. Sport library block
+msgid "turn motor _ speed _ % direction _ for _ _ : _"
+msgstr "电机 _ 以 _ %速度 _ 运行 _ _，_"
+
+#. Sport library block
+msgid "turn motor _ speed _ % direction _ to absolute angle _ : _"
+msgstr "电机 _ 以 _ %速度 _ 转到绝对角度 _，_"
+
+#. Sport library block
+msgid "turn robot at _ % speed with _ acceleration by _ degrees : _"
+msgstr "机器人 以 _ %速度，原地 _ 加速转向 _ 度，_"
+
+#. Sport library block
+msgid "drive robot at _ % speed _ with _ acceleration for _ _ : _"
+msgstr "机器人 以 _ %速度向 _ _ 加速运行 _ _，_"
+
+#. EF Libraries block
+msgid "connect rainbow LED to _ : count _ mode _"
+msgstr "彩虹灯连接到 _，灯数 _，模式 _"
+
+#. EF Libraries block
+msgid "MP3 play folder _ file _ : repeat _"
+msgstr "MP3 播放文件夹 _ 文件 _，重复 _"
+
+#. EF Libraries block
+msgid "MP3 play track _ : repeat _"
+msgstr "MP3 播放序号 _，重复 _"
+
+#. EF Libraries block
+msgid "set data to send SmartIoT Data 1 _ : Data 2 _ : Data 3 _ : Data 4 _ : Data 5 _ : Data 6 _ : Data 7 _ : Data 8 _"
+msgstr "设置发送到 SmartIoT 的数据 数据1 _：数据2 _：数据3 _：数据4 _：数据5 _：数据6 _：数据7 _：数据8 _"

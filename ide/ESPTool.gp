@@ -505,6 +505,7 @@ method vmNameForBoard ESPTool boardName {
 	} ('Springbot Green' == boardName) { return 'vm_springbot.bin'
 	} ('Springbot Gold' == boardName) { return 'vm_springbot.bin'
 	} ('Mbits' == boardName) { return 'vm_mbits.bin'
+	} ('NEZHA-ESP32-S3' == boardName) { return 'vm_nezha-esp32-s3.bin'
 	}
 	return nil
 }
@@ -535,7 +536,14 @@ method uploadESP32VM ESPTool vmData eraseFlag boardName {
 	ok = (uploadStub this)
 	if (not ok) { return false }
 
-	ok = (setFlashParameters this)
+	if (or
+		(notNil (findSubstring 'NEZHA-ESP32-S3' boardName))
+		(notNil (findSubstring 'KUNPENG-ESP32-S3' boardName))
+	) {
+		ok = (setNeZhaFlashParameters this)
+	} else {
+		ok = (setFlashParameters this)
+	}
 	if (not ok) { return false }
 
 	if eraseFlag { eraseFlash this }
@@ -549,6 +557,15 @@ method uploadESP32VM ESPTool vmData eraseFlag boardName {
 
 	if allInOneBinary {
 		uploadCompressed this 0 vmData // binary includes all subparts and loads at address 0
+		return true
+	}
+
+	if (isOneOf boardName 'NEZHA-ESP32-S3' 'KUNPENG-ESP32-S3') {
+		// Application-only upgrade at the OTA_0 address. Preserve the existing
+		// bootloader, partition table, and filesystem partitions.
+		flashAddress = (hex '0x10000')
+		uploadCompressed this flashAddress vmData
+		print 'uploaded NEZHA-ESP32-S3 firmware at' flashAddress (byteCount vmData) 'bytes'
 		return true
 	}
 
@@ -682,6 +699,20 @@ method setFlashParameters ESPTool {
 	args = (list)
 	add32Int this args 0 // Flash ID
 	add32Int this args (4 * (1024 * 1024)) // total size; assume 4 MB
+	add32Int this args (64 * 1024) // block size
+	add32Int this args (4 * 1024) // sector size
+	add32Int this args 256 // page size
+	add32Int this args (hex 'ffff') // status mask
+	sendCmd this (hex '0b') args
+	return (not (errorResponse this))
+}
+
+method setNeZhaFlashParameters ESPTool {
+	// NEZHA and KUNPENG use 16 MB Flash. Other parameters are fixed.
+
+	args = (list)
+	add32Int this args 0 // Flash ID
+	add32Int this args (16 * (1024 * 1024)) // total size; 16 MB
 	add32Int this args (64 * 1024) // block size
 	add32Int this args (4 * 1024) // sector size
 	add32Int this args 256 // page size
