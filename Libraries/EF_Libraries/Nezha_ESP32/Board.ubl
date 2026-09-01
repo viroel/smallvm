@@ -20,7 +20,7 @@ choices smartIotSwitchMenu 'on' 'off'
 variables _efsound_tempo _efsound_play_id _efsound_bg_melody _efsound_bg_bpm
 variables _smartiot_connected _smartiot_sendMsg _smartiot_lastSendTime _smartiot_switchListenFlag _smartiot_switchStatus _smartiot_switchKnown
 variables _smartiot_switchOnEvent _smartiot_switchOffEvent _smartiot_host _smartiot_port _smartiot_token _smartiot_topic _smartiot_lastResponse
-variables _smartiot_requestBusy _smartiot_switchLoopHeartbeat _smartiot_eventDebugLastLog
+variables _smartiot_requestBusy _smartiot_switchLoopHeartbeat
 
   spec 'r' 'nezhaEsp32_buttonEvent' 'button _ _ event?' 'menu.smvButtonMenu menu.smvButtonPressReleaseMenu' 'A' 'pressed'
   space
@@ -704,31 +704,21 @@ to '_smartiotSwitchLoop' {
 }
 
 to iotSwitchEvent state {
-  forever {
-    '_smartiotStartSwitchLoop'
-    // Diagnostic output: prove that the condition-hat polling loop is running
-    // without flooding the IDE connection. The frontend prints these messages
-    // to the browser console.
-    if (or (_smartiot_eventDebugLastLog == 0)
-        ((millisSince _smartiot_eventDebugLastLog) >= 1000)) {
-      _smartiot_eventDebugLastLog = (millisOp)
-      sendBroadcast ('[data:join]' '[debug:iotSwitchEvent] polling state=' state ' on=' _smartiot_switchOnEvent ' off=' _smartiot_switchOffEvent)
+  // The built-in condition hat polls this reporter repeatedly.
+  // Return true once for each matching switch transition.
+  '_smartiotStartSwitchLoop'
+  if (or (state == 'on') (state == '开')) {
+    if _smartiot_switchOnEvent {
+      _smartiot_switchOnEvent = false
+      return true
     }
-    if (or (state == 'on') (state == '开')) {
-      if _smartiot_switchOnEvent {
-        _smartiot_switchOnEvent = false
-        sendBroadcast '[debug:iotSwitchEvent] fired on'
-        return true
-      }
-    } else {
-      if _smartiot_switchOffEvent {
-        _smartiot_switchOffEvent = false
-        sendBroadcast '[debug:iotSwitchEvent] fired off'
-        return true
-      }
+  } else {
+    if _smartiot_switchOffEvent {
+      _smartiot_switchOffEvent = false
+      return true
     }
-    waitMillis 200
   }
+  return false
 }
 
 to smartIotSwitchState state {

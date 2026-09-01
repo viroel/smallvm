@@ -652,6 +652,8 @@ method instructionsFor SmallCompiler aBlockOrFunction {
 			addAll result (instructionsForExpression this (first (argList cmdOrReporter)))
 			add result (array 'recvBroadcast' 1)
 			addAll result (instructionsForCmdList this (nextBlock cmdOrReporter))
+		} (and (isClass aBlockOrFunction 'Block') ('hat' == (type aBlockOrFunction))) {
+			addAll result (instructionsForCustomHatCondition this cmdOrReporter)
 		} (isClass aBlockOrFunction 'Function') {
 			if (isEmpty (argNames func)) {
 				// Mark functions without arguments so they can be invoked
@@ -708,6 +710,23 @@ method instructionsForWhenCondition SmallCompiler cmdOrReporter {
 	addAll result body
 
 	// loop back to condition test
+	addAll result (instructionsForJump this 'jmp' (0 - ((count result) + 1)))
+	return result
+}
+
+method instructionsForCustomHatCondition SmallCompiler cmdOrReporter {
+	condition = (instructionsForExpression this cmdOrReporter)
+	body = (instructionsForCmdList this (nextBlock cmdOrReporter))
+	result = (list)
+
+	// Custom library hats use their own return value as the condition.
+	addAll result (instructionsForExpression this 10)
+	add result (array 'waitMillis' 1)
+	addAll result condition
+	addAll result (instructionsForJump this 'jmpFalse' (0 - ((count condition) + 3)))
+
+	addAll result body
+
 	addAll result (instructionsForJump this 'jmp' (0 - ((count result) + 1)))
 	return result
 }

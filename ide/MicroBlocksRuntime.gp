@@ -81,6 +81,7 @@ method chunkTypeFor SmallRuntime aBlockOrFunction {
 		if ('B' == button) { return 8 }
 		return 9 // A+B
 	}
+	if (and (isClass aBlockOrFunction 'Block') ('hat' == (type aBlockOrFunction))) { return 5 }
 	if (isClass expr 'Command') { return 1 }
 	if (isClass expr 'Reporter') { return 2 }
 
