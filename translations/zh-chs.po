@@ -5428,7 +5428,7 @@ msgstr "_ 个伪随机数 从 _ 到 _ ，种子为 _"
 
 #. Example string for blocks that send a message via some communication channel.
 msgid "light"
-msgstr "light"
+msgstr "轻"
 
 #. Lists library block. It takes a list and replaces a few, some, most or (list of indices) items with some other element
 msgid "_ with _ items replaced by _"
@@ -6571,3 +6571,1706 @@ msgstr "组件"
 #. CoCube library block
 msgid "wheels brake"
 msgstr "电机刹车"
+
+#. Display Library block
+msgid "5x5 matrix display emoji _"
+msgstr "5×5点阵显示 _"
+
+#. AI_Module Library block
+msgid "AI camera ball _ value"
+msgstr "摄像头 从图像中获取小球的 _"
+
+#. AI_Module Library block
+msgid "AI camera ball count"
+msgstr "摄像头 从图像中获取小球的总个数"
+
+#. AI_Module Library block
+msgid "AI camera black-line _ value"
+msgstr "摄像头 从图像中获取黑线的 _ 值"
+
+#. AI_Module Library block
+msgid "AI camera capture image"
+msgstr "摄像头 获取一帧图像"
+
+#. AI_Module Library block
+msgid "AI camera card _ value"
+msgstr "摄像头 从图像中获取卡片的 _ 值"
+
+#. AI_Module Library block
+msgid "AI camera card count"
+msgstr "摄像头 从图像中获取卡片的总个数"
+
+#. AI_Module Library block
+msgid "AI camera clear learned objects"
+msgstr "摄像头 清除已学习的对象"
+
+#. AI_Module Library block
+msgid "AI camera color-card count"
+msgstr "摄像头 从图像中获取颜色卡片的总个数"
+
+#. AI_Module Library block
+msgid "AI camera face _ value"
+msgstr "摄像头 从图像中获取人脸的 _"
+
+#. AI_Module Library block
+msgid "AI camera face count"
+msgstr "摄像头 从图像中获取人脸的总个数"
+
+#. AI_Module Library block
+msgid "AI camera image contains _ ball?"
+msgstr "摄像头 图像中包含 _ 小球"
+
+#. AI_Module Library block
+msgid "AI camera image contains _ card?"
+msgstr "摄像头 图像中包含 _ 卡片"
+
+#. AI_Module Library block
+msgid "AI camera image contains _ color card?"
+msgstr "摄像头 图像中包含 _ 颜色卡片"
+
+#. AI_Module Library block
+msgid "AI camera image contains a ball?"
+msgstr "摄像头 图像中包含小球"
+
+#. AI_Module Library block
+msgid "AI camera image contains a face?"
+msgstr "摄像头 图像中包含人脸"
+
+#. AI_Module Library block
+msgid "AI camera image contains black line offset _?"
+msgstr "摄像头 图像中包含向 _ 偏移的黑线"
+
+#. AI_Module Library block
+msgid "AI camera image contains letter card _?"
+msgstr "摄像头 图像中包含 _ 字母卡片"
+
+#. AI_Module Library block
+msgid "AI camera image contains number card _?"
+msgstr "摄像头 图像中包含 _ 数字卡片"
+
+#. AI_Module Library block
+msgid "AI camera image contains object _?"
+msgstr "摄像头 图像中包含对象 _"
+
+#. AI_Module Library block
+msgid "AI camera image contains traffic sign card _?"
+msgstr "摄像头 图像中包含 _ 交通符号卡片"
+
+#. AI_Module Library block
+msgid "AI camera learn object in view as _"
+msgstr "摄像头 学习画面中的对象为 _"
+
+#. AI_Module Library block
+msgid "AI camera object _ confidence"
+msgstr "摄像头 从图像中获取对象 _ 的置信度"
+
+#. AI_Module Library block
+msgid "AI camera switch function to _"
+msgstr "摄像头 切换功能为 _"
+
+#. Library name
+msgid "AILensPro"
+msgstr "AI摄像头 Pro"
+
+#. Input Library block
+msgid "BME280 sensor _ value"
+msgstr "环境传感器 _ 值"
+
+#. Board Library block
+#. Wireless Library block
+msgid "Connect SmartIoT with userToken _ topic _"
+msgstr "连接 SmartIoT 用户令牌 _ 主题 _"
+
+#. Execute Library block
+msgid "LED _ turn _"
+msgstr "LED模块 _ 切换到 _"
+
+#. Execute Library block
+msgid "MP3 execute _"
+msgstr "MP3 执行 _"
+
+#. Execute Library block
+msgid "MP3 loop folder _"
+msgstr "MP3 循环播放文件夹 _"
+
+#. Execute Library block
+msgid "MP3 set port _"
+msgstr "MP3 连接到 _"
+
+#. Execute Library block
+msgid "MP3 set volume _ (0-25)"
+msgstr "MP3 设置音量为 _ (0~25)"
+
+#. Board Library block
+msgid "Main control reset"
+msgstr "主体位置初始化"
+
+#. Display Library block
+msgid "OLED line _ show number _"
+msgstr "OLED 第 _ 行 显示数字 _"
+
+#. Display Library block
+msgid "OLED line _ show text _"
+msgstr "OLED 第 _ 行 显示文本 _"
+
+#. Board Library block
+msgid "Obtain the acceleration of the _ axis of the gyroscope (unit mg)"
+msgstr "主体 _ 轴加速度(单位: mg)"
+
+#. Board Library block
+msgid "Obtain the angle of the _ axis of the gyroscope (0-360 degrees)"
+msgstr "主体 _ 轴角度(0-360°)"
+
+#. Board Library block
+msgid "Obtain the noise value"
+msgstr "环境噪音"
+
+#. Input Library block
+msgid "PIR sensor _ detects motion?"
+msgstr "人体红外传感器 _ 检测到运动"
+
+#. Input Library block
+msgid "PM2.5 sensor _ concentration"
+msgstr "PM2.5 传感器 _ 浓度"
+
+#. Input Library block
+msgid "RFID sensor detects card?"
+msgstr "RFID 传感器检测到卡片"
+
+#. Input Library block
+msgid "RFID sensor read data from card"
+msgstr "RFID 传感器从卡中读取数据"
+
+#. Input Library block
+msgid "RFID sensor write data _ to card"
+msgstr "RFID 传感器将数据 _ 写入卡"
+
+#. Board Library block
+msgid "SmartIoT connection"
+msgstr "SmartIoT 已连接"
+
+#. Board Library block
+msgid "SmartIoT last response"
+msgstr "SmartIoT 最后响应"
+
+#. Board Library block
+msgid "SmartIoT switch _"
+msgstr "SmartIoT 开关 _"
+
+#. Wireless Library block
+msgid "SmartIoT switch is _"
+msgstr "SmartIoT 开关为 _"
+
+#. Library name
+msgid "Sport"
+msgstr "运动"
+
+#. Input Library block
+msgid "UV sensor _ level (0-15)"
+msgstr "紫外线传感器 _ 强度(0-15)"
+
+#. Board Library block
+#. Wireless Library block
+msgid "Upload data to SmartIoT"
+msgstr "上传数据到 SmartIoT"
+
+#. Wireless Library block
+msgid "WiFi connect SSID _ password _"
+msgstr "WiFi 连接 SSID _ 密码 _"
+
+#. Wireless Library block
+msgid "WiFi module set port _ baud rate _"
+msgstr "WiFi 模块设置连接口 _ 波特率 _"
+
+#. Wireless Library block
+msgid "WiFi read response"
+msgstr "WiFi 读取返回"
+
+#. Wireless Library block
+msgid "WiFi send AT _ wait _ ms"
+msgstr "WiFi 发送 AT _ 等待 _ ms"
+
+#. Board Library block
+msgid "_ title bar"
+msgstr "_ 标题栏"
+
+#. AILensPro Library block
+msgid "_aicam CRC8 _ length _"
+msgstr "_aicam CRC8 _ 长度 _"
+
+#. AILensPro Library block
+msgid "_aicam read register _ length _"
+msgstr "_aicam 读寄存器 _ 长度 _"
+
+#. AILensPro Library block
+msgid "_aicam write register _ data _"
+msgstr "_aicam 写寄存器 _ 数据 _"
+
+#. Board Library block
+msgid "button _ _ event?"
+msgstr "按键 _ _ 事件?"
+
+#. Input Library block
+msgid "button _ key _ is pressed"
+msgstr "按钮 _ 的按键 _ 被按下"
+
+#. Display Library block
+msgid "clear OLED"
+msgstr "OLED 清屏"
+
+#. Display Library block
+msgid "clear matrix display"
+msgstr "点阵显示屏 清屏"
+
+#. Display Library block
+msgid "clear numeric display"
+msgstr "数码管清屏"
+
+#. Display Library block
+msgid "clear rainbow LED"
+msgstr "彩虹灯清除"
+
+#. AI_Module Library block
+msgid "color sensor detected _?"
+msgstr "颜色识别传感器检测到 _ ?"
+
+#. AI_Module Library block
+msgid "color sensor hue (0-360)"
+msgstr "颜色识别传感器色相(0~360)"
+
+#. Input Library block
+msgid "crash sensor _ pressed?"
+msgstr "碰撞传感器 _ 被按下"
+
+#. Board Library block
+msgid "create text _ x _ y _ color _ and return object ID"
+msgstr "创建文本 _ x _ y _ 颜色 _ 并返回对象 ID"
+
+#. AILensPro Library block
+msgid "current application mode"
+msgstr "当前应用模式"
+
+#. Board Library block
+msgid "delete object ID _"
+msgstr "删除对象 ID _"
+
+#. Speech Recognition Library block
+msgid "disable speech recognition"
+msgstr "禁用语音识别"
+
+#. Input Library block
+msgid "dust sensor _ value"
+msgstr "粉尘传感器 _ 数值"
+
+#. Speech Recognition Library block
+msgid "enable speech recognition _"
+msgstr "启用语音识别 _"
+
+#. AILensPro Library block
+msgid "face ID"
+msgstr "人脸 ID"
+
+#. AILensPro Library block
+msgid "face blink"
+msgstr "人脸眨眼"
+
+#. AILensPro Library block
+msgid "face coordinate _"
+msgstr "人脸坐标 _"
+
+#. AILensPro Library block
+msgid "face detected?"
+msgstr "检测到人脸"
+
+#. AILensPro Library block
+msgid "face label"
+msgstr "人脸标签"
+
+#. AILensPro Library block
+msgid "face mouth open"
+msgstr "人脸张嘴"
+
+#. AILensPro Library block
+msgid "face similarity"
+msgstr "人脸相似度"
+
+#. AILensPro Library block
+msgid "face status"
+msgstr "人脸状态"
+
+#. Execute Library block
+msgid "fan _ turn _"
+msgstr "风扇模块 _ 切换到 _"
+
+#. Input Library block
+msgid "four-channel grayscale line sensor channel _ detects _"
+msgstr "四路灰度巡线传感器通道 _ 识别到 _"
+
+#. Input Library block
+msgid "four-channel grayscale line sensor channel _ gray value"
+msgstr "四路灰度巡线传感器 通道 _ 灰度值"
+
+#. Input Library block
+msgid "four-channel grayscale line sensor detects state _"
+msgstr "四路灰度巡线传感器识别到状态 _"
+
+#. Input Library block
+msgid "gas sensor _ _ concentration"
+msgstr "气体传感器 _ 的 _ 浓度值"
+
+#. Display Library block
+msgid "generate HSV color _ _ _"
+msgstr "生成HSV颜色 _ _ _"
+
+#. Display Library block
+msgid "generate RGB color _ _ _"
+msgstr "生成RGB颜色 _ _ _"
+
+#. AILensPro Library block
+msgid "gesture ID"
+msgstr "手势 ID"
+
+#. AILensPro Library block
+msgid "gesture label"
+msgstr "手势标签"
+
+#. AILensPro Library block
+msgid "gesture pose similarity"
+msgstr "手势姿态相似度"
+
+#. AI_Module Library block
+msgid "gesture sensor current gesture"
+msgstr "手势识别传感器当前手势"
+
+#. AI_Module Library block
+msgid "gesture sensor detected _?"
+msgstr "手势识别传感器识别到 _"
+
+#. AILensPro Library block
+msgid "gesture similarity"
+msgstr "手势相似度"
+
+#. AILensPro Library block
+msgid "gesture status"
+msgstr "手势状态"
+
+#. Board Library block
+msgid "get light sensor value"
+msgstr "环境光亮度"
+
+#. AI_Module Library block
+msgid "initialize AI camera"
+msgstr "摄像头 初始化"
+
+#. AILensPro Library block
+msgid "initialize AI camera over I2C"
+msgstr "IIC 初始化 AI 摄像头"
+
+#. AI_Module Library block
+msgid "initialize gesture sensor"
+msgstr "手势识别传感器初始化"
+
+#. Wireless Library block
+msgid "joystick _ analog value"
+msgstr "摇杆 _ 模拟值"
+
+#. Wireless Library block
+msgid "joystick button _ is pressed"
+msgstr "摇杆 _ 被按下"
+
+#. Execute Library block
+msgid "laser module _ turn _"
+msgstr "激光模块 _ 切换到 _"
+
+#. AILensPro Library block
+msgid "learned gesture detected?"
+msgstr "检测到已学习手势"
+
+#. AILensPro Library block
+msgid "learned object detected?"
+msgstr "检测到已学习对象"
+
+#. Input Library block
+msgid "light sensor _ level (lux)"
+msgstr "光线传感器 _ 光照强度(lux)"
+
+#. Input Library block
+msgid "line-tracking sensor _ detects _"
+msgstr "巡线传感器 _ 识别到 _"
+
+#. Display Library block
+msgid "matrix display coordinate X _ Y _"
+msgstr "点阵显示屏 坐标 X _ Y _"
+
+#. AILensPro Library block
+msgid "mode name _"
+msgstr "模式名称 _"
+
+#. Input Library block
+msgid "noise sensor _ level (dB)"
+msgstr "噪音传感器 _ 分贝值(dB)"
+
+#. Display Library block
+msgid "numeric display digit _ (1-4) decimal point show _"
+msgstr "数码管第 _ 位（1-4）小数点，显示 _"
+
+#. Display Library block
+msgid "numeric display set port _"
+msgstr "数码管接口设置 _"
+
+#. Display Library block
+msgid "numeric display show _ (0-9999)"
+msgstr "数码管显示 _ （0～9999）"
+
+#. Board Library block
+msgid "play melody _ at tempo _ bpm"
+msgstr "播放旋律 _ 速度 _ bpm"
+
+#. Board Library block
+msgid "play sound _"
+msgstr "播放音效 _"
+
+#. Board Library block
+msgid "play tone _ Hz for _ ms"
+msgstr "播放音调 _ Hz，持续 _ ms"
+
+#. Display Library block
+msgid "rainbow LED brightness _"
+msgstr "彩虹灯 亮度设为 _"
+
+#. Display Library block
+msgid "rainbow LED color _"
+msgstr "彩虹灯颜色 _"
+
+#. Display Library block
+msgid "rainbow LED range start _ length _"
+msgstr "彩虹灯范围 起点为 _ 长度为 _"
+
+#. Display Library block
+msgid "rainbow LED show gradient color"
+msgstr "彩虹灯显示渐变色"
+
+#. AILensPro Library block
+msgid "raw register read address _ length _"
+msgstr "原始寄存器读 地址 _ 长度 _"
+
+#. AILensPro Library block
+msgid "raw register write address _ data _"
+msgstr "原始寄存器写 地址 _ 数据 _"
+
+#. Sport Library block
+msgid "read motor _ absolute angle (degrees)"
+msgstr "读取电机 _ 绝对角度（度）"
+
+#. Sport Library block
+msgid "read motor _ relative angle (degrees)"
+msgstr "读取电机 _ 相对角度（度）"
+
+#. Sport Library block
+msgid "read motor _ speed (degrees/sec)"
+msgstr "读取电机 _ 速度（度/秒）"
+
+#. Input Library block
+msgid "real-time clock get _"
+msgstr "实时时钟获取 _"
+
+#. Input Library block
+msgid "real-time clock set to _ _"
+msgstr "实时时钟设置为 _ _"
+
+#. AILensPro Library block
+msgid "recognized face detected?"
+msgstr "检测到已识别人脸"
+
+#. AILensPro Library block
+msgid "refresh face result"
+msgstr "刷新人脸结果"
+
+#. AILensPro Library block
+msgid "refresh gesture result"
+msgstr "刷新手势结果"
+
+#. Display Library block
+msgid "refresh matrix display"
+msgstr "点阵显示屏 刷新显示"
+
+#. AILensPro Library block
+msgid "refresh recognition result"
+msgstr "刷新识别结果"
+
+#. AILensPro Library block
+msgid "refresh self-learning result"
+msgstr "刷新自主学习结果"
+
+#. AILensPro Library block
+msgid "refresh sound-touch result"
+msgstr "刷新声音触碰结果"
+
+#. Input Library block
+msgid "return four-channel grayscale line sensor state value"
+msgstr "返回四路灰度巡线传感器状态值"
+
+#. Display Library block
+msgid "rotate rainbow LED _"
+msgstr "彩虹灯旋转 _"
+
+#. Sport Library block
+msgid "run robot left wheel speed _ % right wheel speed _ %"
+msgstr "机器人以左轮 _ %速度，右轮 _ %速度运行"
+
+#. Board Library block
+msgid "screen background color _"
+msgstr "屏幕背景颜色 _"
+
+#. AILensPro Library block
+msgid "self-learning ID"
+msgstr "自主学习 ID"
+
+#. AILensPro Library block
+msgid "self-learning label"
+msgstr "自主学习标签"
+
+#. AILensPro Library block
+msgid "self-learning similarity"
+msgstr "自主学习相似度"
+
+#. AILensPro Library block
+msgid "self-learning status"
+msgstr "自主学习状态"
+
+#. AILensPro Library block
+msgid "send sound-touch path _ auto upload _"
+msgstr "发送声音触碰路径 _ 自动上传 _"
+
+#. AILensPro Library block
+msgid "set I/O chunk size _ interval _ ms"
+msgstr "设置 IO 分块 _ 间隔 _ ms"
+
+#. AILensPro Library block
+msgid "set I2C address _"
+msgstr "设置 I2C 地址 _"
+
+#. AILensPro Library block
+msgid "set RGB _"
+msgstr "设置 RGB _"
+
+#. Board Library block
+msgid "set RGB _ to _"
+msgstr "RGB _ 设置为 _"
+
+#. Board Library block
+msgid "set SmartIoT server host _ port _"
+msgstr "设置 SmartIoT 服务器主机 _ 端口 _"
+
+#. Board Library block
+msgid "set all RGB LEDs to _"
+msgstr "RGB 灯全设置为 _"
+
+#. Board Library block
+msgid "set color to _"
+msgstr "预设颜色 _"
+
+#. Board Library block
+msgid "set data to send SmartIoT Data 1 _ : Data 2 _ Data 3 _ Data 4 _ Data 5 _ Data 6 _ Data 7 _ Data 8 _"
+msgstr "设置发送到 SmartIoT 的数据 数据1 _：数据2 _ 数据3 _ 数据4 _ 数据5 _ 数据6 _ 数据7 _ 数据8 _"
+
+#. Display Library block
+msgid "set rainbow LED color _"
+msgstr "彩虹灯显示颜色 _"
+
+#. Display Library block
+msgid "set rainbow LED pixel _ to _"
+msgstr "彩虹灯第 _ 颗设置为 _"
+
+#. Sport Library block
+msgid "set robot left wheel _ right wheel _"
+msgstr "机器人 设置左轮 _ ，设置右轮 _"
+
+#. Sport Library block
+msgid "set robot load _"
+msgstr "机器人 设置负重 _"
+
+#. Sport Library block
+msgid "set robot wheel diameter _ mm"
+msgstr "机器人 设置车轮直径 _ 毫米"
+
+#. Board Library block
+msgid "set screen pixel x _ y _ to _"
+msgstr "将屏幕（X _ ，Y _ ）处颜色改为 _"
+
+#. Board Library block
+msgid "set text _ to line _ color _"
+msgstr "设置文本 _ 到第 _ 行 颜色 _"
+
+#. Board Library block
+msgid "set volume to _ %"
+msgstr "将音量设为 _ %"
+
+#. Display Library block
+msgid "shift rainbow LED _"
+msgstr "彩虹灯平移 _"
+
+#. Wireless Library block
+msgid "smartiot connected"
+msgstr "smartiot已连接"
+
+#. Input Library block
+msgid "soil moisture sensor _ value (0-100)"
+msgstr "土壤湿度传感器 _ 数值(0-100)"
+
+#. AILensPro Library block
+msgid "sound-touch BPM"
+msgstr "声音触碰 BPM"
+
+#. AILensPro Library block
+msgid "sound-touch beat count"
+msgstr "声音触碰节拍数"
+
+#. AILensPro Library block
+msgid "sound-touch duration (seconds)"
+msgstr "声音触碰时长(秒)"
+
+#. AILensPro Library block
+msgid "sound-touch message"
+msgstr "声音触碰消息"
+
+#. AILensPro Library block
+msgid "sound-touch recording _"
+msgstr "声音触碰录制 _"
+
+#. AILensPro Library block
+msgid "sound-touch status"
+msgstr "声音触碰状态"
+
+#. AI_Module Library block
+msgid "speech recognition sensor clear learned phrases"
+msgstr "语音识别传感器 清空已学习的词条"
+
+#. AI_Module Library block
+msgid "speech recognition sensor current code"
+msgstr "语音识别传感器 当前识别码"
+
+#. AI_Module Library block
+msgid "speech recognition sensor enter learning mode"
+msgstr "语音识别传感器 进入学习模式"
+
+#. AI_Module Library block
+msgid "speech recognition sensor heard _?"
+msgstr "语音识别传感器 听到 _"
+
+#. Sport Library block
+msgid "start motor _ speed _ % direction _"
+msgstr "电机 _ 以 _ %速度 _ 运行"
+
+#. Board Library block
+msgid "stop all sounds"
+msgstr "停止所有声音"
+
+#. Sport Library block
+msgid "stop motor _"
+msgstr "电机 _ 停止"
+
+#. Sport Library block
+msgid "stop robot"
+msgstr "机器人停止"
+
+#. AILensPro Library block
+msgid "switch function to _"
+msgstr "切换功能到 _"
+
+#. AILensPro Library block
+msgid "switch to launcher"
+msgstr "切换到启动器"
+
+#. Input Library block
+msgid "temperature and humidity sensor _ _ value"
+msgstr "温湿度传感器 _ 的 _ 值"
+
+#. Input Library block
+msgid "temperature sensor _ temperature, unit _"
+msgstr "温度传感器 _ 温度，单位 _"
+
+#. Input Library block
+msgid "trimpot _ analog value"
+msgstr "电位器 _ 模拟值"
+
+#. Board Library block
+msgid "turn off _ RGB LED"
+msgstr "RGB _ 关闭"
+
+#. Board Library block
+msgid "turn off all RGB LEDs"
+msgstr "RGB 灯全部关闭"
+
+#. Input Library block
+msgid "ultrasonic sensor _ distance, unit _"
+msgstr "超声波传感器 _ 距离，单位 _"
+
+#. Board Library block
+msgid "update ID _ text _ color _"
+msgstr "修改编号 _ 文本为 _ ，文本颜色为 _"
+
+#. AILensPro Library block
+msgid "upload sound-touch recording"
+msgstr "声音触碰上传"
+
+#. Input Library block
+msgid "water level sensor _ speed _ value (0-100)"
+msgstr "水位传感器 _ 采样速度 _ 数值(0-100)"
+
+#. Board Library block
+msgid "when SmartIoT switch _ send broadcast _"
+msgstr "当 SmartIoT 开关 _ 时发送广播 _"
+
+#. Wireless Library block
+msgid "when SmartIoT switch is _"
+msgstr "当 SmartIoT 开关为 _"
+
+#. Input Library block
+msgid "when button _ key _ is pressed send broadcast _"
+msgstr "当按钮 _ 的按键 _ 被按下时发送广播 _"
+
+#. Wireless Library block
+msgid "wifi connected"
+msgstr "wifi已连接"
+
+#. Library folder
+msgid "folder;EF_Libraries"
+msgstr "恩孚科技"
+
+#. Library folder
+msgid "folder;Nezha_ESP32"
+msgstr "哪吒_ESP32"
+
+#. Library folder
+msgid "folder;PlanetX"
+msgstr "行星系列"
+
+#. Library name
+msgid "Speech Recognition"
+msgstr "语音识别"
+
+#. Library name
+msgid "SpeechRecognition"
+msgstr "语音识别"
+
+#. Library name
+msgid "Board"
+msgstr "板载传感器"
+
+#. Library name
+msgid "AI_Module"
+msgstr "AI 模块"
+
+#. Library name
+msgid "Display"
+msgstr "显示模块"
+
+#. Library name
+msgid "Execute"
+msgstr "执行模块"
+
+#. Library name
+msgid "Wireless"
+msgstr "无线模块"
+
+
+#. Board Library enum
+msgid "Chinese style"
+msgstr "中国风"
+
+#. Board Library enum
+msgid "country"
+msgstr "乡村"
+
+#. Board Library enum
+msgid "symphony"
+msgstr "交响"
+
+#. Board Library enum
+msgid "lyrical"
+msgstr "抒情"
+
+#. Board Library enum
+msgid "Japanese"
+msgstr "日式"
+
+#. Board Library enum
+msgid "punk"
+msgstr "朋克"
+
+#. Board Library enum
+msgid "pop"
+msgstr "流行"
+
+#. Board Library enum
+msgid "jazz music"
+msgstr "爵士"
+
+#. Board Library enum
+msgid "blues"
+msgstr "蓝调"
+
+#. Board Library enum
+msgid "door opening"
+msgstr "开门声"
+
+#. Board Library enum
+msgid "birthday song"
+msgstr "生日歌"
+
+#. Board Library enum
+msgid "wind"
+msgstr "风声"
+
+#. Board Library enum
+msgid "rain"
+msgstr "雨声"
+
+#. Board Library enum
+msgid "thunder"
+msgstr "打雷声"
+
+#. Board Library enum
+msgid "on"
+msgstr "打开"
+
+#. Board Library enum
+msgid "off"
+msgstr "关闭"
+
+#. Board Library enum
+msgid "pressed"
+msgstr "按下"
+
+#. Board Library enum
+msgid "released"
+msgstr "松开"
+
+#. Board Library enum
+msgid "show"
+msgstr "显示"
+
+#. Board Library enum
+msgid "hide"
+msgstr "隐藏"
+
+#. Board Library enum
+msgid "CN"
+msgstr "中文"
+
+#. Board Library enum
+msgid "EN"
+msgstr "英文"
+
+#. Sport Library enum
+msgid "counterclockwise"
+msgstr "逆时针"
+
+#. Sport Library enum
+msgid "shortest path"
+msgstr "最短路径"
+
+#. Board Library enum
+msgid "degrees"
+msgstr "度"
+
+#. Board Library enum
+msgid "turns"
+msgstr "圈"
+
+#. Board Library enum
+msgid "mm"
+msgstr "毫米"
+
+#. Board Library enum
+msgid "forward"
+msgstr "向前"
+
+#. Board Library enum
+msgid "backward"
+msgstr "向后"
+
+#. Board Library enum
+msgid "low"
+msgstr "低"
+
+#. Board Library enum
+msgid "medium"
+msgstr "中"
+
+#. Board Library enum
+msgid "high"
+msgstr "高"
+
+#. Board Library enum
+msgid "no wait"
+msgstr "不等待"
+
+#. Board Library enum
+msgid "wait until done"
+msgstr "等待完成"
+
+#. Board Library enum
+msgid "heavy"
+msgstr "重"
+
+#. Board Library enum
+msgid "main menu"
+msgstr "主菜单"
+
+#. Board Library enum
+msgid "face recognition"
+msgstr "人脸识别"
+
+#. Board Library enum
+msgid "self learning"
+msgstr "自主学习"
+
+#. Board Library enum
+msgid "gesture recognition"
+msgstr "手势识别"
+
+#. Board Library enum
+msgid "remote file manager"
+msgstr "远程文件管理"
+
+#. Board Library enum
+msgid "photo album"
+msgstr "相册"
+
+#. Board Library enum
+msgid "take photo"
+msgstr "拍照"
+
+#. Board Library enum
+msgid "settings"
+msgstr "设置"
+
+#. Board Library enum
+msgid "sound touch"
+msgstr "声音触碰"
+
+#. Speech Recognition Library block
+msgid "when _ is recognized send broadcast _"
+msgstr "当识别到 _ 时发送广播 _"
+
+#. Sport Library block
+msgid "reset motor _ position"
+msgstr "电机 _ 位置归零"
+
+#. Sport Library block
+msgid "turn motor _ speed _ % direction _ for _ _"
+msgstr "电机 _ 以 _ %速度 _ 运行 _ _"
+
+#. Sport Library block
+msgid "turn motor _ speed _ % direction _ to absolute angle _"
+msgstr "电机 _ 以 _ %速度 _ 转到绝对角度 _"
+
+#. Sport Library block
+msgid "turn robot at _ % speed with _ acceleration by _ degrees"
+msgstr "机器人以 _ %速度,原地 _ 加速转向 _ 度"
+
+#. Sport Library block
+msgid "drive robot at _ % speed _ with _ acceleration for _ _"
+msgstr "机器人以 _ %速度向 _ _ 加速度运行 _ _"
+
+#. Display Library block
+msgid "connect rainbow LED to _"
+msgstr "彩虹灯连接到 _"
+
+#. Display Library block
+msgid "count _ mode _"
+msgstr "总灯数为 _ 色彩模式为 _"
+
+#. Execute Library block
+msgid "MP3 play folder _ file _"
+msgstr "MP3 播放文件夹 _ 文件 _"
+
+#. Execute Library block
+msgid "MP3 play track _"
+msgstr "MP3 播放序号 _"
+
+#. Execute Library block
+msgid "repeat _"
+msgstr "循环 _"
+
+#. Wireless Library block
+msgid "set data to send SmartIoT Data 1 _"
+msgstr "设置发送到 SmartIoT 的数据 数据1 _"
+
+#. Wireless Library block
+msgid "Data 2 _ "
+msgstr "数据2 _"
+
+#. Wireless Library block
+msgid "Data 3 _ "
+msgstr "数据3 _"
+
+#. Wireless Library block
+msgid "Data 4 _ "
+msgstr "数据4 _"
+
+#. Wireless Library block
+msgid "Data 5 _ "
+msgstr "数据5 _"
+
+#. Wireless Library block
+msgid "Data 6 _ "
+msgstr "数据6 _"
+
+#. Wireless Library block
+msgid "Data 7 _ "
+msgstr "数据7 _"
+
+#. Wireless Library block
+msgid "Data 8 _ "
+msgstr "数据8 _"
+
+#. EF library choice
+msgid "A"
+msgstr "A"
+
+#. EF library choice
+msgid "C"
+msgstr "C"
+
+#. Board Library choice
+msgid "A+B"
+msgstr "A+B"
+
+#. Board Library choice
+msgid "A+C"
+msgstr "A+C"
+
+#. Board Library choice
+msgid "B+C"
+msgstr "B+C"
+
+#. Board Library choice
+msgid "X"
+msgstr "X"
+
+#. Board Library choice
+msgid "Y"
+msgstr "Y"
+
+#. Board Library choice
+msgid "Z"
+msgstr "Z"
+
+#. Board Library melody choice
+msgid "C D E F G A B C5"
+msgstr "C D E F G A B C5"
+
+#. Board Library melody choice
+msgid "C5 B A G F E D C"
+msgstr "C5 B A G F E D C"
+
+#. Board Library melody choice
+msgid "C E G C5"
+msgstr "C E G C5"
+
+#. Board Library melody choice
+msgid "C F A C5"
+msgstr "C F A C5"
+
+#. Board Library melody choice
+msgid "C D E C C D E C"
+msgstr "C D E C C D E C"
+
+#. Board Library melody choice
+msgid "G G A G C5 B"
+msgstr "G G A G C5 B"
+
+#. Sport Library motor port choice
+msgid "M1"
+msgstr "M1"
+
+#. Sport Library motor port choice
+msgid "M2"
+msgstr "M2"
+
+#. Sport Library motor port choice
+msgid "M3"
+msgstr "M3"
+
+#. Sport Library motor port choice
+msgid "M4"
+msgstr "M4"
+
+#. EF library color choice
+msgid "red"
+msgstr "红色"
+
+#. EF library color choice
+msgid "green"
+msgstr "绿色"
+
+#. EF library color choice
+msgid "yellow"
+msgstr "黄色"
+
+#. EF library color choice
+msgid "cyan"
+msgstr "青色"
+
+#. EF library color choice
+msgid "purple"
+msgstr "紫色"
+
+#. AILensPro Library choice
+msgid "center x"
+msgstr "中心 X 坐标"
+
+#. AILensPro Library choice
+msgid "center y"
+msgstr "中心 Y 坐标"
+
+#. AILensPro Library choice
+msgid "top-left x"
+msgstr "左上角 X 坐标"
+
+#. AILensPro Library choice
+msgid "top-left y"
+msgstr "左上角 Y 坐标"
+
+#. AILensPro Library choice
+msgid "bottom-right x"
+msgstr "右下角 X 坐标"
+
+#. AILensPro Library choice
+msgid "bottom-right y"
+msgstr "右下角 Y 坐标"
+
+#. PlanetX environmental sensor choice
+msgid "humidity (0-100%)"
+msgstr "湿度 (0-100%)"
+
+#. PlanetX environmental sensor choice
+msgid "pressure (hPa)"
+msgstr "气压 (hPa)"
+
+#. PlanetX environmental sensor choice
+msgid "altitude (m)"
+msgstr "海拔 (米)"
+
+#. EF library direction choice
+msgid "right"
+msgstr "右"
+
+#. EF library direction choice
+msgid "left"
+msgstr "左"
+
+#. Gesture sensor choice
+msgid "up"
+msgstr "上"
+
+#. Gesture sensor choice
+msgid "down"
+msgstr "下"
+
+#. Gesture sensor choice
+msgid "wave"
+msgstr "挥手"
+
+#. PlanetX speech recognition choice
+msgid "hello Xiaoen"
+msgstr "你好小恩"
+
+#. PlanetX speech recognition choice
+msgid "turn headlights on"
+msgstr "打开车灯"
+
+#. PlanetX speech recognition choice
+msgid "turn headlights off"
+msgstr "关闭车灯"
+
+#. PlanetX speech recognition choice
+msgid "turn left"
+msgstr "左转"
+
+#. PlanetX speech recognition choice
+msgid "turn right"
+msgstr "右转"
+
+#. PlanetX speech recognition choice
+msgid "move forward"
+msgstr "前进"
+
+#. PlanetX speech recognition choice
+msgid "move backward"
+msgstr "后退"
+
+#. PlanetX speech recognition choice
+msgid "line-tracking mode"
+msgstr "循线模式"
+
+#. PlanetX speech recognition choice
+msgid "obstacle-avoidance mode"
+msgstr "避障模式"
+
+#. PlanetX speech recognition choice
+msgid "park"
+msgstr "停车"
+
+#. PlanetX speech recognition choice
+msgid "start device"
+msgstr "启动设备"
+
+#. PlanetX speech recognition choice
+msgid "stop device"
+msgstr "停止设备"
+
+#. PlanetX speech recognition choice
+msgid "pause operation"
+msgstr "暂停运行"
+
+#. PlanetX speech recognition choice
+msgid "resume operation"
+msgstr "继续运行"
+
+#. PlanetX speech recognition choice
+msgid "increase level"
+msgstr "提高级别"
+
+#. PlanetX speech recognition choice
+msgid "decrease level"
+msgstr "降低级别"
+
+#. PlanetX speech recognition choice
+msgid "play music"
+msgstr "播放音乐"
+
+#. PlanetX speech recognition choice
+msgid "stop music"
+msgstr "停止音乐"
+
+#. EF library media choice
+msgid "next track"
+msgstr "下一曲"
+
+#. PlanetX speech recognition choice
+msgid "run function one"
+msgstr "运行功能一"
+
+#. PlanetX speech recognition choice
+msgid "run function two"
+msgstr "运行功能二"
+
+#. PlanetX speech recognition choice
+msgid "learned phrase 1"
+msgstr "已学习语句 1"
+
+#. PlanetX speech recognition choice
+msgid "learned phrase 2"
+msgstr "已学习语句 2"
+
+#. PlanetX speech recognition choice
+msgid "learned phrase 3"
+msgstr "已学习语句 3"
+
+#. PlanetX speech recognition choice
+msgid "learned phrase 4"
+msgstr "已学习语句 4"
+
+#. PlanetX speech recognition choice
+msgid "learned phrase 5"
+msgstr "已学习语句 5"
+
+#. PlanetX speech recognition choice
+msgid "learned phrase 6"
+msgstr "已学习语句 6"
+
+#. PlanetX speech recognition choice
+msgid "learned phrase 7"
+msgstr "已学习语句 7"
+
+#. PlanetX speech recognition choice
+msgid "learned phrase 8"
+msgstr "已学习语句 8"
+
+#. PlanetX speech recognition choice
+msgid "learned phrase 9"
+msgstr "已学习语句 9"
+
+#. PlanetX speech recognition choice
+msgid "learned phrase 10"
+msgstr "已学习语句 10"
+
+#. PlanetX AI camera choice
+msgid "card recognition"
+msgstr "卡片识别"
+
+#. PlanetX AI camera choice
+msgid "ball recognition"
+msgstr "球体识别"
+
+#. PlanetX AI camera choice
+msgid "line tracking"
+msgstr "循线"
+
+#. PlanetX AI camera choice
+msgid "color recognition"
+msgstr "颜色识别"
+
+#. PlanetX AI camera choice
+msgid "feature learning"
+msgstr "特征学习"
+
+#. PlanetX AI camera result choice
+msgid "x coordinate"
+msgstr "X 坐标"
+
+#. PlanetX AI camera result choice
+msgid "y coordinate"
+msgstr "Y 坐标"
+
+#. PlanetX AI camera result choice
+msgid "size"
+msgstr "大小"
+
+#. PlanetX AI camera result choice
+msgid "confidence"
+msgstr "置信度"
+
+#. PlanetX AI camera result choice
+msgid "ball ID"
+msgstr "球 ID"
+
+#. PlanetX AI camera result choice
+msgid "width"
+msgstr "宽度"
+
+#. PlanetX AI camera result choice
+msgid "height"
+msgstr "高度"
+
+#. PlanetX AI camera result choice
+msgid "color ID"
+msgstr "颜色 ID"
+
+#. PlanetX AI camera line choice
+msgid "offset angle"
+msgstr "偏移角度"
+
+#. PlanetX AI camera line choice
+msgid "offset distance"
+msgstr "偏移距离"
+
+#. PlanetX AI camera line choice
+msgid "line length"
+msgstr "线段长度"
+
+#. EF library choice
+msgid "D"
+msgstr "D"
+
+#. EF library choice
+msgid "E"
+msgstr "E"
+
+#. PlanetX AI camera choice
+msgid "turn around"
+msgstr "掉头"
+
+#. EF library action choice
+msgid "stop"
+msgstr "停止"
+
+#. PlanetX AI camera card choice
+msgid "mouse"
+msgstr "老鼠"
+
+#. PlanetX AI camera card choice
+msgid "micro:bit"
+msgstr "micro:bit"
+
+#. PlanetX AI camera card choice
+msgid "ruler"
+msgstr "尺子"
+
+#. PlanetX AI camera card choice
+msgid "pear"
+msgstr "梨"
+
+#. PlanetX AI camera card choice
+msgid "boat"
+msgstr "船"
+
+#. PlanetX AI camera card choice
+msgid "apple"
+msgstr "苹果"
+
+#. PlanetX AI camera card choice
+msgid "car"
+msgstr "汽车"
+
+#. PlanetX AI camera card choice
+msgid "pen"
+msgstr "笔"
+
+#. PlanetX AI camera card choice
+msgid "airplane"
+msgstr "飞机"
+
+#. PlanetX AI camera card choice
+msgid "clock"
+msgstr "时钟"
+
+#. PlanetX AI camera card choice
+msgid "grapes"
+msgstr "葡萄"
+
+#. PlanetX AI camera card choice
+msgid "cup"
+msgstr "杯子"
+
+#. PlanetX AI camera learned-object ID
+msgid "ID1"
+msgstr "ID1"
+
+#. PlanetX AI camera learned-object ID
+msgid "ID2"
+msgstr "ID2"
+
+#. PlanetX AI camera learned-object ID
+msgid "ID3"
+msgstr "ID3"
+
+#. PlanetX AI camera learned-object ID
+msgid "ID4"
+msgstr "ID4"
+
+#. PlanetX AI camera learned-object ID
+msgid "ID5"
+msgstr "ID5"
+
+#. PlanetX color choice
+msgid "magenta"
+msgstr "品红色"
+
+#. PlanetX real-time clock choice
+msgid "year"
+msgstr "年"
+
+#. PlanetX real-time clock choice
+msgid "month"
+msgstr "月"
+
+#. PlanetX real-time clock choice
+msgid "day"
+msgstr "日"
+
+#. PlanetX real-time clock choice
+msgid "weekday"
+msgstr "星期"
+
+#. PlanetX real-time clock choice
+msgid "hour"
+msgstr "时"
+
+#. PlanetX real-time clock choice
+msgid "minute"
+msgstr "分"
+
+#. PlanetX port choice
+msgid "J1"
+msgstr "J1"
+
+#. PlanetX port choice
+msgid "J2"
+msgstr "J2"
+
+#. PlanetX port choice
+msgid "J3"
+msgstr "J3"
+
+#. PlanetX port choice
+msgid "J4"
+msgstr "J4"
+
+#. PlanetX rainbow LED mode choice
+msgid "RGB(GRB order)"
+msgstr "RGB（GRB 顺序）"
+
+#. PlanetX rainbow LED mode choice
+msgid "RGBW"
+msgstr "RGBW"
+
+#. PlanetX rainbow LED mode choice
+msgid "RGB(RGB order)"
+msgstr "RGB（RGB 顺序）"
+
+#. PlanetX color choice
+msgid "orange"
+msgstr "橙色"
+
+#. PlanetX color choice
+msgid "indigo"
+msgstr "靛蓝色"
+
+#. PlanetX color choice
+msgid "violet"
+msgstr "紫罗兰色"
+
+#. PlanetX matrix emoji choice
+msgid "smile"
+msgstr "笑脸"
+
+#. PlanetX matrix emoji choice
+msgid "crying face"
+msgstr "哭脸"
+
+#. PlanetX matrix emoji choice
+msgid "neutral face"
+msgstr "平静脸"
+
+#. PlanetX matrix emoji choice
+msgid "check mark"
+msgstr "对勾"
+
+#. PlanetX matrix emoji choice
+msgid "cross"
+msgstr "叉"
+
+#. PlanetX MP3 action choice
+msgid "play"
+msgstr "播放"
+
+#. PlanetX MP3 action choice
+msgid "previous track"
+msgstr "上一曲"
+
+#. PlanetX MP3 action choice
+msgid "pause"
+msgstr "暂停"
+
+#. PlanetX gas sensor choice
+msgid "carbon monoxide"
+msgstr "一氧化碳"
+
+#. PlanetX gas sensor choice
+msgid "carbon dioxide"
+msgstr "二氧化碳"
+
+#. PlanetX gas sensor choice
+msgid "smoke"
+msgstr "烟雾"
+
+#. PlanetX gas sensor choice
+msgid "alcohol"
+msgstr "酒精"
+
+#. PlanetX distance unit choice
+msgid "cm"
+msgstr "厘米"
+
+#. PlanetX distance unit choice
+msgid "inch"
+msgstr "英寸"
+
+#. PlanetX temperature and humidity choice
+msgid "temperature (C)"
+msgstr "温度 (°C)"
+
+#. PlanetX temperature and humidity choice
+msgid "humidity (0-100)"
+msgstr "湿度 (0-100)"
+
+#. PlanetX temperature unit choice
+msgid "Celsius"
+msgstr "摄氏度"
+
+#. PlanetX temperature unit choice
+msgid "Fahrenheit"
+msgstr "华氏度"
+
+#. PlanetX speed choice
+msgid "slow"
+msgstr "慢"
+
+#. PlanetX speed choice
+msgid "fast"
+msgstr "快"
+
+#. PlanetX wireless controller button choice
+msgid "⬆"
+msgstr "⬆"
+
+#. PlanetX wireless controller button choice
+msgid "⬇"
+msgstr "⬇"
+
+#. PlanetX wireless controller button choice
+msgid "⬅"
+msgstr "⬅"
+
+#. PlanetX wireless controller button choice
+msgid "➡"
+msgstr "➡"
+
+#. PlanetX wireless controller button choice
+msgid "▷"
+msgstr "▷"
+
+#. PlanetX wireless controller button choice
+msgid "☐"
+msgstr "☐"
+
+#. PlanetX wireless controller button choice
+msgid "𐤏"
+msgstr "𐤏"
+
+#. PlanetX wireless controller button choice
+msgid "⨉"
+msgstr "⨉"
+
+#. PlanetX wireless controller button choice
+msgid "L1"
+msgstr "L1"
+
+#. PlanetX wireless controller button choice
+msgid "R1"
+msgstr "R1"
+
+#. PlanetX wireless controller button choice
+msgid "L2"
+msgstr "L2"
+
+#. PlanetX wireless controller button choice
+msgid "R2"
+msgstr "R2"
+
+#. PlanetX wireless controller button choice
+msgid "SELECT"
+msgstr "SELECT"
+
+#. PlanetX wireless controller button choice
+msgid "START"
+msgstr "START"
+
+#. PlanetX wireless controller button choice
+msgid "L3"
+msgstr "L3"
+
+#. PlanetX wireless controller button choice
+msgid "R3"
+msgstr "R3"
+
+#. PlanetX joystick axis choice
+msgid "RX"
+msgstr "RX"
+
+#. PlanetX joystick axis choice
+msgid "RY"
+msgstr "RY"
+
+#. PlanetX joystick axis choice
+msgid "LX"
+msgstr "LX"
+
+#. PlanetX joystick axis choice
+msgid "LY"
+msgstr "LY"

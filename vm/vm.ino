@@ -58,7 +58,9 @@ void setup() {
 	restoreScripts();
 	if (BLE_isEnabled()) BLE_start();
 	if (resetDoubleTap) loadStartCodeOrClear();
+	#ifndef NEZHA_ESP32
 	startAll();
+	#endif
 }
 
 void loop() {
