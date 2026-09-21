@@ -137,6 +137,11 @@ GP.apiCall = function (endPoint, params, callback) {
 			MB_connection.setSerialDelay(params[0]);
 			break;
 		case 'ide.showLibraryDialog':
+			// Reply first, then show the picker. The "+ Add Library" button
+			// sends this and waits on the reply, not on the dialog.
+			callback(0);
+			MB_editor.importLibrary();
+			break;
 		case 'ide.spinnerCancelled':
 			callback();
 			break;
