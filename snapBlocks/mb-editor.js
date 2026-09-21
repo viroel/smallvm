@@ -35,7 +35,6 @@ class MB_Editor {
 		this.paletteWidth = 200;
 
 		this.palette = new ScrollFrameMorph();
-		this.palette.color = new Color(180, 180, 180);
 		this.palette.contents.acceptsDrops = true;
 		this.palette.contents.reactToDropOf = (droppedMorph) => {
 			if (droppedMorph instanceof BlockMorph) {
@@ -47,12 +46,14 @@ class MB_Editor {
 		// The scripting pane scrolls, so a script taller than the window can
 		// be reached without dragging it off the pane.
 		this.scripts = new ScriptsMorph();
-		this.scripts.color = new Color(150, 150, 150);
 		this.scriptsFrame = new ScrollFrameMorph(this.scripts);
-		this.scriptsFrame.color = this.scripts.color;
 		// What FrameMorph's constructor would have set; ScriptsMorph takes no
 		// scroll frame, and adjustBounds does nothing without one.
 		this.scripts.scrollFrame = this.scriptsFrame;
+
+		// The panes exist now, so they can take their colours. This is the only
+		// place that gives them one, here and on every later change.
+		this.applyDarkMode();
 
 		world.add(this.palette);
 		world.add(this.scriptsFrame);
@@ -284,13 +285,29 @@ class MB_Editor {
 		this.tellIDE('currentCategory', libName);
 	}
 
+	applyUserPreferences() {
+		// Recolour and refill for a preference that changes the canvas, and
+		// leave the user on the library or category they were showing. Only a
+		// selection that is no longer there falls back.
+
+		this.applyDarkMode();
+		this.tellIDE('libraryList', this.libraryList());
+		const showing = this.library ? this.project.libraryNamed(this.library) : this.category;
+		if (showing) {
+			this.updatePalette();
+		} else {
+			this.selectCategory('cat;Control');
+		}
+	}
+
 	libraryList() {
 		// The project's libraries as the IDE's library buttons want them. An
-		// implementation library holds another library's working parts and is not offered.
+		// implementation library holds another library's working parts and is
+		// offered only where those are.
 
 		let result = [];
 		for (const lib of this.project.libraries.values()) {
-			if (!lib.isImplementationLib()) {
+			if (this.showHiddenBlocks() || !lib.isImplementationLib()) {
 				result.push({ label: lib.moduleName, category: lib.moduleCategory });
 			}
 		}
@@ -332,14 +349,63 @@ class MB_Editor {
 		this.palette.changed();
 	}
 
-	devMode() {
-		// Developer mode. The pure Javascript build keeps it in its IDE object's
-		// preferences (userPreference, ide.js); a page without one reads off.
+	userPreference(pref) {
+		// A preference from the IDE object the pure Javascript build keeps them
+		// in (userPreference, ide.js); a page without one reads every one off.
 
 		try {
-			return (typeof IDE != 'undefined') && (IDE.userPreference('devMode') == true);
+			return (typeof IDE != 'undefined') && (IDE.userPreference(pref) == true);
 		} catch (e) {
 			return false;
+		}
+	}
+
+	devMode() {
+		return this.userPreference('devMode');
+	}
+
+	darkMode() {
+		return this.userPreference('darkMode');
+	}
+
+	paneColors() {
+		// The pane, scrollbar handle and section label colours for the mode the
+		// IDE is in. The dark three are the IDE's blueGray family, the same
+		// values the chrome's stylesheet uses either side of the canvas.
+
+		return this.darkMode()
+			? {
+				palette: new Color(62, 66, 89),
+				scripts: new Color(55, 59, 79),
+				slider: new Color(144, 149, 174),
+				label: new Color(144, 149, 174),
+			}
+			: {
+				palette: new Color(180, 180, 180),
+				scripts: new Color(150, 150, 150),
+				slider: new Color(200, 200, 200),
+				label: new Color(0, 0, 0),
+			};
+	}
+
+	applyDarkMode() {
+		// Recolour the panes and their scrollbar handles. setColor rather than
+		// the colour field, because only setColor repaints what is already on
+		// screen. Block colours are not touched: the mode changes the surfaces
+		// blocks sit on and nothing about the blocks.
+		//
+		// The chrome applies its preferences while it is initialising, which is
+		// before open() has built the panes. open() calls this once they exist,
+		// so there is nothing to colour until then.
+
+		if (!this.palette) return;
+		const colors = this.paneColors();
+		this.palette.setColor(colors.palette);
+		this.scripts.setColor(colors.scripts);
+		this.scriptsFrame.setColor(colors.scripts);
+		for (const frame of [this.palette, this.scriptsFrame]) {
+			frame.hBar.button.setColor(colors.slider);
+			frame.vBar.button.setColor(colors.slider);
 		}
 	}
 
@@ -359,6 +425,7 @@ class MB_Editor {
 
 	addPaletteLabel(text) {
 		let label = new StringMorph(text, 14);
+		label.setColor(this.paneColors().label); // labels are rebuilt, not recoloured
 		label.toggleWeight();
 		label.setPosition(new Point(this.palette.contents.left() + 5, this.paletteY));
 		this.palette.contents.add(label);
@@ -392,6 +459,14 @@ class MB_Editor {
 		this.addAdvancedBlocksForCategory(cat);
 	}
 
+	showHiddenBlocks() {
+		// Whether a library's working parts, the names starting with an
+		// underscore, are offered. Developer mode as well as the preference:
+		// the menu item that sets it is itself offered only in developer mode.
+
+		return this.devMode() && this.userPreference('showImplementationBlocks');
+	}
+
 	addBlocksForLibrary(libName) {
 		// A library's blocks in the order its block list gives them. Names
 		// starting with an underscore are the library's own working parts.
@@ -405,7 +480,7 @@ class MB_Editor {
 				if (!this.devMode()) return; // the rest is for developer mode
 				this.paletteY += 15;
 				this.addPaletteLabel('Advanced:');
-			} else if (!op.startsWith('_')) {
+			} else if (this.showHiddenBlocks() || !op.startsWith('_')) {
 				let spec = MB_Specs.specArrayForProjectSpec(this.project.blockSpecs.get(op))
 					|| MB_Specs.specArrayForSelector(op);
 				this.addPaletteBlockForSpec(spec, lib.moduleCategory);
@@ -416,9 +491,10 @@ class MB_Editor {
 	addVariableBlocks() {
 		// Set and change default to the project's first variable and each variable
 		// gets a reporter. Names starting with an underscore are a library's own
-		// and are not shown.
+		// and are shown only where the working parts are.
 
-		let varNames = this.project.allVariableNames().filter((v) => !v.startsWith('_'));
+		let varNames = this.project.allVariableNames()
+			.filter((v) => this.showHiddenBlocks() || !v.startsWith('_'));
 		let defaultVar = (varNames.length > 0) ? varNames[0] : '';
 		for (const spec of MB_Specs.specsForCategory('cat;Variables')) {
 			if ('-' == spec) { // separator
@@ -446,7 +522,7 @@ class MB_Editor {
 		// The main module's functions. A library's functions belong to the library.
 
 		for (const func of this.project.main.functions) {
-			if (func.functionName.startsWith('_')) continue; // hidden
+			if (func.functionName.startsWith('_') && !this.showHiddenBlocks()) continue;
 			this.addPaletteBlockForSpec(this.paletteSpecForFunction(func), 'My Blocks');
 		}
 	}
