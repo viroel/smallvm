@@ -18,6 +18,10 @@
 #include "mem.h"
 #include "interp.h"
 
+#if defined(NEZHA_ESP32)
+	#include <NezhaInterfaceApi.h>
+#endif
+
 #if !defined(ARDUINO_API_VERSION)
 	// typedef PinMode as int for use on platforms that do not use the Arduino Core API
 	typedef int PinMode;
@@ -1074,6 +1078,21 @@ void hardwareInit() {
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 0, 1, 1};
+
+#elif defined(STEAMakersS3)
+	#define BOARD_TYPE "ESP32-S3 STEAMakers AI"
+	#define DIGITAL_PINS 49
+	#define ANALOG_PINS 20
+	#define TOTAL_PINS 49
+	static const int analogPin[] = {};
+	#define PIN_LED 45
+	#define PIN_BUTTON_A 18
+	static const char reservedPin[TOTAL_PINS] = {
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+		0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
+		1, 1, 1, 0, 0, 1, 0, 0, 0};
 
 #elif defined(ESP32_S3)
 	#define BOARD_TYPE "ESP32-S3"
@@ -2278,6 +2297,8 @@ OBJ primButtonA(OBJ *args) {
 		int pinButton = 28; // Button A, the LDR button (PA_14), is the same on all DUELink boards.
 		setPinMode(pinButton, INPUT_PULLDOWN); // Arduino pin, not edge pin number
 		return (HIGH == digitalRead(pinButton)) ? trueObj : falseObj;
+	#elif defined(NEZHA_ESP32)
+		return nezhaButtonA() ? trueObj : falseObj;
 	#else
 		return falseObj;
 	#endif
@@ -2309,6 +2330,8 @@ OBJ primButtonB(OBJ *args) {
 		} else { return falseObj; }
 		setPinMode(pinButton, INPUT_PULLDOWN); // Arduino pin, not edge pin number
 		return (HIGH == digitalRead(pinButton)) ? trueObj : falseObj;
+	#elif defined(NEZHA_ESP32)
+		return nezhaButtonB() ? trueObj : falseObj;
 	#else
 		return falseObj;
 	#endif

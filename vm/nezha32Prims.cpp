@@ -36,22 +36,16 @@
 
 // Elecfreaks Primitives
 
-// These two sets are registered empty, then replaced by the library's tables in boardAddPrims().
+// These two primitive sets are registered empty, then replaced by the library's tables in boardAddPrims().
 
-static PrimEntry elfreaksPrimEntries[] = { };
+static PrimEntry noPrimEntries[] = { };
 
 void addElecfreaksPrims() {
-	addPrimitiveSet(EFPrims, "elfreaks",
-		sizeof(elfreaksPrimEntries) / sizeof(PrimEntry), elfreaksPrimEntries);
+	addPrimitiveSet(EFPrims, "elfreaks", 0, noPrimEntries);
 }
 
-// Elecfreaks Sensor Primitives
-
-static PrimEntry elfreaksSensorPrimEntries[] = { };
-
 void addElecfreaksSensorPrims() {
-	addPrimitiveSet(EFDevSensorPrims, "elfreaks_dev_sensor",
-		sizeof(elfreaksSensorPrimEntries) / sizeof(PrimEntry), elfreaksSensorPrimEntries);
+	addPrimitiveSet(EFDevSensorPrims, "elfreaks_dev_sensor", 0, noPrimEntries);
 }
 
 #if defined(NEZHA_ESP32)
@@ -59,11 +53,12 @@ void addElecfreaksSensorPrims() {
 // Nezha ESP32 board hooks (see boardHooks.h). All run on the VM thread.
 
 void boardEarlyInit() {
-	nezhaMB_BoardInit(); // start the board before the VM initializes
 }
 
 void boardInit() {
 	// nothing needed once BoardInit() has run
+	nezhaMB_BoardInit(); // start the board before the VM initializes
+	useTFT = true;
 }
 
 void boardAddPrims() {
@@ -80,6 +75,12 @@ void boardStopAll() {
 
 void boardIDEConnectionChanged(int isConnected) {
 	if (isConnected) smallmvUIOnIDEConnected();
+}
+
+int boardStartAtBoot() {
+	// The library's Program page decides what runs: it starts the default saved program, or
+	// shows the program list when there isn't one. Starting the code store here would pre-empt it.
+	return false;
 }
 
 #endif
