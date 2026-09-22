@@ -74,7 +74,7 @@ void boardStopAll() {
 }
 
 void boardIDEConnectionChanged(int isConnected) {
-	if (isConnected) smallmvUIOnIDEConnected();
+	if (isConnected) nezhaUIOnIDEConnected();
 }
 
 int boardStartAtBoot() {
