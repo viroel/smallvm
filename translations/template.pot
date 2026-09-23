@@ -1474,7 +1474,7 @@ msgid "display image _"
 msgstr ""
 
 #. 5x5 LED Display library block
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "clear display"
 msgstr ""
 
@@ -4368,10 +4368,12 @@ msgid "close"
 msgstr ""
 
 #. Keyestudio Smart Farm library block
+#. Nezha ESP32 Library enum
 msgid "on"
 msgstr ""
 
 #. Keyestudio Smart Farm library block
+#. Nezha ESP32 Library enum
 msgid "off"
 msgstr ""
 
@@ -5017,67 +5019,63 @@ msgstr ""
 msgid "NeZha set continuous rotation servo _ speed to _ %"
 msgstr ""
 
-#. NeZha2 robot library label
-msgid "Nezha2"
+#. Library name
+msgid "Nezha"
 msgstr ""
 
-#. NeZha2 robot library block
+#. Nezha Library block
 msgid "Nezha beep _ Hz for _ msecs"
 msgstr ""
 
-#. NeZha2 robot library block
+#. Nezha Library block
 msgid "Nezha set motor _ speed to _ (-100-100)"
 msgstr ""
 
-#. NeZha2 robot library block
+#. Nezha Library block
 msgid "Nezha stop motor _"
 msgstr ""
 
-#. NeZha2 robot library block
+#. Nezha Library block
 msgid "Nezha stop all motors"
 msgstr ""
 
-#. NeZha2 robot library block
+#. Nezha Library block
 msgid "Nezha set _ servo _ angle to _"
 msgstr ""
 
-#. NeZha2 robot library block
+#. Nezha Library block
 msgid "Nezha set continuous servo _ speed to _ (-100 to 100)"
 msgstr ""
 
-#. NeZha2 robot library block
-msgid "Nezha set LED _ to _"
+#. Nezha Library block
+msgid "Nezha set LED _ to _ : brightness _ %"
 msgstr ""
 
-#. NeZha2 robot library block
-msgid "brightness _ %"
+#. Nezha Library block
+msgid "Nezha set all LEDs to _ : brightness _ %"
 msgstr ""
 
-#. NeZha2 robot library block
-msgid "Nezha set all LEDs to _"
-msgstr ""
-
-#. NeZha2 robot library block
+#. Nezha Library block
 msgid "Nezha trim pot _"
 msgstr ""
 
-#. NeZha2 robot library block
+#. Nezha Library block
 msgid "Nezha soil moisture _"
 msgstr ""
 
-#. NeZha2 robot library block
+#. Nezha Library block
 msgid "Nezha read analog _"
 msgstr ""
 
-#. NeZha2 robot library block
+#. Nezha Library block
 msgid "Nezha crash sensor _"
 msgstr ""
 
-#. NeZha2 robot library block
+#. Nezha Library block
 msgid "Nezha line sensor _ sees line on left _ right _"
 msgstr ""
 
-#. NeZha2 robot library block
+#. Nezha Library block
 msgid "Nezha distance _ (cm)"
 msgstr ""
 
@@ -6142,83 +6140,83 @@ msgstr ""
 msgid "bwd"
 msgstr ""
 
-#. Nezha Pro library label
+#. Library name
 msgid "Nezha Pro"
 msgstr ""
 
-#. Nehza Pro library choice
+#. Nezha Pro Library choice
 msgid "M1"
 msgstr ""
 
-#. Nehza Pro library choice
+#. Nezha Pro Library choice
 msgid "M2"
 msgstr ""
 
-#. Nehza Pro library choice
+#. Nezha Pro Library choice
 msgid "M3"
 msgstr ""
 
-#. Nehza Pro library choice
+#. Nezha Pro Library choice
 msgid "M4"
 msgstr ""
 
-#. Nehza Pro library choice
+#. Nezha Pro Library choice
 msgid "nezhaPro;by shortest path"
 msgstr ""
 
-#. Nezha Pro library block
+#. Nezha Pro Library block
 msgid "np angle _"
 msgstr ""
 
-#. Nezha Pro library block
+#. Nezha Pro Library block
 msgid "np move _ for _ mm speed _ %"
 msgstr ""
 
-#. Nezha Pro library block
+#. Nezha Pro Library block
 msgid "np speed _"
 msgstr ""
 
-#. Nezha Pro library block
+#. Nezha Pro Library block
 msgid "np total angle _"
 msgstr ""
 
-#. Nezha Pro library block
+#. Nezha Pro Library block
 msgid "np reset total angle _"
 msgstr ""
 
-#. Nezha Pro library block
+#. Nezha Pro Library block
 msgid "np rotate _ _ by _ degrees speed _ %"
 msgstr ""
 
-#. Nezha Pro library block
+#. Nezha Pro Library block
 msgid "np rotate _ _ to _ degrees speed _ %"
 msgstr ""
 
-#. Nezha Pro library block
+#. Nezha Pro Library block
 msgid "np run motor _ _ speed _ %"
 msgstr ""
 
-#. Nezha Pro library block
+#. Nezha Pro Library block
 msgid "np set _ angle _ to _ degrees"
 msgstr ""
 
-#. Nezha Pro library block
+#. Nezha Pro Library block
 msgid "np set wheels left _ right _ #BR# circumference _ mm axle _ mm"
 msgstr ""
 
-#. Nezha Pro library block
+#. Nezha Pro Library block
 msgid "np stop all motors"
 msgstr ""
 
-#. Nezha Pro library block
+#. Nezha Pro Library block
 msgid "np stop motor _"
 msgstr ""
 
-#. Nezha Pro library block
+#. Nezha Pro Library block
 msgid "np turn _ by _ degrees speed _ %"
 msgstr ""
 
-#. Nezha Pro library block
+#. Nezha Pro Library block
 msgid "np version"
 msgstr ""
 
@@ -8743,11 +8741,7 @@ msgid "Report the number of words of memory available. Stop button frees up memo
 msgstr ""
 
 #. Library folder
-msgid "folder;EF_Libraries"
-msgstr "Elecfreaks"
-
-#. Library folder
-msgid "folder;Nezha_ESP32"
+msgid "folder;Nezha"
 msgstr ""
 
 #. Library folder
@@ -8755,216 +8749,212 @@ msgid "folder;PlanetX"
 msgstr ""
 
 #. Library name
-msgid "Board"
+msgid "Nezha ESP32"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "button _ _ event?"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "Main control reset"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "Obtain the angle of the _ axis of the gyroscope (0-360 degrees)"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "Obtain the acceleration of the _ axis of the gyroscope (unit mg)"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "get light sensor value"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "Obtain the noise value"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "set color to _"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "set RGB _ to _"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "set all RGB LEDs to _"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "turn off _ RGB LED"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "turn off all RGB LEDs"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "_ title bar"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "screen background color _"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "set text _ to line _ color _"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "create text _ x _ y _ color _ and return object ID"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "update ID _ text _ color _"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "delete object ID _"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "set screen pixel x _ y _ to _"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "set volume to _ %"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "play melody _ at tempo _ bpm"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "play sound _"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "play tone _ Hz for _ ms"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "stop all sounds"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "when SmartIoT switch _ send broadcast _"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 #. Wireless Library block
 msgid "Connect SmartIoT with userToken _ topic _"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "set data to send SmartIoT Data 1 _ : Data 2 _ Data 3 _ Data 4 _ Data 5 _ Data 6 _ Data 7 _ Data 8 _"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 #. Wireless Library block
 msgid "Upload data to SmartIoT"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "SmartIoT connection"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "SmartIoT switch _"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "set SmartIoT server host _ port _"
 msgstr ""
 
-#. Board Library block
+#. Nezha ESP32 Library block
 msgid "SmartIoT last response"
 msgstr ""
 
 #. Library name
-msgid "Speech Recognition"
+msgid "Nezha ESP32 SR"
 msgstr ""
 
-#. Library name
-msgid "SpeechRecognition"
-msgstr ""
-
-#. Speech Recognition Library block
+#. Nezha ESP32 SR Library block
 msgid "enable speech recognition _"
 msgstr ""
 
-#. Speech Recognition Library block
+#. Nezha ESP32 SR Library block
 msgid "disable speech recognition"
 msgstr ""
 
-#. Speech Recognition Library block
+#. Nezha ESP32 SR Library block
 msgid "when _ is recognized send broadcast _"
 msgstr ""
 
 #. Library name
-msgid "Sport"
+msgid "Nezha ESP32 Sport"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "start motor _ speed _ % direction _"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "stop motor _"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "reset motor _ position : _"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "turn motor _ speed _ % direction _ for _ _ : _"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "turn motor _ speed _ % direction _ to absolute angle _ : _"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "set robot load _"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "set robot wheel diameter _ mm"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "set robot left wheel _ right wheel _"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "run robot left wheel speed _ % right wheel speed _ %"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "turn robot at _ % speed with _ acceleration by _ degrees : _"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "drive robot at _ % speed _ with _ acceleration for _ _ : _"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "stop robot"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "read motor _ speed (degrees/sec)"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "read motor _ absolute angle (degrees)"
 msgstr ""
 
-#. Sport Library block
+#. Nezha ESP32 Sport Library block
 msgid "read motor _ relative angle (degrees)"
 msgstr ""
 
@@ -9584,94 +9574,82 @@ msgstr ""
 msgid "joystick _ analog value"
 msgstr ""
 
-#. Board Library block
-msgid "clear display"
-msgstr ""
-
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "Chinese style"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "country"
 msgstr ""
 
-#. Board Library enmm
+#. Nezha ESP32 Library enum
 msgid "symphony"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "lyrical"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "Japanese"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "punk"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "pop"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "jazz music"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "blues"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "door opening"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "birthday song"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "wind"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "rain"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "thunder"
 msgstr ""
 
-#. Board Library enum
-msgid "on"
-msgstr ""
-
-#. Board Library enum
-msgid "off"
-msgstr ""
-
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "pressed"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "released"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "show"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "hide"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "CN"
 msgstr ""
 
-#. Board Library enum
+#. Nezha ESP32 Library enum
 msgid "EN"
 msgstr ""
