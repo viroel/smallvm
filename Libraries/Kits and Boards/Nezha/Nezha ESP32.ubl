@@ -1,4 +1,4 @@
-module Board Data
+module 'Nezha ESP32' Data
 author 'Elecfreaks Team'
 version 1 2
 depends 'Network/WiFi'

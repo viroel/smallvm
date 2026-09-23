@@ -1,4 +1,4 @@
-module 'Speech Recognition' Obsolete
+module 'Nezha ESP32 SR' Obsolete
 author 'Elecfreaks Team'
 version 1 0
 description 'Speech recognition'

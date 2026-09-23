@@ -1,4 +1,4 @@
-module Sport Obsolete
+module 'Nezha ESP32 Sport' Obsolete
 author 'Elecfreaks Team'
 version 1 0
 description 'Intelligent motor
