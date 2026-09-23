@@ -8740,14 +8740,3 @@ msgstr "Report a byte array containing the UTF-8 bytes of the given string."
 msgid "Report the number of words of memory available. Stop button frees up memory."
 msgstr "Report the number of words of memory available. Stop button frees up memory."
 
-#. Library folder
-msgid "folder;EF_Libraries"
-msgstr "Elecfreaks"
-
-#. Library folder
-msgid "folder;Nezha_ESP32"
-msgstr "Nezha ESP32"
-
-#. Library folder
-msgid "folder;PlanetX"
-msgstr "PlanetX"
