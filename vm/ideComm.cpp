@@ -313,8 +313,8 @@ void BLE_start() {
 	bleRunning = true;
 
 	BLE_resumeAdvertising();
-	#ifndef NEZHA_ESP32
-	show_BLE_ID();
+	#if !defined(NEZHA_ESP32)
+		show_BLE_ID();
 	#endif
 }
 
