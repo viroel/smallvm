@@ -2753,6 +2753,7 @@ static int readDigitalMicrophone() {
 #define USE_DIGITAL_MICROPHONE 1
 
 #include <driver/i2s.h>
+#include <driver/gpio.h>
 
 // I2S port and pins
 #define I2S_PORT I2S_NUM_0
@@ -2946,6 +2947,415 @@ static OBJ primMicrophone(int argCount, OBJ *args) {
 	return int2obj(result);
 }
 
+// Configurable I2S microphone support for Springbot/CWS Green and Gold and
+// Domino4 CWA v2 (ESP32-S3).
+// The ICS-43434 sends signed 24-bit samples, left justified in 32-bit I2S slots.
+#if defined(SPRINGBOT) || defined(DOMINO4_CWA)
+
+#include <driver/i2s.h>
+
+#define ISA_I2S_PORT I2S_NUM_0
+#define ISA_MAX_SAMPLES 12000
+
+static int32_t isaSamples[ISA_MAX_SAMPLES];
+static int isaInitialized = false;
+static int isaEnabled = false;
+static int isaSampleRate = 16000;
+static int isaSCKPin = -1;
+static int isaWSPin = -1;
+static int isaSDPin = -1;
+static int isaRightChannel = 1;
+static int isaCalibration10 = 0;
+static int isaLastSample = 0;
+static int isaLastPeak = 0;
+static int isaLastLoudness = 0;
+static int isaLastRMS = 0;
+static int isaLastSPL10 = 0;
+static int isaLastFrequency = 0;
+static int isaStatus = 0; // 0 stopped/not tried, 1 running, negative values are setup/read failures
+static int32_t isaRing[ISA_MAX_SAMPLES];
+static volatile int isaRingWrite = 0;
+static volatile int isaRingCount = 0;
+static volatile uint64_t isaTotalSamples = 0;
+static volatile int isaReaderRunning = false;
+static volatile uint32_t isaReadErrors = 0;
+static volatile uint32_t isaEmptyReads = 0;
+static volatile uint32_t isaOddReads = 0;
+static volatile uint32_t isaReaderHeartbeat = 0;
+static volatile uint32_t isaReaderStackFree = 0;
+static TaskHandle_t isaReaderTaskHandle = NULL;
+static portMUX_TYPE isaRingMux = portMUX_INITIALIZER_UNLOCKED;
+
+// I2S DMA must be drained continuously. MicroBlocks operations such as "say"
+// can pause a script longer than the DMA queue, so one-shot reads eventually
+// overrun it. This task keeps the receiver flowing and retains recent PCM in a
+// ring buffer from which foreground measurements take coherent snapshots.
+static void isaReaderTask(void *unused) {
+	// Use stereo frames even though only one microphone slot is populated. The
+	// ESP32-S3 legacy driver's ONLY_LEFT/ONLY_RIGHT RX path can lose channel
+	// alignment over time; full frames plus software slot selection remain stable.
+	int32_t raw[512];
+	while (isaReaderRunning) {
+		size_t bytesRead = 0;
+		esp_err_t result = i2s_read(ISA_I2S_PORT, raw, sizeof(raw), &bytesRead, pdMS_TO_TICKS(100));
+		isaReaderHeartbeat = millis();
+		isaReaderStackFree = uxTaskGetStackHighWaterMark(NULL);
+		if (result != ESP_OK) {
+			isaReadErrors++;
+			continue;
+		}
+		if (!bytesRead) {
+			isaEmptyReads++;
+			continue;
+		}
+		int wordCount = bytesRead / sizeof(int32_t);
+		// ESP32-S3 legacy I2S DMA buffers begin on a stereo-frame boundary. A
+		// short read can occasionally contain one unpaired trailing word. Carrying
+		// that odd count into the next read permanently swaps Left and Right, so
+		// discard the incomplete word and start every DMA buffer at slot zero.
+		if (wordCount & 1) {
+			isaOddReads++;
+			wordCount--;
+		}
+		// Hardware testing confirms that the ICS-43434 Right data is the second
+		// word returned for each full stereo frame; the other word is tri-stated.
+		int slot = isaRightChannel ? 1 : 0;
+		portENTER_CRITICAL(&isaRingMux);
+		for (int i = slot; i < wordCount; i += 2) {
+			isaRing[isaRingWrite] = raw[i] >> 8;
+			isaRingWrite++;
+			if (isaRingWrite >= ISA_MAX_SAMPLES) isaRingWrite = 0;
+			if (isaRingCount < ISA_MAX_SAMPLES) isaRingCount++;
+			isaTotalSamples++;
+		}
+		portEXIT_CRITICAL(&isaRingMux);
+	}
+	isaReaderTaskHandle = NULL;
+	vTaskDelete(NULL);
+}
+
+static void isaClearRing() {
+	portENTER_CRITICAL(&isaRingMux);
+	isaRingWrite = 0;
+	isaRingCount = 0;
+	portEXIT_CRITICAL(&isaRingMux);
+}
+
+static uint64_t isaSampleCounter() {
+	portENTER_CRITICAL(&isaRingMux);
+	uint64_t result = isaTotalSamples;
+	portEXIT_CRITICAL(&isaRingMux);
+	return result;
+}
+
+static int isaCopyRecentSamples(int count) {
+	portENTER_CRITICAL(&isaRingMux);
+	if (count > isaRingCount) count = isaRingCount;
+	int start = isaRingWrite - count;
+	if (start < 0) start += ISA_MAX_SAMPLES;
+	for (int i = 0; i < count; i++) {
+		isaSamples[i] = isaRing[start];
+		start++;
+		if (start >= ISA_MAX_SAMPLES) start = 0;
+	}
+	portEXIT_CRITICAL(&isaRingMux);
+	return count;
+}
+
+static uint32_t isaIntegerSqrt(uint64_t n) {
+	uint64_t bit = UINT64_C(1) << 62;
+	uint64_t result = 0;
+	while (bit > n) bit >>= 2;
+	while (bit) {
+		if (n >= (result + bit)) {
+			n -= result + bit;
+			result = (result >> 1) + bit;
+		} else {
+			result >>= 1;
+		}
+		bit >>= 2;
+	}
+	return (uint32_t) result;
+}
+
+// Return log2(value) in Q10 fixed point. No floating point is used.
+static int isaLog2Q10(uint32_t value) {
+	if (!value) return -32768;
+	int exponent = 31 - __builtin_clz(value);
+	uint64_t normalized = ((uint64_t) value) << (31 - exponent); // Q31, [1, 2)
+	int fraction = 0;
+	for (int i = 0; i < 10; i++) {
+		normalized = (normalized * normalized) >> 31;
+		if (normalized >= (UINT64_C(2) << 31)) {
+			normalized >>= 1;
+			fraction |= 1 << (9 - i);
+		}
+	}
+	return (exponent << 10) | fraction;
+}
+
+static void isaHardStop() {
+	if (!isaInitialized) return;
+	isaEnabled = false;
+	isaReaderRunning = false;
+	// Stop DMA first so a reader blocked in i2s_read wakes immediately. Never
+	// uninstall the driver while that task may still be using it; doing so can
+	// leave the next setup producing a persistent false high-level stream.
+	i2s_stop(ISA_I2S_PORT);
+	for (int i = 0; (i < 100) && isaReaderTaskHandle; i++) delay(5);
+	if (isaReaderTaskHandle) {
+		vTaskDelete(isaReaderTaskHandle);
+		isaReaderTaskHandle = NULL;
+	}
+	i2s_driver_uninstall(ISA_I2S_PORT);
+	isaInitialized = false;
+	isaStatus = 0;
+}
+
+static OBJ primISAMicInit(int argCount, OBJ *args) {
+	if ((argCount < 5) || !isInt(args[0]) || !isInt(args[1]) ||
+		!isInt(args[2]) || !isInt(args[3]) || !isInt(args[4])) {
+		isaStatus = -1;
+		return fail(needsIntegerError);
+	}
+	// These are physical ESP32 GPIO numbers, not Springbot's mapped MicroBlocks pin numbers.
+	int sckPin = obj2int(args[0]);
+	int wsPin = obj2int(args[1]);
+	int sdPin = obj2int(args[2]);
+	int rightChannel = obj2int(args[3]);
+	int sampleRate = obj2int(args[4]);
+	if (!GPIO_IS_VALID_OUTPUT_GPIO(sckPin) || !GPIO_IS_VALID_OUTPUT_GPIO(wsPin) || !GPIO_IS_VALID_GPIO(sdPin)) {
+		isaStatus = -2;
+		return fail(badPinError);
+	}
+	if ((rightChannel < 0) || (rightChannel > 1) ||
+		!((sampleRate == 16000) || (sampleRate == 32000) || (sampleRate == 48000))) {
+		isaStatus = -3;
+		return falseObj;
+	}
+	// A logical ISA stop deliberately leaves this continuous receiver alive.
+	// Reuse it when setup parameters match; repeated ESP32-S3 I2S driver
+	// uninstall/install cycles can restart the RX stream in a corrupt phase.
+	if (isaInitialized && (sckPin == isaSCKPin) && (wsPin == isaWSPin) &&
+		(sdPin == isaSDPin) && (rightChannel == isaRightChannel) &&
+		(sampleRate == isaSampleRate)) {
+		isaClearRing();
+		delay(100);
+		isaEnabled = true;
+		isaStatus = 1;
+		isaLastSample = isaLastPeak = isaLastLoudness = isaLastRMS = isaLastSPL10 = isaLastFrequency = 0;
+		return trueObj;
+	}
+	isaHardStop();
+	i2s_config_t config = {
+		.mode = i2s_mode_t(I2S_MODE_MASTER | I2S_MODE_RX),
+		.sample_rate = (uint32_t) sampleRate,
+		.bits_per_sample = I2S_BITS_PER_SAMPLE_32BIT,
+		.channel_format = I2S_CHANNEL_FMT_RIGHT_LEFT,
+		.communication_format = I2S_COMM_FORMAT_STAND_I2S,
+		.intr_alloc_flags = 0,
+		// Sixteen stereo DMA buffers provide about 256 ms of scheduling margin at
+		// 16 kHz. Four buffers (64 ms) can overrun during repeated IDE "say"
+		// traffic even though audio is drained by a background task.
+		.dma_buf_count = 16,
+		.dma_buf_len = 256,
+		.use_apll = false,
+		.tx_desc_auto_clear = false,
+		.fixed_mclk = 0
+	};
+	i2s_pin_config_t pins = {
+		.bck_io_num = sckPin,
+		.ws_io_num = wsPin,
+		.data_out_num = I2S_PIN_NO_CHANGE,
+		.data_in_num = sdPin
+	};
+	if (ESP_OK != i2s_driver_install(ISA_I2S_PORT, &config, 0, NULL)) {
+		isaStatus = -4;
+		return falseObj;
+	}
+	if (ESP_OK != i2s_set_pin(ISA_I2S_PORT, &pins)) {
+		i2s_driver_uninstall(ISA_I2S_PORT);
+		isaStatus = -5;
+		return falseObj;
+	}
+	i2s_start(ISA_I2S_PORT);
+	isaSampleRate = sampleRate;
+	isaSCKPin = sckPin;
+	isaWSPin = wsPin;
+	isaSDPin = sdPin;
+	isaRightChannel = rightChannel;
+	isaRingWrite = isaRingCount = 0;
+	isaTotalSamples = 0;
+	isaReadErrors = isaEmptyReads = isaOddReads = 0;
+	isaReaderHeartbeat = millis();
+	isaReaderStackFree = 0;
+	isaReaderRunning = true;
+	if (pdPASS != xTaskCreate(isaReaderTask, "ISA I2S reader", 4096, NULL, 10, &isaReaderTaskHandle)) {
+		isaReaderRunning = false;
+		i2s_stop(ISA_I2S_PORT);
+		i2s_driver_uninstall(ISA_I2S_PORT);
+		isaStatus = -4;
+		return falseObj;
+	}
+	// Allow clocked microphone startup transients to pass, then retain only new
+	// continuously captured audio for the first public measurement.
+	delay(400);
+	isaClearRing();
+	delay(100);
+	isaInitialized = true;
+	isaEnabled = true;
+	isaStatus = 1;
+	isaLastSample = isaLastPeak = isaLastLoudness = isaLastRMS = isaLastSPL10 = isaLastFrequency = 0;
+	return trueObj;
+}
+
+static OBJ primISAMicStop(int argCount, OBJ *args) {
+	// Keep I2S clocked and continuously drained so a later matching setup can
+	// resume without a faulty hardware restart. A changed setup hard-restarts it.
+	isaEnabled = false;
+	isaStatus = 0;
+	return falseObj;
+}
+
+static OBJ primISAMicSample(int argCount, OBJ *args) {
+	if (!isaEnabled) { isaStatus = -6; return zeroObj; }
+	portENTER_CRITICAL(&isaRingMux);
+	if (!isaRingCount) {
+		portEXIT_CRITICAL(&isaRingMux);
+		isaStatus = -7;
+		return zeroObj;
+	}
+	int index = isaRingWrite - 1;
+	if (index < 0) index = ISA_MAX_SAMPLES - 1;
+	isaLastSample = isaRing[index];
+	portEXIT_CRITICAL(&isaRingMux);
+	return int2obj(isaLastSample);
+}
+
+static OBJ primISAMicMeasure(int argCount, OBJ *args) {
+	if (!isaEnabled) { isaStatus = -6; return falseObj; }
+	if ((argCount < 1) || !isInt(args[0])) { isaStatus = -1; return falseObj; }
+	int milliseconds = obj2int(args[0]);
+	if (milliseconds < 25) milliseconds = 25;
+	if (milliseconds > 250) milliseconds = 250;
+	int sampleCount = (isaSampleRate * milliseconds) / 1000;
+	if (sampleCount > ISA_MAX_SAMPLES) sampleCount = ISA_MAX_SAMPLES;
+	uint64_t target = isaSampleCounter() + sampleCount;
+	uint32_t deadline = millis() + milliseconds + 150;
+	while (isaSampleCounter() < target) {
+		if ((int32_t) (millis() - deadline) >= 0) {
+			isaStatus = -7;
+			return falseObj;
+		}
+		delay(1);
+	}
+	sampleCount = isaCopyRecentSamples(sampleCount);
+	if (sampleCount < 32) {
+		isaStatus = -7;
+		return falseObj;
+	}
+	int64_t sum = 0;
+	for (int i = 0; i < sampleCount; i++) {
+		sum += isaSamples[i];
+	}
+	int32_t mean = sum / sampleCount;
+	uint64_t sumSquares = 0;
+	int32_t high = -8388608;
+	int32_t low = 8388607;
+	int32_t peak = 0;
+	for (int i = 0; i < sampleCount; i++) {
+		int32_t centered = isaSamples[i] - mean;
+		isaSamples[i] = centered;
+		if (centered > high) high = centered;
+		if (centered < low) low = centered;
+		int32_t magnitude = (centered < 0) ? -centered : centered;
+		if (magnitude > peak) peak = magnitude;
+		sumSquares += ((int64_t) centered * centered);
+	}
+	uint32_t rms = isaIntegerSqrt(sumSquares / sampleCount);
+	isaLastSample = isaSamples[sampleCount - 1];
+	isaLastPeak = peak;
+	isaLastLoudness = high - low;
+	isaLastRMS = rms;
+	if (rms > 0) {
+		// SPL = 120 dB + dBFS. For RMS samples, dBFS uses FS/sqrt(2).
+		// ICS-43434 sensitivity is -26 dBFS at 94 dB SPL. Q10 log2 and 602/10240
+		// approximate 60.206 * log2(ratio), yielding tenths of one dB.
+		int logRatioQ10 = isaLog2Q10(rms) + 512 - (23 << 10);
+		int dbfs10 = (logRatioQ10 * 602) / 10240;
+		isaLastSPL10 = 1200 + dbfs10 + isaCalibration10;
+	} else {
+		isaLastSPL10 = 0;
+	}
+	// Estimate a dominant steady tone from positive-going zero crossings with
+	// adaptive hysteresis. This intentionally rejects weak/noisy signals.
+	int32_t hysteresis = rms / 4;
+	if (hysteresis < 8) hysteresis = 8;
+	int armed = false;
+	int firstCrossing = -1;
+	int lastCrossing = -1;
+	int crossingCount = 0;
+	for (int i = 0; i < sampleCount; i++) {
+		if (isaSamples[i] < -hysteresis) armed = true;
+		if (armed && (isaSamples[i] > hysteresis)) {
+			if (firstCrossing < 0) firstCrossing = i;
+			lastCrossing = i;
+			crossingCount++;
+			armed = false;
+		}
+	}
+	isaLastFrequency = 0;
+	if ((rms >= 16) && (crossingCount >= 3) && (lastCrossing > firstCrossing)) {
+		isaLastFrequency = ((crossingCount - 1) * isaSampleRate + ((lastCrossing - firstCrossing) / 2)) /
+			(lastCrossing - firstCrossing);
+	}
+	isaStatus = 1;
+	return trueObj;
+}
+
+static OBJ primISAMicRunning(int argCount, OBJ *args) { return isaEnabled ? trueObj : falseObj; }
+static OBJ primISAMicPeak(int argCount, OBJ *args) { return int2obj(isaLastPeak); }
+static OBJ primISAMicLoudness(int argCount, OBJ *args) { return int2obj(isaLastLoudness); }
+static OBJ primISAMicRMS(int argCount, OBJ *args) { return int2obj(isaLastRMS); }
+static OBJ primISAMicSPL10(int argCount, OBJ *args) { return int2obj(isaLastSPL10); }
+static OBJ primISAMicFrequency(int argCount, OBJ *args) { return int2obj(isaLastFrequency); }
+static OBJ primISAMicStatus(int argCount, OBJ *args) { return int2obj(isaStatus); }
+static OBJ primISAMicReadErrors(int argCount, OBJ *args) { return int2obj(isaReadErrors); }
+static OBJ primISAMicEmptyReads(int argCount, OBJ *args) { return int2obj(isaEmptyReads); }
+static OBJ primISAMicOddReads(int argCount, OBJ *args) { return int2obj(isaOddReads); }
+static OBJ primISAMicStackFree(int argCount, OBJ *args) { return int2obj(isaReaderStackFree); }
+static OBJ primISAMicHeartbeatAge(int argCount, OBJ *args) {
+	return int2obj((uint32_t) (millis() - isaReaderHeartbeat));
+}
+static OBJ primISAMicResetReason(int argCount, OBJ *args) { return int2obj((int) esp_reset_reason()); }
+static OBJ primISAMicSetCalibration(int argCount, OBJ *args) {
+	if ((argCount > 0) && isInt(args[0])) isaCalibration10 = obj2int(args[0]);
+	return falseObj;
+}
+
+#else
+
+static OBJ primISAMicInit(int argCount, OBJ *args) { return falseObj; }
+static OBJ primISAMicStop(int argCount, OBJ *args) { return falseObj; }
+static OBJ primISAMicSample(int argCount, OBJ *args) { return zeroObj; }
+static OBJ primISAMicMeasure(int argCount, OBJ *args) { return falseObj; }
+static OBJ primISAMicRunning(int argCount, OBJ *args) { return falseObj; }
+static OBJ primISAMicPeak(int argCount, OBJ *args) { return zeroObj; }
+static OBJ primISAMicLoudness(int argCount, OBJ *args) { return zeroObj; }
+static OBJ primISAMicRMS(int argCount, OBJ *args) { return zeroObj; }
+static OBJ primISAMicSPL10(int argCount, OBJ *args) { return zeroObj; }
+static OBJ primISAMicFrequency(int argCount, OBJ *args) { return zeroObj; }
+static OBJ primISAMicStatus(int argCount, OBJ *args) { return zeroObj; }
+static OBJ primISAMicReadErrors(int argCount, OBJ *args) { return zeroObj; }
+static OBJ primISAMicEmptyReads(int argCount, OBJ *args) { return zeroObj; }
+static OBJ primISAMicOddReads(int argCount, OBJ *args) { return zeroObj; }
+static OBJ primISAMicStackFree(int argCount, OBJ *args) { return zeroObj; }
+static OBJ primISAMicHeartbeatAge(int argCount, OBJ *args) { return zeroObj; }
+static OBJ primISAMicResetReason(int argCount, OBJ *args) { return zeroObj; }
+static OBJ primISAMicSetCalibration(int argCount, OBJ *args) { return falseObj; }
+
+#endif
+
 // Signal Capture
 
 #define MAX_PULSE_TIMES 128
@@ -3028,6 +3438,24 @@ static PrimEntry entries[] = {
 	{"spiSetup", primSPISetup},
 	{"readDHT", primReadDHT},
 	{"microphone", primMicrophone},
+	{"i2sMicInit", primISAMicInit},
+	{"i2sMicStop", primISAMicStop},
+	{"i2sMicSample", primISAMicSample},
+	{"i2sMicMeasure", primISAMicMeasure},
+	{"i2sMicRunning", primISAMicRunning},
+	{"i2sMicPeak", primISAMicPeak},
+	{"i2sMicLoudness", primISAMicLoudness},
+	{"i2sMicRMS", primISAMicRMS},
+	{"i2sMicSPL10", primISAMicSPL10},
+	{"i2sMicFrequency", primISAMicFrequency},
+	{"i2sMicStatus", primISAMicStatus},
+	{"i2sMicReadErrors", primISAMicReadErrors},
+	{"i2sMicEmptyReads", primISAMicEmptyReads},
+	{"i2sMicOddReads", primISAMicOddReads},
+	{"i2sMicStackFree", primISAMicStackFree},
+	{"i2sMicHeartbeatAge", primISAMicHeartbeatAge},
+	{"i2sMicResetReason", primISAMicResetReason},
+	{"i2sMicSetCalibration", primISAMicSetCalibration},
 
 	{"captureStart", captureStartPrim},
 	{"captureCount", primCaptureCount},
