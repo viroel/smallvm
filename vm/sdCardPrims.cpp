@@ -10,7 +10,17 @@
 #include "mem.h"
 #include "interp.h"
 
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_RP2040)
+#ifdef ARDUINO_WEACT
+#include "SdFat.h"
+
+SdFs SD;
+FsFile file;
+SoftSpiDriver<PC8, PD2, PC12> softSPI;
+SdSpiConfig cfg{PC11, DEDICATED_SPI, SD_SCK_MHZ(21), &softSPI};
+
+#endif
+
+#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_RP2040) || defined(ARDUINO_WEACT)
 	#define SD_CARD 1
 #endif
 
@@ -23,9 +33,12 @@
 
 #define USE_UTF8_LONG_NAMES 1
 #define DISABLE_FS_H_WARNING 1
+
+#ifndef ARDUINO_WEACT
 #include <SdFat.h>
 
 SdFat SD;
+#endif
 
 #if defined(ARDUINO_ARCH_RP2040) // this includes RP2350
 	#define SPI_SPEED SD_SCK_MHZ(12)
@@ -53,19 +66,15 @@ SdFat SD;
 	#define MOSI_PIN 35
 	#define MISO_PIN 37
 	#define SCK_PIN 36
-#elif defined(STEAMakersS3)
-	#undef DEFAULT_CS_PIN
-	#define DEFAULT_CS_PIN 39
-	#define MOSI_PIN 35
-	#define MISO_PIN 36
-	#define SCK_PIN 37
 #endif
 
 // Variables
 
 static int useSecondarySPI = false;
 static int isDedicatedSPI = false;
+#ifndef ARDUINO_WEACT
 static SPIClass *secondarySPI = NULL;
+#endif
 
 #define MAX_FILE_PATH 128
 #define FILE_ENTRIES 4
@@ -76,19 +85,36 @@ static char fullPath[MAX_FILE_PATH]; // used to prefix "/" to file names
 
 typedef struct {
 	char fileName[MAX_FILE_PATH];
+	#ifdef ARDUINO_WEACT
+	SdFile file;
+	#else
 	FsFile file;
+	#endif
 } FileEntry;
 
 static FileEntry fileEntry[FILE_ENTRIES]; // fileEntry[] records open files
 
 // Helper functions
 
+#ifdef ARDUINO_WEACT
+static void initSecondarySPI() {}
+#else
 static void initSecondarySPI() {
 	if (secondarySPI) return; // already initialized
 	#if defined(ARDUINO_ARCH_ESP32)
 		// Use HSPI SPI controller for ESP32 boards
 		secondarySPI = new SPIClass(HSPI);
-		secondarySPI->begin(); // Use default SCLK, MISO, MOSI, SS pins for HSPI
+		#if defined(STEAMakersAI)
+			// Use fixed SD card pins
+			#undef DEFAULT_CS_PIN
+			#define DEFAULT_CS_PIN 39
+			#define MOSI_PIN 35
+			#define MISO_PIN 36
+			#define SCK_PIN 37
+			secondarySPI->begin(SCK_PIN, MISO_PIN, MOSI_PIN, DEFAULT_CS_PIN);
+		#else
+			secondarySPI->begin(); // Use default SCLK, MISO, MOSI, SS pins for HSPI
+		#endif
 	#elif (SPI_INTERFACES_COUNT > 1) || defined(ARDUINO_ARCH_RP2040)
 		// Use SPI1 on boards that have it
 		secondarySPI = &SPI1;
@@ -98,11 +124,24 @@ static void initSecondarySPI() {
 		secondarySPI = &SPI;
 	#endif
 }
+#endif
 
 static void initSDCard(int chipSelectPin) {
-	#if defined(SPRINGBOT) || defined(STEAMakersS3)
+	#ifdef ARDUINO_WEACT
+	if (!SD.begin(cfg)) {
+		outputString("Could not open SD Card.");
+		return;
+	} else {
+		sdCardCSPin = 0; // not used in this board, but will prevent reinitializing
+		outputString("SD Card opened");
+	}
+	#else
+	#if defined(SPRINGBOT)
 		SPI.end();
 		SPI.begin(SCK_PIN, MISO_PIN, MOSI_PIN, DEFAULT_CS_PIN);
+	#elif defined(STEAMakersAI)
+		useSecondarySPI = true;
+		initSecondarySPI();
 	#endif
 	if (sdCardCSPin != chipSelectPin) {
 		if (chipSelectPin < 0) chipSelectPin = DEFAULT_CS_PIN;
@@ -121,6 +160,7 @@ static void initSDCard(int chipSelectPin) {
 		outputString("SD Card opened");
 		sdCardCSPin = chipSelectPin;
 	}
+	#endif
 }
 
 static char *extractFilename(OBJ obj) {
@@ -181,6 +221,7 @@ static OBJ primSetSPIPins(int argCount, OBJ *args) {
 	// If optional 6th argument is true, use SPI in DEDICATED mode.
 	// Note: This changes the MicroBlocks SPI pins globally (unless SPI1 is specified).
 
+#ifndef ARDUINO_WEACT
 	if (argCount < 3) return fail(notEnoughArguments);
 	if (!(isInt(args[0]) && isInt(args[1]) && isInt(args[2]) && isInt(args[3]))) return fail(needsIntegerError);
 
@@ -220,6 +261,7 @@ static OBJ primSetSPIPins(int argCount, OBJ *args) {
 		#endif
 	}
 	initSDCard(csPin);
+#endif
 	return falseObj;
 }
 
@@ -323,7 +365,11 @@ static OBJ primReadBytes(int argCount, OBJ *args) {
 		byteCount = fileEntry[i].file.read(buf, byteCount);
 		if (!byteCount && fileEntry[i].file.available()) {
 			// workaround for rare read error -- skip to the next block
+			#ifdef ARDUINO_WEACT
+			int pos = fileEntry[i].file.curPosition();
+			#else
 			int pos = fileEntry[i].file.position();
+			#endif
 			reportNum("skipping bad file block at", pos);
 			fileEntry[i].file.seekSet(pos + 256);
 			byteCount = fileEntry[i].file.read(buf, byteCount);
@@ -363,7 +409,11 @@ static OBJ primReadPosition(int argCount, OBJ *args) {
 	int result = 0;
 	int i = entryFor(fileName);
 	if (i >= 0) {
+		#ifdef ARDUINO_WEACT
+		result = fileEntry[i].file.curPosition();
+		#else
 		result = fileEntry[i].file.position();
+		#endif
 	}
 	processMessage();
 	return int2obj(result);
@@ -378,7 +428,11 @@ static OBJ primSetReadPosition(int argCount, OBJ *args) {
 
 	int i = entryFor(fileName);
 	if (i >= 0) {
+		#ifdef ARDUINO_WEACT
+		int fileSize = fileEntry[i].file.fileSize();
+		#else
 		int fileSize = fileEntry[i].file.size();
+		#endif
 		if (newPosition > fileSize) newPosition = fileSize;
 		fileEntry[i].file.seekSet(newPosition);
 	}
@@ -421,8 +475,13 @@ static OBJ primAppendLine(int argCount, OBJ *args) {
 	if (i < 0) return falseObj;
 
 	if ((i >= 0) && fileEntry[i].file) {
+		#ifdef ARDUINO_WEACT
+		int oldPos = fileEntry[i].file.curPosition();
+		int oldSize = fileEntry[i].file.fileSize();
+		#else
 		int oldPos = fileEntry[i].file.position();
 		int oldSize = fileEntry[i].file.size();
+		#endif
 		if (oldPos != oldSize) fileEntry[i].file.seekEnd(); // seek to current end
 		if (IS_TYPE(arg, ListType)) {
 			int count = obj2int(FIELD(arg, 0));
@@ -451,8 +510,13 @@ static OBJ primAppendBytes(int argCount, OBJ *args) {
 	int i = entryFor(fileName);
 	if (i < 0) return falseObj;
 
+	#ifdef ARDUINO_WEACT
+	int oldPos = fileEntry[i].file.curPosition();
+	int oldSize = fileEntry[i].file.fileSize();
+	#else
 	int oldPos = fileEntry[i].file.position();
 	int oldSize = fileEntry[i].file.size();
+	#endif
 	if (oldPos != oldSize) fileEntry[i].file.seekEnd(); // seek to current end
 
 	if (IS_TYPE(data, ByteArrayType)) {
@@ -494,7 +558,11 @@ static OBJ primFileSize(int argCount, OBJ *args) {
 	if (sdCardCSPin < 0) initSDCard(DEFAULT_CS_PIN);
 	FsFile file = SD.open(fileName, O_RDONLY);
 	if (!file) return int2obj(-1);
+	#ifdef ARDUINO_WEACT
+	int size = file.fileSize();
+	#else
 	int size = file.size();
+	#endif
 	file.close();
 	return int2obj(size);
 }

@@ -1079,20 +1079,21 @@ void hardwareInit() {
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 0, 1, 1};
 
-#elif defined(STEAMakersS3)
-	#define BOARD_TYPE "ESP32-S3 STEAMakers AI"
+#elif defined(STEAMakersAI)
+	#define BOARD_TYPE "STEAMakers AI"
 	#define DIGITAL_PINS 49
 	#define ANALOG_PINS 20
 	#define TOTAL_PINS 49
 	static const int analogPin[] = {};
 	#define PIN_LED 45
-	#define PIN_BUTTON_A 18
+	#define NEOPIXEL_PIN_LED true
+	#define PIN_BUTTON_A 0
 	static const char reservedPin[TOTAL_PINS] = {
 		0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-		0, 0, 0, 0, 0, 0, 0, 0, 1, 1,
+		0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 0,
-		1, 1, 1, 0, 0, 1, 0, 0, 0};
+		1, 1, 0, 0, 0, 0, 0, 0, 0};
 
 #elif defined(ESP32_S3)
 	#define BOARD_TYPE "ESP32-S3"
@@ -3539,7 +3540,9 @@ static OBJ primSquareWave(int argCount, OBJ *args) {
 		#if defined(ESP32_S2) || defined(ESP32_C3) || defined(ESP32_C6)
 			setCpuFrequencyMhz(80); // lowest safe clock speed on S2, C3, and C6 is 80 MHz
 		#else
-			setCpuFrequencyMhz(bleRunning ? 80 : 10); // must use 80 MHz if BLE is enabled
+			int lowCPUFrequency = 10; // use 10 MHz if possible for maximum power savings
+			if (bleRunning || wifiActive) lowCPUFrequency = 80; // must use 80 MHz
+			setCpuFrequencyMhz(lowCPUFrequency); //
 		#endif
 
 		delay(msecs);

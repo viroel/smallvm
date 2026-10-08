@@ -322,6 +322,7 @@ void writeI2CReg(int deviceID, int reg, int value);
 
 extern int mbDisplayColor;
 extern int resetDoubleTap;
+extern int wifiActive;
 
 int pinCount();
 int mapDigitalPinNum(int userPinNum);
@@ -468,6 +469,7 @@ typedef enum {
 	H75Prims,
 	EFPrims,			// Elecfreaks, supplied by their primitive package
 	EFDevSensorPrims,	// Elecfreaks, supplied by their primitive package
+	SoundPrims,
 	PrimitiveSetCount
 } PrimitiveSetIndex;
 
@@ -491,6 +493,7 @@ void addSDCardPrims();
 void addH75Prims();
 void addElecfreaksPrims();
 void addElecfreaksSensorPrims();
+void addSoundPrims();
 
 // Named Primitive Support
 
