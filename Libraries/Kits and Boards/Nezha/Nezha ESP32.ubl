@@ -347,7 +347,7 @@ to nezhaEsp32_getGaryAcc axis {
     ax = 2
   }
 
-  return ('[elfreaks_dev_sensor:getGaryAcc]' ax)
+  return (('[elfreaks_dev_sensor:getGaryAcc]' ax) * 1000)
 }
 
 to nezhaEsp32_buttonEvent button event {
