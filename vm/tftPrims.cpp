@@ -1671,6 +1671,25 @@ static void drawString(const char *s, int x, int y, int color16b, int scale, int
 }
 
 static void drawText(OBJ value, int x, int y, int color16b, int scale, int wrap, int bgColor) {
+#if defined(NEZHA_ESP32)
+	const char *text = NULL;
+	char buffer[32];
+	if (IS_TYPE(value, StringType)) {
+		text = obj2str(value); // Keep UTF-8 for the Canvas font.
+	} else if (trueObj == value) {
+		text = "true";
+	} else if (falseObj == value) {
+		text = "false";
+	} else if (isInt(value)) {
+		snprintf(buffer, sizeof(buffer), "%d", obj2int(value));
+		text = buffer;
+	}
+	if (text) {
+		tft->startWrite();
+		nezhaMB_CanvasDrawText(x, y, text, color16b, wrap, scale, bgColor);
+		tft->endWrite();
+	}
+#else
 	int lineH = 8 * scale;
 	int letterW = 6 * scale;
 	char buffer[1000];
@@ -1690,6 +1709,7 @@ static void drawText(OBJ value, int x, int y, int color16b, int scale, int wrap,
 		if (bgColor != -1) tft->fillRect(x, y, strlen(buffer) * letterW, lineH, bgColor);
 		drawString(buffer, x, y, color16b, scale, wrap);
 	}
+#endif
 }
 
 static OBJ primText(int argCount, OBJ *args) {
