@@ -6,7 +6,7 @@
 
 // mb-editor.js - MicroBlocks top-level editor.
 
-/* global MB_Files, MB_FilePicker, MB_Parser, MB_Specs, MB_Project, Color, Point, BlockMorph, ScriptsMorph, ScrollFrameMorph, StringMorph, world */
+/* global MB_Files, MB_FilePicker, MB_Parser, MB_Specs, MB_Project, Color, Point, BlockMorph, ReporterBlockMorph, ScriptsMorph, ScrollFrameMorph, StringMorph, world */
 
 class MB_Editor {
 	constructor() {
@@ -18,6 +18,7 @@ class MB_Editor {
 		this.readFromBoard = false;
 		this.projectName = null; // the file name a save should use
 		this.lastProjectFolder = 'Examples'; // where the file picker opens
+		this.lastLibraryFolder = 'Libraries'; // and where it opens for a library
 		this.runningChunks = new Map(); // used for block highlighting
 		this.resultBubbles = new Map(); // block -> the bubble showing its value
 		this.chunkErrorListeners = []; // called with each decoded board error
@@ -26,16 +27,22 @@ class MB_Editor {
 		// low byte of the location. Null sends every error to the task's chunk.
 		this.errorDecoder = (location, chunkID) => this.decodeErrorLocation(location, chunkID);
 		this.saveNeeded = false; // the scripts changed since the last step
+		this.exportedScriptScale = 1; // set by the chrome; the picture uses the on-screen scale
+		this.lastTransferPercent = null; // the last transfer percentage sent to the chrome
+		this.spinnerShowing = false; // the chrome is showing the spinner this port raised
 		this.category = null; // the selected palette category, or null while a library is
 		this.library = null; // the selected library's name, or null while a category is
 		this.paletteY = 0; // where the next block goes while the palette is being filled
+		this.undoStack = [];
+		this.redoStack = [];
+		this.watchProjectVariables();
+		this.blockSize = 125;
 	}
 
 	open(world) {
 		this.paletteWidth = 200;
 
 		this.palette = new ScrollFrameMorph();
-		this.palette.color = new Color(180, 180, 180);
 		this.palette.contents.acceptsDrops = true;
 		this.palette.contents.reactToDropOf = (droppedMorph) => {
 			if (droppedMorph instanceof BlockMorph) {
@@ -47,12 +54,14 @@ class MB_Editor {
 		// The scripting pane scrolls, so a script taller than the window can
 		// be reached without dragging it off the pane.
 		this.scripts = new ScriptsMorph();
-		this.scripts.color = new Color(150, 150, 150);
 		this.scriptsFrame = new ScrollFrameMorph(this.scripts);
-		this.scriptsFrame.color = this.scripts.color;
 		// What FrameMorph's constructor would have set; ScriptsMorph takes no
 		// scroll frame, and adjustBounds does nothing without one.
 		this.scripts.scrollFrame = this.scriptsFrame;
+
+		// The panes exist now, so they can take their colours. This is the only
+		// place that gives them one, here and on every later change.
+		this.applyDarkMode();
 
 		world.add(this.palette);
 		world.add(this.scriptsFrame);
@@ -138,7 +147,8 @@ class MB_Editor {
 		// x and y are relative to the pane, which is what updateProject records.
 
 		let scriptsPane = this.scriptsPane();
-		b.setPosition(scriptsPane.position().add(new Point(x, y)));
+		const scale = this.scriptScale();
+		b.setPosition(scriptsPane.position().add(new Point(x * scale, y * scale)));
 		scriptsPane.add(b);
 		scriptsPane.adjustBounds();
 		scriptsPane.changed();
@@ -158,13 +168,144 @@ class MB_Editor {
 			project: () => this.project,
 			scriptEditor: () => this.scriptsPane(),
 			installLibraryNamed: (libName) => this.installLibraryNamed(libName),
-			blockScale: () => 1, // the pane holds script-file units unscaled
+			blockScale: () => this.scriptScale(), // exchange positions are in file units
 		};
 	}
 
-	installLibraryNamed(libName) {
+	async installLibraryNamed(libName) {
+		// Take a shipped library into the project by the name its own module line
+		// declares, which is what a copied script's depends line carries.
+
 		if (this.project.libraryNamed(libName)) return;
-		console.log('XXX TO DO: install library by name:', libName);
+		const filePath = await this.fileNameForLibraryNamed(libName);
+		if (!filePath) return; // a name no shipped library declares
+		const data = await MB_Files.readFile(filePath);
+		if (data === undefined) return;
+		await this.importLibraryFromString(data, filePath);
+	}
+
+	// Scripts written before a library was renamed still name it the old way.
+	static renamedLibraries = new Map([
+		['HSV Colors', 'Color'],
+		['VL53L0X', 'Distance (VL53L0X)'],
+		['CutebotPRO', 'Cutebot Pro'],
+	]);
+
+	async fileNameForLibraryNamed(libName) {
+		// The shipped file whose module line declares this name. Building the
+		// index reads every shipped library once, so it is kept.
+
+		const wanted = MB_Editor.renamedLibraries.get(libName) || libName;
+		// Nearly every library is in a file named after the module it declares,
+		// and checking one file is worth a second of reading the whole set.
+		const named = this.findLibraryFile(wanted);
+		if (named && (wanted === MB_Editor.libraryNameIn(await MB_Files.readFile(named)))) return named;
+
+		// Kept as the promise, not the map: a caller arriving while the reads are
+		// still going waits for the finished index rather than reading an empty one.
+		// What is kept has to be worth keeping, so an index is not built before the
+		// file list arrives, one whose reads failed is dropped, and one that is short
+		// a file it could not read reads that file again when a name goes unfound.
+		const paths = MB_Files.allFilesIn('Libraries').filter((p) => p.endsWith('.ubl'));
+		if (0 === paths.length) return null;
+		if (!this.embeddedLibraries) {
+			this.embeddedLibraries = this.readLibraryIndex(paths);
+			this.embeddedLibraries.catch(() => { this.embeddedLibraries = null; });
+		}
+		const index = await this.embeddedLibraries;
+		// Every name the index holds was read out of a file, so a name it answers
+		// for is right and only a name it does not answer for is in doubt. The files
+		// that could not be read are the only ones that can settle that, so they are
+		// the only ones read again: a file briefly out costs the next call one read,
+		// where rebuilding the index would cost it all 223.
+		if (!index.has(wanted) && this.unreadLibraryFiles.length) {
+			this.embeddedLibraries = this.readLibrariesInto(index, this.unreadLibraryFiles);
+			this.embeddedLibraries.catch(() => { this.embeddedLibraries = null; });
+			await this.embeddedLibraries;
+		}
+		return index.get(wanted) || null;
+	}
+
+	async readLibraryIndex(paths) {
+		// Every shipped library's declared name, against the file that declares it.
+		return this.readLibrariesInto(new Map(), paths);
+	}
+
+	async readLibrariesInto(index, paths) {
+		// The reads go out together: sequentially this is a second of waiting with
+		// nothing on screen. A later file wins, so the order is kept. A file that
+		// could not be read answers undefined, which declares no name at all, so it
+		// is held aside as unread rather than taken for a file with nothing to say.
+		const texts = await Promise.all(paths.map((p) => MB_Files.readFile(p)));
+		const unread = [];
+		paths.forEach((filePath, i) => {
+			if (undefined === texts[i]) { unread.push(filePath); return; }
+			const name = MB_Editor.libraryNameIn(texts[i]);
+			if (name) index.set(name, filePath);
+		});
+		this.unreadLibraryFiles = unread;
+		return index;
+	}
+
+	static libraryNameIn(data) {
+		// The name a library file's module line declares. A quoted name ends at
+		// its closing quote, because the line may carry a category after it.
+
+		for (const line of String(data == null ? '' : data).split('\n')) {
+			if (!line.startsWith('module')) continue;
+			const rest = line.slice('module'.length).trim();
+			if (!rest.startsWith("'")) return rest.split(/\s+/)[0] || null;
+			const end = rest.indexOf("'", 1);
+			return (end < 0) ? null : rest.slice(1, end);
+		}
+		return null;
+	}
+
+	async importEmbeddedLibrary(libName) {
+		// Take the shipped library a dependency names into the project, by the
+		// name of its file. A leading underscore asks for it as an implementation
+		// library, whose blocks serve another library and are not offered alone.
+
+		const asImplementation = libName.startsWith('_');
+		const wanted = asImplementation ? libName.slice(1) : libName;
+		const filePath = this.findLibraryFile(wanted);
+		if (!filePath) return; // a name no shipped file answers to
+		if (this.libraryHoldingFile(wanted, filePath)) return;
+		const data = await MB_Files.readFile(filePath);
+		if (data === undefined) return;
+		await this.importLibraryFromString(data, filePath, asImplementation);
+	}
+
+	findLibraryFile(libName) {
+		// The shipped file of a library's name. A name may carry a folder, as
+		// 'Robots/CoCube Module' does, so the match is anchored at a separator,
+		// which keeps a longer name ending the same way from answering for it.
+
+		const suffix = '/' + libName + '.ubl';
+		for (const filePath of MB_Files.allFilesIn('Libraries')) {
+			if (filePath.endsWith(suffix)) return filePath;
+		}
+		return null;
+	}
+
+	libraryHoldingFile(libName, filePath) {
+		// A library already in the project that a dependency name asks for. Its
+		// module name and the name of its file differ for a handful of shipped
+		// libraries, so both are worth asking about.
+
+		const shippedPath = this.project.withoutExtension(filePath.slice('Libraries/'.length));
+		for (const lib of this.project.libraries.values()) {
+			if ((lib.moduleName === libName) || (lib.path === shippedPath)) return lib;
+		}
+		return null;
+	}
+
+	async installDependenciesOf(libName) {
+		// Bring in the libraries a library names, and the ones those name in turn.
+
+		const lib = this.project.libraryNamed(libName);
+		if (!lib) return;
+		for (const dependency of lib.dependencies) await this.importEmbeddedLibrary(dependency);
 	}
 
 	scriptStringFor(aBlock) {
@@ -206,9 +347,13 @@ class MB_Editor {
 	}
 
 	handlePaste(event) {
-		let s = event.data;
-		if (!s.startsWith('GP Script')) return; // ignore non-script paste
-		return this.pasteScripts(s.slice(s.indexOf('\n') + 1));
+		return this.pasteScriptText(event.data);
+	}
+
+	pasteScriptText(text) {
+		// Both a browser paste event and the chrome's paste menu item arrive here.
+		if (!text.startsWith('GP Script')) return; // ignore non-script paste
+		return this.pasteScripts(text.slice(text.indexOf('\n') + 1));
 	}
 
 	async pasteScripts(scriptString, dst) {
@@ -225,7 +370,7 @@ class MB_Editor {
 		}
 		if (!dst) dst = new Point(100, this.scriptsBottom() - pane.top() + (30 * blockScale()));
 		const importer = new MB_ScriptExchange(this.project);
-		importer.importScripts(this.exchangeScripter(), scriptString, pane.left() + dst.x, pane.top() + dst.y);
+		await importer.importScripts(this.exchangeScripter(), scriptString, pane.left() + dst.x, pane.top() + dst.y);
 		pane.adjustBounds();
 		pane.changed();
 
@@ -250,6 +395,44 @@ class MB_Editor {
 		for (const m of this.scriptsPane().children.slice()) {
 			if (m instanceof BlockMorph && m.selector === 'to' && m.argList()[0] === funcName) m.destroy();
 		}
+	}
+
+	showDefinition(func) {
+		// One definition hat per function, and never a second for the same one.
+		if (func == null) return;
+		if (this.definitionShown(func.functionName)) return;
+		this.addToBottom(scriptForFunction(func));
+	}
+
+	definitionShown(funcName) {
+		return this.scriptsPane().children.some((m) =>
+			m instanceof BlockMorph && m.selector === 'to' && m.argList()[0] === funcName);
+	}
+
+	showFunctions(functions) {
+		for (const func of functions) this.showDefinition(func);
+		this.updateProject();
+	}
+
+	hideFunctions(functions) {
+		for (const func of functions) this.hideDefinition(func.functionName);
+		this.updateProject();
+	}
+
+	functionsOfLibrary(libName) {
+		const lib = this.project.libraryNamed(libName);
+		return lib ? lib.functions : [];
+	}
+
+	exportMyBlocksAsLibrary() {
+		// Main's own blocks as a library file, under the name the user gives it.
+		// Nothing is written if the dialog is dismissed.
+
+		return this.prompt(localized('Library name?'), 'my library').then((libName) => {
+			if (!libName) return;
+			this.updateProject();
+			this.saveTextAsFile(this.project.main.codeString(this.project, libName), libName + '.ubl');
+		});
 	}
 
 	scriptsBottom() {
@@ -284,13 +467,33 @@ class MB_Editor {
 		this.tellIDE('currentCategory', libName);
 	}
 
+	applyUserPreferences() {
+		// Resize, recolour and refill for a preference that changes the canvas,
+		// and leave the user on the library or category they were showing. Only
+		// a selection that is no longer there falls back.
+
+		const percent = this.readUserPreferences().blockSizePercent;
+		if (typeof percent === 'number' && Number.isFinite(percent)) {
+			this.applyBlockSize(Math.max(25, Math.min(500, percent)));
+		}
+		this.applyDarkMode();
+		this.tellIDE('libraryList', this.libraryList());
+		const showing = this.library ? this.project.libraryNamed(this.library) : this.category;
+		if (showing) {
+			this.updatePalette();
+		} else {
+			this.selectCategory('cat;Control');
+		}
+	}
+
 	libraryList() {
 		// The project's libraries as the IDE's library buttons want them. An
-		// implementation library holds another library's working parts and is not offered.
+		// implementation library holds another library's working parts and is
+		// offered only where those are.
 
 		let result = [];
 		for (const lib of this.project.libraries.values()) {
-			if (!lib.isImplementationLib()) {
+			if (this.showHiddenBlocks() || !lib.isImplementationLib()) {
 				result.push({ label: lib.moduleName, category: lib.moduleCategory });
 			}
 		}
@@ -332,14 +535,63 @@ class MB_Editor {
 		this.palette.changed();
 	}
 
-	devMode() {
-		// Developer mode. The pure Javascript build keeps it in its IDE object's
-		// preferences (userPreference, ide.js); a page without one reads off.
+	userPreference(pref) {
+		// A preference from the IDE object the pure Javascript build keeps them
+		// in (userPreference, ide.js); a page without one reads every one off.
 
 		try {
-			return (typeof IDE != 'undefined') && (IDE.userPreference('devMode') == true);
+			return (typeof IDE != 'undefined') && (IDE.userPreference(pref) == true);
 		} catch (e) {
 			return false;
+		}
+	}
+
+	devMode() {
+		return this.userPreference('devMode');
+	}
+
+	darkMode() {
+		return this.userPreference('darkMode');
+	}
+
+	paneColors() {
+		// The pane, scrollbar handle and section label colours for the mode the
+		// IDE is in. The dark three are the IDE's blueGray family, the same
+		// values the chrome's stylesheet uses either side of the canvas.
+
+		return this.darkMode()
+			? {
+				palette: new Color(62, 66, 89),
+				scripts: new Color(55, 59, 79),
+				slider: new Color(144, 149, 174),
+				label: new Color(144, 149, 174),
+			}
+			: {
+				palette: new Color(180, 180, 180),
+				scripts: new Color(150, 150, 150),
+				slider: new Color(200, 200, 200),
+				label: new Color(0, 0, 0),
+			};
+	}
+
+	applyDarkMode() {
+		// Recolour the panes and their scrollbar handles. setColor rather than
+		// the colour field, because only setColor repaints what is already on
+		// screen. Block colours are not touched: the mode changes the surfaces
+		// blocks sit on and nothing about the blocks.
+		//
+		// The chrome applies its preferences while it is initialising, which is
+		// before open() has built the panes. open() calls this once they exist,
+		// so there is nothing to colour until then.
+
+		if (!this.palette) return;
+		const colors = this.paneColors();
+		this.palette.setColor(colors.palette);
+		this.scripts.setColor(colors.scripts);
+		this.scriptsFrame.setColor(colors.scripts);
+		for (const frame of [this.palette, this.scriptsFrame]) {
+			frame.hBar.button.setColor(colors.slider);
+			frame.vBar.button.setColor(colors.slider);
 		}
 	}
 
@@ -358,11 +610,26 @@ class MB_Editor {
 	}
 
 	addPaletteLabel(text) {
-		let label = new StringMorph(text, 14);
+		let label = new StringMorph(text, 14 * this.scriptScale());
+		label.setColor(this.paneColors().label); // labels are rebuilt, not recoloured
 		label.toggleWeight();
 		label.setPosition(new Point(this.palette.contents.left() + 5, this.paletteY));
 		this.palette.contents.add(label);
 		this.paletteY += label.height() + 15;
+	}
+
+	addPaletteButton(label, action) {
+		// A push button in the palette, in the file picker's button style. The
+		// action is a function or the name of a method on the editor.
+
+		const button = new TriggerMorph(this, action, label, 14, null, null, null,
+			new Color(20, 20, 20));
+		button.color = new Color(220, 220, 220);
+		button.highlightColor = new Color(240, 240, 240);
+		button.setExtent(new Point(Math.max(30, button.label.width() + 20), 26));
+		button.setPosition(new Point(this.palette.contents.left() + 15, this.paletteY));
+		this.palette.contents.add(button);
+		this.paletteY += button.height() + 7;
 	}
 
 	addPaletteBlockForSpec(spec, category) {
@@ -392,6 +659,14 @@ class MB_Editor {
 		this.addAdvancedBlocksForCategory(cat);
 	}
 
+	showHiddenBlocks() {
+		// Whether a library's working parts, the names starting with an
+		// underscore, are offered. Developer mode as well as the preference:
+		// the menu item that sets it is itself offered only in developer mode.
+
+		return this.devMode() && this.userPreference('showImplementationBlocks');
+	}
+
 	addBlocksForLibrary(libName) {
 		// A library's blocks in the order its block list gives them. Names
 		// starting with an underscore are the library's own working parts.
@@ -405,7 +680,7 @@ class MB_Editor {
 				if (!this.devMode()) return; // the rest is for developer mode
 				this.paletteY += 15;
 				this.addPaletteLabel('Advanced:');
-			} else if (!op.startsWith('_')) {
+			} else if (this.showHiddenBlocks() || !op.startsWith('_')) {
 				let spec = MB_Specs.specArrayForProjectSpec(this.project.blockSpecs.get(op))
 					|| MB_Specs.specArrayForSelector(op);
 				this.addPaletteBlockForSpec(spec, lib.moduleCategory);
@@ -415,10 +690,15 @@ class MB_Editor {
 
 	addVariableBlocks() {
 		// Set and change default to the project's first variable and each variable
-		// gets a reporter. Names starting with an underscore are a library's own
-		// and are not shown.
+		// gets a reporter. Delete a variable is offered only when the palette has
+		// a variable to delete.
 
-		let varNames = this.project.allVariableNames().filter((v) => !v.startsWith('_'));
+		this.addPaletteButton(localized('Add a variable'), () => this.promptForVariable());
+		let varNames = this.visibleVars();
+		if (varNames.length > 0) {
+			this.addPaletteButton(localized('Delete a variable'), () => this.deleteVariableMenu());
+		}
+		this.paletteY += 20;
 		let defaultVar = (varNames.length > 0) ? varNames[0] : '';
 		for (const spec of MB_Specs.specsForCategory('cat;Variables')) {
 			if ('-' == spec) { // separator
@@ -443,10 +723,14 @@ class MB_Editor {
 	}
 
 	addMyBlocks() {
-		// The main module's functions. A library's functions belong to the library.
+		// The two buttons that make a block, then the main module's functions. A
+		// library's functions belong to the library.
 
+		this.addPaletteButton(localized('Add a command block'), () => this.promptForFunction(false));
+		this.addPaletteButton(localized('Add a reporter block'), () => this.promptForFunction(true));
+		this.paletteY += 8;
 		for (const func of this.project.main.functions) {
-			if (func.functionName.startsWith('_')) continue; // hidden
+			if (func.functionName.startsWith('_') && !this.showHiddenBlocks()) continue;
 			this.addPaletteBlockForSpec(this.paletteSpecForFunction(func), 'My Blocks');
 		}
 	}
@@ -478,10 +762,10 @@ class MB_Editor {
 		}
 	}
 
-	async stopAll() {
+	async stopAll(forceRecompile) {
 		try {
 			this.updateProject();
-			await this.codeManager.stopAndSyncScripts();
+			await this.codeManager.stopAndSyncScripts(false, forceRecompile);
 		} catch (e) {
 			this.reportError(e);
 		}
@@ -551,14 +835,26 @@ console.log('unknown');
 	async step() {
 		// Called four times a second. Send the scripts to a connected board if they
 		// changed, as GP's MicroBlocksScripter step does. Wait while another download runs.
+		this.sendTransferPercent(); // before the returns below: a transfer holds them both
 		if (!this.saveNeeded || this.codeManager.savesInProgress > 0) return;
 		this.saveNeeded = false; // an edit made during the sync below sets it again
 		try {
 			this.updateProject();
+			this.storeUndoState();
 			await this.codeManager.syncScripts();
 		} catch (e) {
 			this.reportError(e);
 		}
+	}
+
+	sendTransferPercent() {
+		// The chrome's spinner draws its ring from spinner.setPercent and has no
+		// other source for it. A running transfer keeps its own percentage, so
+		// send that on each step while it moves, and nothing while it does not.
+		const percent = MB_connection.fileTransferProgress;
+		if (percent === this.lastTransferPercent) return;
+		this.lastTransferPercent = percent;
+		if (percent != null) fireIDEEvent('spinner.setPercent', percent);
 	}
 
 	updateProject() {
@@ -569,8 +865,8 @@ console.log('unknown');
 			if (aBlockMorph instanceof BlockMorph) {
 				// An edit to a definition in the pane goes back to its function.
 				if (aBlockMorph.isFunctionDefinition()) aBlockMorph.updateDefinedFunction();
-				let x = Math.round(aBlockMorph.left() - this.scripts.left());
-				let y = Math.round(aBlockMorph.top() - this.scripts.top());
+				let x = Math.round((aBlockMorph.left() - this.scripts.left()) / this.scriptScale());
+				let y = Math.round((aBlockMorph.top() - this.scripts.top()) / this.scriptScale());
 				newScripts.push([x, y, aBlockMorph]);
 			}
 		}
@@ -589,6 +885,7 @@ console.log('unknown');
 		MB_connection.sendMsg('stopAllMsg');
 		this.clearRunningHighlights();
 		this.codeManager.clearVariableNames();
+		this.scriptChanged(); // the next step sends the board the changed code
 	}
 
 	removeLibraryNamed(libName) {
@@ -614,18 +911,96 @@ console.log('unknown');
 
 		let lib = this.project.libraryNamed(libName);
 		if (!lib || (lib.path == null) || lib.path.startsWith('/')) return;
-		const libFileName = '/' + libName + '.ubl';
-		for (const filePath of MB_Files.allFilesIn('Libraries')) {
-			if (!filePath.endsWith(libFileName)) continue;
-			const data = await MB_Files.readFile(filePath);
-			if (!data) return;
-			let moduleName = this.project.addLibraryFromString(data, libName, '//' + filePath);
-			this.codeManager.recompileNeeded(); // its functions were loaded anew
-			this.librariesChanged();
-			this.updateLibraryList();
-			this.selectLibrary(moduleName);
+		const filePath = this.findLibraryFile(libName);
+		if (!filePath) return;
+		const data = await MB_Files.readFile(filePath);
+		if (!data) return;
+		let moduleName = this.project.addLibraryFromString(data, libName, '//' + filePath);
+		this.codeManager.recompileNeeded(); // its functions were loaded anew
+		this.librariesChanged();
+		this.updateLibraryList();
+		this.selectLibrary(moduleName);
+	}
+
+	importLibrary() {
+		// Show the file picker on the shipped libraries. Its Computer button
+		// leads to the browser's chooser, whose file arrives at processDroppedFile.
+
+		const open = MB_FilePicker.findOpen(world);
+		if (open) open.removeFromOwner();
+		new MB_FilePicker((path) => this.openLibraryFile(path), this.lastLibraryFolder, ['.ubl']).open(world);
+	}
+
+	async openLibraryFile(filePath) {
+		// Take a library file the picker chose into the project.
+
+		this.lastLibraryFolder = filePath.slice(0, filePath.lastIndexOf('/') + 1);
+		const data = await MB_Files.readFile(filePath);
+		if (data === undefined) {
+			this.inform(localized('Could not read: ') + filePath);
 			return;
 		}
+		if (await this.importLibraryFromString(data, filePath)) {
+			await this.codeManager.saveAllChunksAfterLoad(); // a connected board takes the new chunks
+		}
+	}
+
+	async importLibraryFromString(data, filePath, asImplementation) {
+		// Add a library to the project with the libraries it depends on, and show
+		// it, replacing one of the same name. A filePath under Libraries leaves
+		// the library a path the reload verb can read it back from; a bare file
+		// name from the user's computer does not. Answers the module name, or null.
+
+		const fileName = filePath.slice(filePath.lastIndexOf('/') + 1);
+		const libName = this.project.withoutExtension(fileName);
+		if (!this.definesALibrary(data)) {
+			this.inform(localized('No library found in: ') + fileName);
+			return null;
+		}
+		// Before the new module goes in, while the old one's functions can still
+		// be named: a hat left behind defines a block the project has stopped having.
+		const replacing = this.project.libraryNamed(libName);
+		this.hideLibraryDefinitions(libName);
+		const moduleName = this.project.addLibraryFromString(data, libName, '//' + filePath);
+		if (asImplementation && (!replacing || replacing.isImplementationLib())) {
+			this.project.libraryNamed(moduleName).beImplementation();
+		}
+		// A library replacing one of its own name keeps the dependencies the
+		// project already resolved for it; a new one needs them brought in.
+		if (!replacing) await this.installDependenciesOf(moduleName);
+		this.codeManager.recompileNeeded(); // its functions were loaded anew
+		this.librariesChanged();
+		this.updateLibraryList();
+		this.selectLibrary(moduleName); // last, so a dependency's own select does not win
+		return moduleName;
+	}
+
+	definesALibrary(data) {
+		// Whether a file's text would give the project a library with anything in
+		// it. A library's block specs are its 'spec' commands and its functions
+		// its 'to' commands, so one of either is the whole question. A file with
+		// neither, such as an empty one or a web page saved by mistake, would add
+		// a library button over an empty palette and say nothing about why.
+
+		let cmdList = null;
+		try {
+			cmdList = MB_Parser.parse(data);
+		} catch (e) {
+			return false;
+		}
+		for (const cmd of cmdList || []) {
+			if (Array.isArray(cmd) && (('spec' === cmd[0]) || ('to' === cmd[0]))) return true;
+		}
+		return false;
+	}
+
+	hideLibraryDefinitions(libName) {
+		// Take the definition hats of a library the project already holds off the
+		// scripting pane. A project without that library has none to take.
+
+		const lib = this.project.libraryNamed(libName);
+		if (!lib) return;
+		for (const func of lib.functions) this.hideDefinition(func.functionName);
 	}
 
 	// Custom blocks and variables. Each takes the answer the chrome's dialog
@@ -657,6 +1032,39 @@ console.log('unknown');
 		return uniqueNameNotIn(taken, varName);
 	}
 
+	visibleVars() {
+		// The globals the palette offers. A name starting with an underscore is a
+		// library's own working variable, shown only with implementation blocks.
+
+		return this.project.allVariableNames().filter((v) => this.showHiddenBlocks() || !v.startsWith('_'));
+	}
+
+	async promptForVariable() {
+		// Ask for a name and make a global of it. An unanswered prompt gives null,
+		// which createVariable would take for a name.
+
+		const name = await this.prompt(localized('New variable name?'), '');
+		if (!name) return;
+		this.createVariable(name);
+	}
+
+	deleteVariable(name) {
+		// Remove the global from main and from every library that declares it.
+
+		this.project.deleteVariable(name);
+		this.updatePalette();
+	}
+
+	deleteVariableMenu() {
+		// Offer the palette's variables and delete the one chosen.
+
+		const names = this.visibleVars();
+		if (0 === names.length) return;
+		const menu = new MenuMorph((choice) => this.deleteVariable(choice));
+		for (const name of names) menu.addItem(name, name);
+		menu.popUpAtHand(this.palette.world());
+	}
+
 	createVariable(name) {
 		// Add a global to main under a unique form of name. Answers the name
 		// added, or null for a blank answer.
@@ -664,7 +1072,17 @@ console.log('unknown');
 		if ('' === varName) return null;
 		const result = this.uniqueVarName(varName);
 		this.project.addVariable(result);
+		this.updatePalette();
 		return result;
+	}
+
+	async promptForFunction(isReporter) {
+		// Ask for a name and define a block of it, a command or a reporter. An
+		// unanswered prompt gives null, which createFunction would take for a name.
+
+		const name = await this.prompt(localized('Enter function name:'), 'myBlock');
+		if (!name) return;
+		this.createFunction(name, isReporter);
 	}
 
 	createFunction(name, isReporter) {
@@ -682,6 +1100,8 @@ console.log('unknown');
 		if (isReporter) hat.nextBlock(MB_Parser.blockForDecompiled(
 			{ selector: 'return', args: [0], isReporter: false, next: null }));
 		this.addToBottom(hat);
+		this.updatePalette();
+		this.scriptChanged(); // xxx is this needed? (from manual merge)
 		return hat;
 	}
 
@@ -707,6 +1127,7 @@ console.log('unknown');
 		const modules = [this.project.main, ...this.project.libraries.values()];
 		modules.find((m) => m.functions.includes(func)).removeFunction(func);
 		this.project.deleteBlockSpecFor(name);
+		this.scriptChanged();
 	}
 
 	changeFunctionPrototype(op, blockType, specString, typeString, defaults, argNames) {
@@ -724,7 +1145,80 @@ console.log('unknown');
 		// Recorded first: rebuilt calls read their slots from the project's spec.
 		this.project.recordBlockSpec(op, { blockType, opName: op, specString,
 			slotTypes: typeString, defaults: defaults.slice() });
+		// A reporter does not chain and a command does not fit a value slot, so
+		// a call that changed shape has to leave the place it was standing in.
+		if (oldSpec && (oldSpec.blockType !== blockType)) this.ejectCallsOf(op, 'r' === blockType);
 		this.updateCallsOf(op, colourSlots);
+		// Its own, because updateCallsOf answers early when the spec is missing.
+		this.scriptChanged();
+	}
+
+	ejectCallsOf(op, becomesReporter) {
+		// Take every call to op out of the script or the function body it sits
+		// in and leave it in the scripting area on its own, in the shape its
+		// new spec gives it, so the user can pick it up and put it back.
+		// Sweeps again while anything moved: an ejected call can carry another
+		// call to op inside it, and that one is in a slot of a block the last
+		// sweep had not seen.
+		let moved = true;
+		for (let sweep = 0; moved && (sweep < 100); sweep += 1) {
+			moved = false;
+			for (const script of this.scriptsPane().children.slice()) {
+				if (!(script instanceof BlockMorph)) continue;
+				moved = this.ejectCallsFrom(op, becomesReporter, script, null) || moved;
+			}
+			for (const func of this.project.main.functions) {
+				// A definition that is showing was reached through the pane
+				// above, because the hat holds the function's own body.
+				const showing = this.scriptsPane().children.some((m) => m.functionDefinition === func);
+				if (!func.cmdList || showing) continue;
+				moved = this.ejectCallsFrom(op, becomesReporter, null, func) || moved;
+			}
+		}
+		this.updateProject();
+	}
+
+	ejectCallsFrom(op, becomesReporter, script, func) {
+		// Eject each call to op from one script in the pane, or from the body of
+		// one function whose definition is not showing, and answer whether any
+		// moved. A call already standing on its own is where this would put it,
+		// so it is left alone. Each ejection changes the tree, so the next call
+		// is looked for afresh.
+		const pane = this.scriptsPane();
+		let moved = false;
+		const gap = 10 * blockScale();
+		let at = script ? script.fullBounds().topRight().add(new Point(gap, 0)) : null;
+		for (;;) {
+			const head = func ? func.cmdList : script;
+			if (head == null) return moved;
+			const call = head.allBlocks().find((b) => (b.selector === op) && (b.parent !== pane));
+			if (call == null) return moved;
+			moved = true;
+			const node = call.expression();
+			if (call === head) {
+				// Nothing above it to reattach the rest to, so the rest becomes
+				// the body.
+				const tail = call.nextBlock();
+				if (tail) call.removeChild(tail);
+				func.cmdList = tail;
+				call.destroy();
+			} else if (call instanceof ReporterBlockMorph) {
+				call.prepareToBeGrabbed(null);
+				call.destroy();
+			} else {
+				call.extract();
+			}
+			// Rebuilt rather than reshaped: the shape is decided when a block is
+			// built, and nothing turns a command block into a reporter in place.
+			const fresh = MB_Parser.blockForDecompiled(
+				{ selector: op, args: node.args, isReporter: becomesReporter, next: null });
+			if (at) {
+				this.addBlockToScriptsAt(fresh, at.x - pane.left(), at.y - pane.top());
+				at = at.add(new Point(0, fresh.fullBounds().height() + gap));
+			} else {
+				this.addToBottom(fresh);
+			}
+		}
 	}
 
 	updateCallsOf(op, colourSlots = []) {
@@ -781,6 +1275,7 @@ console.log('unknown');
 			}
 		}
 		this.updateProject();
+		this.scriptChanged(); // every rebuilt call is a chunk the board has not got
 	}
 
 	rehangDefinitionsOf(func) {
@@ -810,6 +1305,137 @@ console.log('unknown');
 		pane.add(aBlock);
 		pane.adjustBounds();
 		this.updateProject();
+	}
+
+	watchProjectVariables() {
+		this.project.onVariableChange = () => this.storeUndoState();
+	}
+
+	storeUndoState() {
+		// At most 51 code strings: the state being stored and 50 to step back through.
+		if (this.undoStack.length > 50) this.undoStack.shift();
+		this.undoStack.push(this.project.codeString());
+		this.redoStack = [];
+		this.undoStateChanged();
+	}
+
+	undoAvailable() { return this.undoStack.length > 0; }
+	redoAvailable() { return this.redoStack.length > 0; }
+
+	undoStateChanged() {
+		fireIDEEvent('scripts.undoAvailable', this.undoAvailable());
+		fireIDEEvent('scripts.redoAvailable', this.redoAvailable());
+	}
+
+	async restoreUndoState(source) {
+		// Undo and redo share this path. Each hands over the code string it wants
+		// shown and the project is rebuilt from it, rather than mutated in place.
+		this.saveNeeded = false;
+		this.project = new MB_Project();
+		if (source != null) this.project.loadFromString(source, false);
+		this.watchProjectVariables();
+		this.removeAllScripts();
+		for (const [x, y, script] of this.project.main.scripts) {
+			this.addBlockToScriptsAt(script, x, y);
+		}
+		this.project.main.assignScriptIds();
+		this.updatePalette(); // the restored project may declare other variables and blocks
+		this.codeManager.project = this.project;
+		this.codeManager.recompileNeeded();
+		await this.codeManager.syncScripts();
+	}
+
+	async undo() {
+		if (this.undoStack.length) this.redoStack.push(this.undoStack.pop());
+		await this.restoreUndoState(this.undoStack.at(-1));
+		this.undoStateChanged();
+	}
+
+	async redo() {
+		if (this.redoStack.length) {
+			const source = this.redoStack.pop();
+			this.undoStack.push(source);
+			await this.restoreUndoState(source);
+		}
+		this.undoStateChanged();
+	}
+
+	scriptScale() { return this.blockSize / 125; }
+	blockSizePercent() { return this.blockSize; }
+
+	resizeBlock(block, fontFactor) {
+		// TextMorph includes multi-line input text, which is separate from StringMorph.
+		const parts = block.allChildren();
+		for (const part of parts) {
+			if (part instanceof SyntaxElementMorph) part.setScale(SyntaxElementMorph.prototype.scale);
+			if (part instanceof StringMorph || part instanceof TextMorph) {
+				part.setFontSize(part.fontSize * fontFactor);
+				part.fixLayout();
+				part.rerender();
+			}
+		}
+		for (const part of parts.reverse()) {
+			if (part instanceof SyntaxElementMorph) part.fixLayout();
+		}
+	}
+
+	applyBlockSize(percent) {
+		// Keep script positions in project file units while changing the rendered scale.
+		const oldScale = this.scriptScale();
+		const fontFactor = percent / this.blockSize;
+		const pane = this.scriptsPane();
+		const scripts = pane ? pane.children.filter(m => m instanceof BlockMorph) : [];
+		const positions = scripts.map(m => [
+			(m.left() - pane.left()) / oldScale,
+			(m.top() - pane.top()) / oldScale,
+		]);
+		this.blockSize = percent;
+		SyntaxElementMorph.prototype.setScale(1.5 * this.scriptScale());
+		if (this.palette) this.updatePalette();
+		if (pane) {
+			scripts.forEach((m, i) => {
+				this.resizeBlock(m, fontFactor);
+				m.setPosition(new Point(
+					pane.left() + positions[i][0] * this.scriptScale(),
+					pane.top() + positions[i][1] * this.scriptScale()));
+			});
+			pane.adjustBounds();
+		}
+	}
+
+	async setBlockScalePercent(percent) {
+		if (Number.isFinite(percent) && percent >= 25 && percent <= 300) {
+			this.applyBlockSize(percent);
+			const prefs = this.readUserPreferences();
+			prefs.blockSizePercent = percent;
+			localStorage['user-prefs'] = JSON.stringify(prefs);
+		}
+		await this.codeManager.syncScripts();
+	}
+
+	zoomIn() {
+		for (const level of [50, 75, 100, 125, 150, 200, 250]) {
+			if (level > this.blockSize) return this.setBlockScalePercent(level);
+		}
+	}
+
+	zoomOut() {
+		for (const level of [250, 200, 150, 125, 100, 75, 50]) {
+			if (level < this.blockSize) return this.setBlockScalePercent(level);
+		}
+	}
+
+	restoreZoom() {
+		return this.setBlockScalePercent(isMobile() ? 125 : 100);
+	}
+
+	readUserPreferences() {
+		try {
+			const prefs = JSON.parse(localStorage['user-prefs'] || '{}');
+			return prefs && typeof prefs === 'object' && !Array.isArray(prefs) ? prefs : {};
+		} catch (e) {
+			return {};
+		}
 	}
 
 	// File operations
@@ -849,16 +1475,20 @@ console.log('unknown');
 
 	clearProject() {
 		this.project = new MB_Project();
+		this.watchProjectVariables();
 		this.codeManager = new MB_CodeManager(this.project);
 		this.projectName = null;
 		MB_connection.setCodeManager(this.codeManager);
 		this.removeAllScripts();
 		this.updateProjectProperties();
 
-		// GP clears the board on every project replacement, right after making
-		// the new project (MicroBlocksScripter.gp:553). Not awaited: nothing
-		// here downloads, and sendMsg keeps the wire in order on its own.
-		MB_connection.clearBoardIfConnected();
+		// Replacing the project erases what the board still holds. Answered rather
+		// than awaited, so a caller that downloads afterwards can wait on it and
+		// does not have to send a second erase of its own.
+		const cleared = MB_connection.clearBoardIfConnected();
+		// The empty project is an undo state of its own, so undo can return to it.
+		this.storeUndoState();
+		return cleared;
 	}
 
 	updateProjectProperties() {
@@ -879,10 +1509,14 @@ console.log('unknown');
 	}
 
 	saveTextAsFile(text, fileName) {
-		// A download is all a web page can do; there is no file system to
-		// write to and no path to write it at.
+		this.saveDataAsFile(text, fileName, 'text/plain');
+	}
 
-		const url = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+	saveDataAsFile(data, fileName, mimeType = 'application/octet-stream') {
+		// A download is all a web page can do; there is no file system to
+		// write to and no path to write it at. data is text or bytes.
+
+		const url = URL.createObjectURL(new Blob([data], { type: mimeType }));
 		const link = document.createElement('a');
 		link.href = url;
 		link.download = fileName;
@@ -890,6 +1524,107 @@ console.log('unknown');
 		link.click();
 		document.body.removeChild(link);
 		URL.revokeObjectURL(url);
+	}
+
+	scriptsPicturePNG() {
+		// The scripts pane as PNG bytes. A canvas is the only thing in a browser
+		// that draws one, and toDataURL the only synchronous way to read it back;
+		// a page without a real canvas answers an empty string, and gets null.
+
+		const canvas = this.scriptsPane().scriptsPicture();
+		if (!canvas) return null; // no scripts
+		const url = canvas.toDataURL('image/png');
+		const base64 = url.slice(url.indexOf(',') + 1);
+		if (!base64) return null;
+		const binary = atob(base64);
+		const bytes = new Uint8Array(binary.length);
+		for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+		return bytes;
+	}
+
+	saveScriptsImage() {
+		// A picture of every script, carrying the scripts as text so that the
+		// wiki and any MicroBlocks IDE can read them back out of it. It uses the
+		// current block scale rather than the export scale, on purpose, so that
+		// what is saved is what is on screen.
+
+		const pngBytes = this.scriptsPicturePNG();
+		if (pngBytes == null) return;
+		const withText = MB_ScriptPicture.addScriptText(pngBytes, this.allScriptsString());
+		this.saveDataAsFile(new Uint8Array(withText), 'allScripts' + Date.now() + '.png', 'image/png');
+	}
+
+	browserReadBytes(handler) {
+		// Choose any file and hand its bytes to handler, for the board's own file
+		// system, where a file is not a project and not text.
+
+		const inp = document.createElement('input');
+		inp.type = 'file';
+		inp.style.display = 'none';
+		inp.addEventListener('cancel', () => inp.remove());
+		inp.addEventListener('change', async () => {
+			inp.remove();
+			const file = inp.files[0];
+			if (file) await handler(file.name, new Uint8Array(await file.arrayBuffer()));
+		});
+		document.body.appendChild(inp);
+		inp.click();
+	}
+
+	chromeMenu(items) {
+		// The chrome draws the menu; items are '-' or [label, action, tip].
+		return chromeMenuFor(world, items);
+	}
+
+	// ***** The board's file system *****
+
+	async uploadFileToBoard() {
+		// Put a file the user chooses onto the board. The chooser takes any file,
+		// not just a project.
+
+		await this.browserReadBytes(async (fileName, bytes) => {
+			fireIDEEvent('spinner.show', { title: localized('Writing file to board...'),
+				subtitle: fileName, note: null, percent: 0 });
+			try {
+				await MB_connection.writeFileToBoard(fileName, bytes);
+			} finally {
+				fireIDEEvent('spinner.hide');
+			}
+		});
+	}
+
+	async downloadFileFromBoard() {
+		// The order is the point: list, offer a menu, read the chosen file, ask,
+		// then save.
+
+		const files = await MB_connection.getFileListFromBoard();
+		if (files == null) return;
+		// The code store is a file on the board and is not one a user wants.
+		const names = Object.keys(files).filter((name) => 'ublockscode' !== name).sort();
+		if (0 === names.length) return this.inform(localized('No files on board.'));
+		this.chromeMenu(names.map((name) => [name, () => this.readAndSaveFile(name, files[name])]));
+	}
+
+	async readAndSaveFile(fileName, fileSize) {
+		fireIDEEvent('spinner.show', { title: localized('Reading file from board...'),
+			subtitle: fileName, note: null, percent: 0 });
+		let bytes;
+		try {
+			bytes = await MB_connection.readFileFromBoard(fileName, fileSize);
+		} finally {
+			fireIDEEvent('spinner.hide');
+		}
+		// Null is a transfer the board did not finish, which is not an empty file.
+		if (bytes == null) return;
+		if (!(await this.confirm(localized('Save file?')))) return;
+		this.saveDataAsFile(bytes, fileName);
+	}
+
+	async toggleBLE() {
+		// Not a toggle, despite the endpoint's name: it asks and sends the answer
+		// either way, so declining sends 0.
+		const allow = await this.confirm(localized('Allow the attached board to be connected via BLE?'));
+		MB_connection.sendMsg('enableBLEMsg', allow ? 1 : 0);
 	}
 
 	openProjectMenu() {
@@ -906,12 +1641,16 @@ console.log('unknown');
 		this.importLocalFile((fileName, contents) => this.openProjectFromString(contents, fileName));
 	}
 
-	async openProjectFromString(contents, name) {
+	async openProjectFromString(contents, name, clearFirst = true) {
 		if (!(await MB_editor.canReplaceCurrentProject())) return;
+		// clearFirst decides whether the empty project becomes an undo state before
+		// the new one loads, because clearProject stores one. Clearing therefore
+		// adds a step for undo to stop at. A dropped file passes false and skips it.
+		const cleared = clearFirst ? MB_editor.clearProject() : null;
 		MB_editor.saveNeeded = false; // don't save scripts while project is loading, as GP does
-		MB_editor.project = new MB_Project();
+		MB_editor.project.onVariableChange = null;
 		MB_editor.project.loadFromString(contents);
-		MB_editor.removeAllScripts();
+		MB_editor.watchProjectVariables();
 		MB_editor.project.main.scripts.forEach( (entry) => {
 			let x = entry[0], y = entry[1], script = entry[2];
 			MB_editor.addBlockToScriptsAt(script, x, y);
@@ -922,8 +1661,10 @@ console.log('unknown');
 		MB_editor.updateProjectProperties();
 
 		// Without the erase the project that was open keeps running on the board.
-		// Awaited: the download below must not overtake the erase.
-		await MB_connection.clearBoardIfConnected();
+		// Awaited: the download below must not overtake the erase. clearProject
+		// has already sent one when it ran, so waiting on that is the whole of
+		// it; sending a second erases an already empty board and stops it twice.
+		await (cleared || MB_connection.clearBoardIfConnected());
 		MB_editor.updateLibraryList(); // its libraries, variables and functions reach the palette
 		console.log("Loaded:", name,
 			MB_editor.project.main.scripts.length, 'scripts,',
@@ -931,6 +1672,8 @@ console.log('unknown');
 		);
 		// Opening a project ends by downloading it to a connected board.
 		await MB_editor.codeManager.saveAllChunksAfterLoad();
+		// Keep the opened project as the state an edit can undo back to.
+		MB_editor.storeUndoState();
 	}
 
 	async openProjectFromFile(location) {
@@ -964,10 +1707,15 @@ console.log('unknown');
 	}
 
 	async processDroppedFile(fileName, data) {
-		// Act on a file by its extension. Only projects are handled so far.
+		// Act on a file by its extension: a project or a library.
 
 		const name = fileName.toLowerCase();
-		if (name.endsWith('.ubp') || name.endsWith('.ubp.txt')) await this.openProjectFromString(data, fileName);
+		if (name.endsWith('.ubp') || name.endsWith('.ubp.txt')) await this.openProjectFromString(data, fileName, false);
+		else if (name.endsWith('.ubl')) {
+			if (await this.importLibraryFromString(data, fileName)) {
+				await this.codeManager.saveAllChunksAfterLoad();
+			}
+		}
 	}
 
 	importLocalFile(callback) {
@@ -1051,6 +1799,7 @@ console.log('unknown');
 		}
 		if (project == null) return;
 		this.project = project;
+		this.watchProjectVariables();
 		this.removeAllScripts();
 		this.project.main.scripts.forEach(
 			(entry) => this.addBlockToScriptsAt(entry[2], entry[0], entry[1]));
@@ -1061,6 +1810,8 @@ console.log('unknown');
 		this.updateLibraryList(); // its libraries, variables and functions reach the palette
 		console.log('Read from board:', this.project.main.scripts.length, 'scripts,',
 			this.project.allFunctions().length, 'functions');
+		// Keep the decompiled project as the state redo can return to.
+		this.storeUndoState();
 	}
 
 	// Placeholder functions for UI actopms
@@ -1184,6 +1935,10 @@ console.log('unknown');
 // rather than through IDE.fireEvent, which is the same dispatch, so that the
 // port does not require the chrome to be loaded.
 function fireIDEEvent(name, value) {
+	// The spinner is the chrome's, and no morph here stands for it, so what the
+	// port last said about it is the only record that one is up.
+	if ('spinner.show' === name) MB_editor.spinnerShowing = true;
+	if ('spinner.hide' === name) MB_editor.spinnerShowing = false;
 	// Both guards: the port is also loaded with no DOM, and into contexts that
 	// supply a partial one where document exists and CustomEvent does not.
 	if (typeof document === 'undefined' || typeof CustomEvent === 'undefined') { return; }

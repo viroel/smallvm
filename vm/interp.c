@@ -1352,7 +1352,8 @@ static void runTask(Task *task) {
 	#if !defined(ESP32_ORIGINAL) && !defined(ESP32_S3_MATRIX_PORTAL) && !defined(NEZHA_ESP32)
 		// original ESP32 fails with TG1WDT_SYS_RESET when napping
 		// S3_MATRIX_PORTAL pixel scanning (DMA) does not work with napping enabled
-		// NEZHA_ESP32 runs background tasks that need full speed CPU
+		// NEZHA_ESP32 runs background tasks that need full speed CPU so cannot nap
+
 		#define CAN_NAP 1
 	#endif
 

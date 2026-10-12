@@ -174,6 +174,10 @@ void hardwareInit() {
 	#if defined(DATABOT_V3)
 		databotV3Init();
 	#endif
+	#if defined(NEZHA_ESP32)
+		// This call suppresses some spurious error messages at startup.
+		gpio_install_isr_service(0);
+	#endif
 	initPins();
 	initRandomSeed();
 	turnOffInternalNeoPixels();
@@ -1160,7 +1164,9 @@ void hardwareInit() {
 	#endif
 
 #elif defined(ARDUINO_ARCH_ESP32)
-	#ifdef ARDUINO_IOT_BUS
+	#if defined(ESP32STEAMakers)
+		#define BOARD_TYPE "ESP32 STEAMakers"
+	#elif defined(ARDUINO_IOT_BUS)
 		#define BOARD_TYPE "IOT-BUS"
 		#define LED_BUILTIN 5
 		#define PIN_BUTTON_A 15
@@ -3537,13 +3543,17 @@ static OBJ primSquareWave(int argCount, OBJ *args) {
 
 	extern "C" void lightSleep(int msecs) {
 		if (servosRunning) return; // changing clock speed messes up servo timing
+
+		int lowCPUFrequency;
 		#if defined(ESP32_S2) || defined(ESP32_C3) || defined(ESP32_C6)
-			setCpuFrequencyMhz(80); // lowest safe clock speed on S2, C3, and C6 is 80 MHz
+			lowCPUFrequency = 80; // lowest safe clock speed on S2, C3, and C6 is 80 MHz
 		#else
-			int lowCPUFrequency = 10; // use 10 MHz if possible for maximum power savings
-			if (bleRunning || wifiActive) lowCPUFrequency = 80; // must use 80 MHz
-			setCpuFrequencyMhz(lowCPUFrequency); //
+			// use 10 MHz if possible for maximum power savings
+			// lowest possible speed is 80 MHz if BLE or WiFi is active
+			lowCPUFrequency = (bleRunning || wifiActive) ? 80 : 10;
 		#endif
+
+		setCpuFrequencyMhz(lowCPUFrequency);
 
 		delay(msecs);
 
