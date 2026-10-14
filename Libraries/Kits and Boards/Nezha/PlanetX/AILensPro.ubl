@@ -13,7 +13,9 @@ Gesture recognition
 Sound-touch recording and upload'
 variables _aicam_addr _aicam_chunk _aicam_gap _aicam_init_done _aicam_online _aicam_current_mode _aicam_face_status _aicam_face_id _aicam_face_similarity _aicam_face_blink _aicam_face_mouth_open _aicam_face_coord_valid _aicam_face_left_x _aicam_face_left_y _aicam_face_right_x _aicam_face_right_y _aicam_face_label _aicam_self_status _aicam_self_id _aicam_self_similarity _aicam_self_label _aicam_hand_status _aicam_hand_id _aicam_hand_similarity _aicam_hand_pose_similarity _aicam_hand_label _aicam_sound_status _aicam_sound_bpm _aicam_sound_beat_count _aicam_sound_duration _aicam_sound_message
 
-  spec ' ' 'aicam_init' 'initialize AI camera over I2C'
+  variables _planetX_i2cRequestBusy _planetX_i2cQueue
+
+spec ' ' 'aicam_init' 'initialize AI camera over I2C'
   spec ' ' 'aicam_switch_to' 'switch function to _' 'menu.aicamModeMenu' 'face recognition'
   spec ' ' 'aicam_set_rgb' 'set RGB _' 'menu.aicamColorMenu' 'green'
   spec ' ' 'aicam_refresh_result' 'refresh recognition result'
@@ -39,7 +41,6 @@ variables _aicam_addr _aicam_chunk _aicam_gap _aicam_init_done _aicam_online _ai
   spec 'r' 'aicam_hand_pose_similarity' 'gesture pose similarity'
   spec 'r' 'aicam_detected_learned_gesture' 'learned gesture detected?'
   space
-  spec ' ' 'aicam_sound_path' 'send sound-touch path _ auto upload _' 'str bool' '/music.wav' true
   spec ' ' 'aicam_sound_record' 'sound-touch recording _' 'bool' true
   spec ' ' 'aicam_sound_upload' 'upload sound-touch recording'
   spec 'r' 'aicam_sound_status' 'sound-touch status'
@@ -66,9 +67,7 @@ variables _aicam_addr _aicam_chunk _aicam_gap _aicam_init_done _aicam_online _ai
 to aicam_init {
   '_aicam_defaults'
   _aicam_addr = 96
-  _aicam_init_done = (booleanConstant false)
   _aicam_online = (booleanConstant false)
-  if (not ('[elfreaks_dev_sensor:i2cPortEnsureMaster]')) {return (booleanConstant false)}
   _aicam_init_done = (booleanConstant true)
   return ('_aicam_probe_init')
 }
@@ -205,25 +204,6 @@ to aicam_detected_learned_gesture {
   return (_aicam_hand_status == 1)
 }
 
-to aicam_sound_path path upload {
-  if (not ('_aicam_ready')) {return 0}
-  local 'text' ('[data:convertType]' path 'string')
-  if ((size text) <= 0) {return 0}
-  local 'body' ('[data:asByteArray]' text)
-  local 'bodyLen' (minimum (size body) 248)
-  local 'payload' ('[data:newByteArray]' (bodyLen + 1) 0)
-  atPut 1 payload bodyLen
-  for i bodyLen {
-    atPut (i + 1) payload (at i body)
-  }
-  local 'frame' ('_aicam_uart_frame' (hexToInt '37') payload)
-  local 'ok' ('_aicam_write_uart_frame' frame)
-  if (and ok upload) {
-    waitMillis 30
-    '_aicam_send_uart_command' (hexToInt '3A') ('[data:makeList]' 1)
-  }
-}
-
 to aicam_sound_record enable {
   if (not ('_aicam_ready')) {return 0}
   '_aicam_send_uart_command' (hexToInt '38') ('[data:makeList]' (ifExpression enable 1 2))
@@ -311,7 +291,7 @@ to aicam_mode_name mode {
 to aicam_raw_read_register addr len {
   if (not ('_aicam_ready')) {return ('[data:newByteArray]' 0)}
   len = (minimum (maximum 1 len) 64)
-  return ('_aicam_read_reg_retry' addr len 2)
+  return ('_aicam_read_reg_bytes' addr len _aicam_chunk 2)
 }
 
 to aicam_raw_write_register addr data {
@@ -452,17 +432,28 @@ to '_aicam_packet' command params {
 
 to '_aicam_device_write' command params {
   local 'packet' ('_aicam_packet' command params)
-  return (('[elfreaks_dev_sensor:i2cPortWrite]' _aicam_addr packet 100) == (size packet))
+  if (not ('_planetX_i2cAcquire')) {return false}
+  '[sensors:i2cSetClockSpeed]' 200000
+  local 'present' ('[sensors:i2cExists]' _aicam_addr)
+  if present {'[sensors:i2cWrite]' _aicam_addr packet}
+  '_planetX_i2cRelease'
+  return present
 }
 
 to '_aicam_device_read' command params readLen {
-  if (readLen <= 0) {return ('[data:newByteArray]' 0)}
+  if (or (readLen <= 0) (readLen > 31)) {return ('[data:newByteArray]' 0)}
   local 'packet' ('_aicam_packet' command params)
-  if (('[elfreaks_dev_sensor:i2cPortWrite]' _aicam_addr packet 100) != (size packet)) {return ('[data:newByteArray]' 0)}
-  if (_aicam_gap > 0) {waitMillis _aicam_gap}
+  if (not ('_planetX_i2cAcquire')) {return ('[data:newByteArray]' 0)}
+  '[sensors:i2cSetClockSpeed]' 200000
   local 'raw' ('[data:newByteArray]' (readLen + 1) 0)
-  if (('[elfreaks_dev_sensor:i2cPortRead]' _aicam_addr raw 100) < (readLen + 1)) {return ('[data:newByteArray]' 0)}
-  if ((size raw) < (readLen + 1)) {return ('[data:newByteArray]' 0)}
+  local 'read' false
+  if ('[sensors:i2cExists]' _aicam_addr) {
+    '[sensors:i2cWrite]' _aicam_addr packet
+    if (_aicam_gap > 0) {waitMillis _aicam_gap}
+    read = (('[sensors:i2cRead]' _aicam_addr raw) == (readLen + 1))
+  }
+  '_planetX_i2cRelease'
+  if (not read) {return ('[data:newByteArray]' 0)}
   if (('_aicam_crc8' raw readLen) != (at (readLen + 1) raw)) {return ('[data:newByteArray]' 0)}
   return ('[data:copyFromTo]' raw 1 readLen)
 }
@@ -489,7 +480,7 @@ to '_aicam_read_reg_bytes' addr totalLen chunk retry {
   local 'offset' 0
   local 'failed' (booleanConstant false)
   repeatUntil (or failed (offset >= totalLen)) {
-    local 'n' (minimum (maximum 1 (minimum chunk 32)) (totalLen - offset))
+    local 'n' (minimum (maximum 1 (minimum chunk 31)) (totalLen - offset))
     local 'part' ('_aicam_read_reg_retry' (addr + offset) n retry)
     if ((size part) < n) {
       failed = (booleanConstant true)
@@ -744,4 +735,29 @@ to '_aicam_parse_sound' raw {
 to '_aicam_valid_face_center' {
   if (_aicam_face_coord_valid == 0) {return (booleanConstant false)}
   return (not (and (_aicam_face_left_x == _aicam_face_right_x) (_aicam_face_left_y == _aicam_face_right_y)))
+}
+
+to '_planetX_i2cAcquire' {
+  if (_planetX_i2cQueue == 0) {_planetX_i2cQueue = ('[data:makeList]')}
+  // Distinct objects identify requests without a wrapping ticket counter.
+  local 'request' ('[data:newByteArray]' 1 0)
+  '[data:addLast]' request _planetX_i2cQueue
+  if (('[data:find]' request _planetX_i2cQueue) < 1) {return false}
+  local 'start' (millisOp)
+  repeatUntil (and (not _planetX_i2cRequestBusy) ((at 1 _planetX_i2cQueue) == request)) {
+    if ((millisSince start) >= 500) {
+      local 'index' ('[data:find]' request _planetX_i2cQueue)
+      if (index > 0) {'[data:delete]' index _planetX_i2cQueue}
+      return false
+    }
+    waitMillis 1
+  }
+  _planetX_i2cRequestBusy = true
+  return true
+}
+
+to '_planetX_i2cRelease' {
+  if (not _planetX_i2cRequestBusy) {return}
+  '[data:delete]' 1 _planetX_i2cQueue
+  _planetX_i2cRequestBusy = false
 }

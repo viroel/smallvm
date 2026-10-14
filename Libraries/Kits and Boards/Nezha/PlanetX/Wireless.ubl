@@ -9,6 +9,8 @@ variables _gpio_wifiConnected _gpio_wifiLastResponse
 variables _smartiot_connected _smartiot_sendMsg _smartiot_lastSendTime _smartiot_switchListenFlag _smartiot_switchStatus _smartiot_switchKnown _smartiot_requestBusy
 variables _smartiot_switchOnEvent _smartiot_switchOffEvent _smartiot_host _smartiot_port _smartiot_token _smartiot_topic _smartiot_lastResponse
 
+variables _planetX_i2cRequestBusy _planetX_i2cQueue
+
 choices ioAdcPort 'J1' 'J2' 'J3' 'J4'
 choices attention '⬆' '⬇' '⬅' '➡' '▷' '☐' '𐤏' '⨉' 'L1' 'R1' 'L2' 'R2' 'SELECT' 'START' 'L3' 'R3'
 choices planetXJoystickAxis 'RX' 'RY' 'LX' 'LY'
@@ -63,31 +65,14 @@ to '_planetX_attentionCode' button {
 
 to '_planetX_attentionReadByte' {
   local 'response' ('[data:newByteArray]' 1 0)
-  if (('[elfreaks_dev_sensor:i2cPortRead]' 8 response 20) != 1) {
-    return -1
-  }
+  if (('[sensors:i2cRead]' 8 response) != 1) {return -1}
   return (at 1 response)
 }
 
-to 'getAttentionVal' button {
-  local 'buttonCode' ('_planetX_attentionCode' button)
-  if (buttonCode == 0) {return false}
-  if (not ('[elfreaks_dev_sensor:i2cPortEnsureMaster]')) {return false}
-
-  local 'start' (millisOp)
-  local 'ready' false
-  repeatUntil ready {
-    ready = (('_planetX_attentionReadByte') == 16)
-    if (and (not ready) ((millisSince start) >= 250)) {
-      return false
-    }
-    if (not ready) {waitMillis 1}
-  }
-
-  if (('[elfreaks_dev_sensor:i2cPortWrite]' 8 buttonCode 20) != 1) {
-    return false
-  }
-  return (('_planetX_attentionReadByte') == 1)
+to getAttentionVal button {
+  local 'code' ('_planetX_attentionCode' button)
+  if (code == 0) {return false}
+  return (('_planetX_attentionRequest' code) == 1)
 }
 
 to '_planetX_joystickAnalogCode' axis {
@@ -97,24 +82,9 @@ to '_planetX_joystickAnalogCode' axis {
   return 27
 }
 
-to 'planetX_joystickAnalog' axis {
-  local 'analogCode' ('_planetX_joystickAnalogCode' axis)
-  if (not ('[elfreaks_dev_sensor:i2cPortEnsureMaster]')) {return 0}
-
-  local 'start' (millisOp)
-  local 'ready' false
-  repeatUntil ready {
-    ready = (('_planetX_attentionReadByte') == 16)
-    if (and (not ready) ((millisSince start) >= 250)) {
-      return 0
-    }
-    if (not ready) {waitMillis 1}
-  }
-
-  if (('[elfreaks_dev_sensor:i2cPortWrite]' 8 analogCode 20) != 1) {
-    return 0
-  }
-  local 'value' ('_planetX_attentionReadByte')
+to planetX_joystickAnalog axis {
+  local 'value' ('_planetX_attentionRequest' ('_planetX_joystickAnalogCode' axis))
+  if (value < 0) {return 0}
   if (or (axis == 'RY') (axis == 'LY')) {
     if (value != 0) {value += 1}
   } else {
@@ -400,4 +370,51 @@ to wifiState optionalState {
 // Product-facing boolean selector; old projects retain the comparison input.
 to wifiConnected {
   return (wifiState)
+}
+
+to '_planetX_i2cAcquire' {
+  if (_planetX_i2cQueue == 0) {_planetX_i2cQueue = ('[data:makeList]')}
+  // Distinct objects identify requests without a wrapping ticket counter.
+  local 'request' ('[data:newByteArray]' 1 0)
+  '[data:addLast]' request _planetX_i2cQueue
+  if (('[data:find]' request _planetX_i2cQueue) < 1) {return false}
+  local 'start' (millisOp)
+  repeatUntil (and (not _planetX_i2cRequestBusy) ((at 1 _planetX_i2cQueue) == request)) {
+    if ((millisSince start) >= 500) {
+      local 'index' ('[data:find]' request _planetX_i2cQueue)
+      if (index > 0) {'[data:delete]' index _planetX_i2cQueue}
+      return false
+    }
+    waitMillis 1
+  }
+  _planetX_i2cRequestBusy = true
+  return true
+}
+
+to '_planetX_i2cRelease' {
+  if (not _planetX_i2cRequestBusy) {return}
+  '[data:delete]' 1 _planetX_i2cQueue
+  _planetX_i2cRequestBusy = false
+}
+
+to '_planetX_attentionWaitReady' {
+  local 'start' (millisOp)
+  repeatUntil (('_planetX_attentionReadByte') == 16) {
+    if ((millisSince start) >= 250) {return false}
+    waitMillis 1
+  }
+  return true
+}
+
+to '_planetX_attentionRequest' command {
+  if (not ('_planetX_i2cAcquire')) {return -1}
+  // Match the former i2cPort transport clock, without an extra probe write.
+  '[sensors:i2cSetClockSpeed]' 200000
+  local 'value' -1
+  if ('_planetX_attentionWaitReady') {
+    '[sensors:i2cWrite]' 8 command
+    value = ('_planetX_attentionReadByte')
+  }
+  '_planetX_i2cRelease'
+  return value
 }

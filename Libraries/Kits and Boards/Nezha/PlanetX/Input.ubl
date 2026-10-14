@@ -56,7 +56,9 @@ variables _planetX_asrReady _planetX_asrData _planetX_asrLastCode
 variables _planetX_colorReady _planetX_colorHue _planetX_colorClear _planetX_colorR _planetX_colorG _planetX_colorB _planetX_colorAddr _planetX_colorNewMode _planetX_rtcReady
 variables _planetX_trackBitReady _planetX_trackBitStateValue _planetX_trackBitStateValid
 
-  spec ' ' 'buttonEventBroadcast' 'when button _ key _ is pressed send broadcast _' 'menu.ioAdcPort menu.planetXButton str' 'J1' 'C' ''
+  variables _planetX_i2cRequestBusy _planetX_rfidStart _planetX_rfidController _planetX_wsResponse _planetX_i2cQueue
+
+spec ' ' 'buttonEventBroadcast' 'when button _ key _ is pressed send broadcast _' 'menu.ioAdcPort menu.planetXButton str' 'J1' 'C' ''
   spec 'r' 'buttonCD' 'button _ key _ is pressed' 'menu.ioAdcPort menu.planetXButton' 'J1' 'C'
   space
   spec 'r' 'Crash' 'crash sensor _ pressed?' 'menu.ioAdcPort' 'J1'
@@ -457,42 +459,55 @@ to trackingSensor port state {
 }
 
 to '_planetX_extI2CInit' {
-  if (not _planetX_extI2CReady) {
-    _planetX_extI2CReady = ('[elfreaks_dev_sensor:i2cPortEnsureMaster]')
-  }
-  return _planetX_extI2CReady
+  // sensors primitives initialize Wire on their first call.
+  _planetX_extI2CReady = true
+  return true
 }
 
 to '_planetX_i2cWrite' addr bytes {
-  if (not ('_planetX_extI2CInit')) {return false}
-  return (('[elfreaks_dev_sensor:i2cPortWrite]' addr bytes 100) == (size bytes))
+  if (not ('_planetX_i2cAcquire')) {return false}
+  '[sensors:i2cSetClockSpeed]' 200000
+  local 'present' ('[sensors:i2cExists]' addr)
+  if present {'[sensors:i2cWrite]' addr bytes}
+  '_planetX_i2cRelease'
+  // i2cWrite has no success result; only presence was checked.
+  return present
 }
 
 to '_planetX_i2cReadReg' addr reg {
-  if (not ('_planetX_extI2CInit')) {return 0}
+  if (not ('_planetX_i2cAcquire')) {return 0}
+  '[sensors:i2cSetClockSpeed]' 200000
   local 'buf' ('[data:newByteArray]' 1 0)
-  if (('[elfreaks_dev_sensor:i2cPortWriteRead]' addr ('[data:makeList]' reg) buf 100) == 1) {
-    return (at 1 buf)
+  local 'value' 0
+  if ('[sensors:i2cExists]' addr) {
+    '[sensors:i2cWrite]' addr ('[data:makeList]' reg) false
+    if (('[sensors:i2cRead]' addr buf) == 1) {value = (at 1 buf)}
   }
-  return 0
+  '_planetX_i2cRelease'
+  return value
 }
 
 to '_planetX_i2cReadUInt16LE' addr reg {
-  if (not ('_planetX_extI2CInit')) {return 0}
+  if (not ('_planetX_i2cAcquire')) {return 0}
+  '[sensors:i2cSetClockSpeed]' 200000
   local 'buf' ('[data:newByteArray]' 2 0)
-  if (('[elfreaks_dev_sensor:i2cPortWriteRead]' addr ('[data:makeList]' reg) buf 100) == 2) {
-    return ((at 1 buf) + ((at 2 buf) << 8))
+  local 'value' 0
+  if ('[sensors:i2cExists]' addr) {
+    '[sensors:i2cWrite]' addr ('[data:makeList]' reg) false
+    if (('[sensors:i2cRead]' addr buf) == 2) {
+      value = ((at 1 buf) + ((at 2 buf) << 8))
+    }
   }
-  return 0
+  '_planetX_i2cRelease'
+  return value
 }
 
 to '_planetX_i2cExists' addr {
-  if (not ('_planetX_extI2CInit')) {return false}
-  local 'addrs' ('[elfreaks_dev_sensor:i2cPortScan]' 10)
-  for found addrs {
-    if (found == addr) {return true}
-  }
-  return false
+  if (not ('_planetX_i2cAcquire')) {return false}
+  '[sensors:i2cSetClockSpeed]' 200000
+  local 'present' ('[sensors:i2cExists]' addr)
+  '_planetX_i2cRelease'
+  return present
 }
 
 to '_planetX_bmeToInt8' value {
@@ -778,14 +793,16 @@ to '_planetX_trackBitEnsure' {
 }
 
 to '_planetX_trackBitReadRaw' reg {
-  if (('[elfreaks_dev_sensor:i2cPortWrite]' 26 ('[data:makeList]' reg) 100) != 1) {
-    return -1
-  }
+  if (not ('_planetX_i2cAcquire')) {return -1}
+  '[sensors:i2cSetClockSpeed]' 200000
   local 'buf' ('[data:newByteArray]' 1 0)
-  if (('[elfreaks_dev_sensor:i2cPortRead]' 26 buf 100) != 1) {
-    return -1
+  local 'value' -1
+  if ('[sensors:i2cExists]' 26) {
+    '[sensors:i2cWrite]' 26 ('[data:makeList]' reg) false
+    if (('[sensors:i2cRead]' 26 buf) == 1) {value = (at 1 buf)}
   }
-  return (at 1 buf)
+  '_planetX_i2cRelease'
+  return value
 }
 
 to '_planetX_trackBitChannelIndex' channel {
@@ -971,61 +988,44 @@ to buttonEventBroadcast port button message {
   '[elfreaks:Event_RegisterPlanetXButton]' port button message
 }
 
-to '_planetX_extI2CInit' {
-  if (not _planetX_extI2CReady) {
-    _planetX_extI2CReady = ('[elfreaks_dev_sensor:i2cPortEnsureMaster]')
-  }
-  return _planetX_extI2CReady
-}
-
-to '_planetX_i2cWrite' addr bytes {
-  if (not ('_planetX_extI2CInit')) {return false}
-  return (('[elfreaks_dev_sensor:i2cPortWrite]' addr bytes 100) == (size bytes))
-}
-
 to '_planetX_i2cRead' addr bytes {
-  if (not ('_planetX_extI2CInit')) {return false}
-  return (('[elfreaks_dev_sensor:i2cPortRead]' addr bytes 100) == (size bytes))
-}
-
-to '_planetX_i2cExists' addr {
-  if (not ('_planetX_extI2CInit')) {return false}
-  local 'addrs' ('[elfreaks_dev_sensor:i2cPortScan]' 10)
-  for found addrs {
-    if (found == addr) {return true}
+  if (or ((size bytes) <= 0) ((size bytes) > 32)) {return false}
+  if (not ('_planetX_i2cAcquire')) {return false}
+  '[sensors:i2cSetClockSpeed]' 200000
+  local 'read' false
+  if ('[sensors:i2cExists]' addr) {
+    read = (('[sensors:i2cRead]' addr bytes) == (size bytes))
   }
-  return false
+  '_planetX_i2cRelease'
+  return read
 }
 
 to '_planetX_rfidEnsure' {
-  '_planetX_extI2CInit'
-  if _planetX_rfidReady {
-    return true
-  }
-  if (not ('_planetX_i2cExists' 36)) {
-    return false
-  }
+  // The public RFID operation owns the shared I2C lock.
+  if _planetX_rfidReady {return true}
   _planetX_rfidAck = ('[data:newByteArray]' 8 0)
   _planetX_rfidRecv = ('[data:newByteArray]' 32 0)
-  _planetX_rfidUid = ('[data:newByteArray]' 4 0)
+  _planetX_rfidUid = ('[data:newByteArray]' 5 0)
   _planetX_rfidBlock = ('[data:newByteArray]' 16 0)
   _planetX_rfidWrite = ('[data:newByteArray]' 16 0)
-  _planetX_rfidKey = ('[data:newByteArray]' 6 0)
-  for i 6 {
-    atPut i _planetX_rfidKey 255
-  }
+  _planetX_rfidKey = ('[data:newByteArray]' 6 255)
   _planetX_rfidReady = true
   return true
 }
 
 to '_planetX_rfidWriteAndRead' writeBuf recvLen {
-  '_planetX_i2cWrite' 36 writeBuf
-  waitMillis 100
+  // Caller owns the lock across the write, both waits, ACK and response.
   atPut 'all' _planetX_rfidAck 0
-  '_planetX_i2cRead' 36 _planetX_rfidAck
-  waitMillis 100
   _planetX_rfidRecv = ('[data:newByteArray]' recvLen 0)
-  '_planetX_i2cRead' 36 _planetX_rfidRecv
+  if (or (recvLen > 32) ('_planetX_rfidExpired')) {return false}
+  '[sensors:i2cWrite]' 36 writeBuf
+  waitMillis 20
+  if ('_planetX_rfidExpired') {return false}
+  if (('[sensors:i2cRead]' 36 _planetX_rfidAck) != 8) {return false}
+  if (not ('_planetX_rfidAckOk')) {return false}
+  waitMillis 20
+  if ('_planetX_rfidExpired') {return false}
+  return (('[sensors:i2cRead]' 36 _planetX_rfidRecv) == recvLen)
 }
 
 to '_planetX_rfidAckOk' {
@@ -1073,8 +1073,7 @@ to '_planetX_rfidWakeup' {
   atPut 10 cmd 1
   atPut 11 cmd 2
   atPut 12 cmd 0
-  '_planetX_rfidWriteAndRead' cmd 10
-  waitMillis 100
+  if (not ('_planetX_rfidWriteAndRead' cmd 10)) {return false}
   return (and ('_planetX_rfidAckOk') (and ((at 7 _planetX_rfidRecv) == 213) (and ((at 8 _planetX_rfidRecv) == 21) ('_planetX_rfidCheckDcs' 10))))
 }
 
@@ -1094,7 +1093,7 @@ to '_planetX_rfidCheckCard' {
   atPut 9 cmd 0
   atPut 10 cmd 225
   atPut 11 cmd 0
-  '_planetX_rfidWriteAndRead' cmd 20
+  if (not ('_planetX_rfidWriteAndRead' cmd 20)) {return false}
   if (not ('_planetX_rfidAckOk')) {
     return false
   }
@@ -1127,7 +1126,7 @@ to '_planetX_rfidPasswdCheck' {
   }
   atPut 22 cmd 0
   '_planetX_rfidSetCmdDcs' cmd 21
-  '_planetX_rfidWriteAndRead' cmd 11
+  if (not ('_planetX_rfidWriteAndRead' cmd 11)) {return false}
   if (not ('_planetX_rfidAckOk')) {
     return false
   }
@@ -1148,7 +1147,7 @@ to '_planetX_rfidReadBlock8' {
   atPut 10 cmd 8
   atPut 12 cmd 0
   '_planetX_rfidSetCmdDcs' cmd 11
-  '_planetX_rfidWriteAndRead' cmd 27
+  if (not ('_planetX_rfidWriteAndRead' cmd 27)) {return false}
   if (or ((at 7 _planetX_rfidRecv) != 213) (or ((at 8 _planetX_rfidRecv) != 65) (or ((at 9 _planetX_rfidRecv) != 0) (not ('_planetX_rfidCheckDcs' 27))))) {
     return false
   }
@@ -1175,34 +1174,33 @@ to '_planetX_rfidWriteBlock8' {
   }
   atPut 28 cmd 0
   '_planetX_rfidSetCmdDcs' cmd 27
-  '_planetX_rfidWriteAndRead' cmd 12
+  if (not ('_planetX_rfidWriteAndRead' cmd 12)) {return false}
   return (and ((at 7 _planetX_rfidRecv) == 213) (and ((at 8 _planetX_rfidRecv) == 65) (and ((at 9 _planetX_rfidRecv) == 0) ('_planetX_rfidCheckDcs' 12))))
 }
 
 to rfidDetectCard {
-  return ('[elfreaks_dev_sensor:rfidDetectCardTxn]')
+  return ('_planetX_rfidRun' 0 '')
 }
 
 to rfidReadData {
-  return ('[elfreaks_dev_sensor:rfidReadDataTxn]')
+  return ('_planetX_rfidRun' 1 '')
 }
 
 to rfidWriteData text {
-  '[elfreaks_dev_sensor:rfidWriteDataTxn]' text
+  return ('_planetX_rfidRun' 2 text)
 }
 
 to '_planetX_rfidTextToBlock' text {
   atPut 'all' _planetX_rfidWrite 0
+  if (not (isType text 'string')) {return}
+  local 'bytes' ('[data:asByteArray]' text)
   local 'idx' 1
-  for ch text {
-    if (idx > 16) {
-      return
-    }
-    local 'code' ('[data:unicodeAt]' 1 ch)
+  for i (minimum 16 (size bytes)) {
+    local 'code' (at i bytes)
     if (and (code >= 32) (code < 127)) {
       atPut idx _planetX_rfidWrite code
+      idx += 1
     }
-    idx += 1
   }
 }
 
@@ -1215,4 +1213,282 @@ to '_planetX_rfidBlockToText' {
     }
   }
   return text
+}
+
+to '_planetX_i2cAcquire' {
+  if (_planetX_i2cQueue == 0) {_planetX_i2cQueue = ('[data:makeList]')}
+  // Distinct objects identify requests without a wrapping ticket counter.
+  local 'request' ('[data:newByteArray]' 1 0)
+  '[data:addLast]' request _planetX_i2cQueue
+  if (('[data:find]' request _planetX_i2cQueue) < 1) {return false}
+  local 'start' (millisOp)
+  repeatUntil (and (not _planetX_i2cRequestBusy) ((at 1 _planetX_i2cQueue) == request)) {
+    if ((millisSince start) >= 500) {
+      local 'index' ('[data:find]' request _planetX_i2cQueue)
+      if (index > 0) {'[data:delete]' index _planetX_i2cQueue}
+      return false
+    }
+    waitMillis 1
+  }
+  _planetX_i2cRequestBusy = true
+  return true
+}
+
+to '_planetX_i2cRelease' {
+  if (not _planetX_i2cRequestBusy) {return}
+  '[data:delete]' 1 _planetX_i2cQueue
+  _planetX_i2cRequestBusy = false
+}
+
+to '_planetX_rfidExpired' {
+  return ((millisSince _planetX_rfidStart) >= 2500)
+}
+
+to '_planetX_rfidRun' operation text {
+  local 'result' false
+  if (operation == 1) {result = ''}
+  if (not ('_planetX_i2cAcquire')) {return result}
+  '[sensors:i2cSetClockSpeed]' 200000
+  _planetX_rfidStart = (millisOp)
+  '_planetX_rfidEnsure'
+  '_planetX_rfidTextToBlock' text
+  if ('_planetX_rfidSelectController') {
+    local 'ok' false
+    if (_planetX_rfidController == 36) {
+      ok = ('_planetX_rfidPnOperation' operation)
+    } else {
+      ok = ('_planetX_wsOperation' operation)
+    }
+    if (operation == 1) {
+      if ok {result = ('_planetX_rfidBlockToText')}
+    } else {result = ok}
+  }
+  '_planetX_i2cRelease'
+  return result
+}
+
+to '_planetX_rfidSelectController' {
+  if (or (_planetX_rfidController == 36) (_planetX_rfidController == 40)) {return true}
+  if ('[sensors:i2cExists]' 36) {
+    if ('_planetX_rfidWakeup') {
+      _planetX_rfidController = 36
+      return true
+    }
+  }
+  if ('[sensors:i2cExists]' 40) {
+    local 'version' ('_planetX_wsRead' 55)
+    if (and (version > 0) (version < 255)) {
+      if ('_planetX_wsInit') {
+        _planetX_rfidController = 40
+        return true
+      }
+    }
+  }
+  return false
+}
+
+to '_planetX_rfidPnOperation' operation {
+  if (not ('_planetX_rfidCheckCard')) {return false}
+  if (operation == 0) {return true}
+  if (not ('_planetX_rfidPasswdCheck')) {return false}
+  if (operation == 1) {return ('_planetX_rfidReadBlock8')}
+  return ('_planetX_rfidWriteBlock8')
+}
+
+to '_planetX_wsRead' reg {
+  if ('_planetX_rfidExpired') {return -1}
+  local 'buf' ('[data:newByteArray]' 1 0)
+  '[sensors:i2cWrite]' 40 ('[data:makeList]' reg) false
+  if (('[sensors:i2cRead]' 40 buf) != 1) {return -1}
+  return (at 1 buf)
+}
+
+to '_planetX_wsWrite' reg value {
+  if ('_planetX_rfidExpired') {return false}
+  '[sensors:i2cWrite]' 40 ('[data:makeList]' reg value)
+  return true
+}
+
+to '_planetX_wsBits' reg mask set {
+  local 'value' ('_planetX_wsRead' reg)
+  if (value < 0) {return false}
+  if set {value = (value | mask)} else {value = (value & (255 ^ mask))}
+  return ('_planetX_wsWrite' reg value)
+}
+
+to '_planetX_wsInit' {
+  local 'regs' ('[data:makeList]' 1 42 43 45 46 21 17)
+  local 'values' ('[data:makeList]' 15 141 62 30 0 64 61)
+  for i (size regs) {
+    if (not ('_planetX_wsWrite' (at i regs) (at i values))) {return false}
+  }
+  return ('_planetX_wsBits' 20 3 true)
+}
+
+to '_planetX_wsPrepare' command data {
+  local 'irqEnable' 119
+  if (command == 14) {irqEnable = 18}
+  if (not ('_planetX_wsWrite' 2 (irqEnable | 128))) {return false}
+  if (not ('_planetX_wsBits' 4 128 false)) {return false}
+  if (not ('_planetX_wsBits' 10 128 true)) {return false}
+  if (not ('_planetX_wsWrite' 1 0)) {return false}
+  for byte data {
+    if (not ('_planetX_wsWrite' 9 byte)) {return false}
+  }
+  if (not ('_planetX_wsWrite' 1 command)) {return false}
+  if (command == 12) {return ('_planetX_wsBits' 13 128 true)}
+  return true
+}
+
+to '_planetX_wsWaitIRQ' reg mask attempts {
+  repeat attempts {
+    local 'irq' ('_planetX_wsRead' reg)
+    if (irq < 0) {return -1}
+    if ((irq & mask) != 0) {return irq}
+    if ('_planetX_rfidExpired') {return -1}
+    waitMillis 1
+  }
+  return -1
+}
+
+to '_planetX_wsToCard' command data {
+  _planetX_rfidRetBits = 0
+  _planetX_rfidRetCount = 0
+  _planetX_wsResponse = ('[data:newByteArray]' 0)
+  if (not ('_planetX_wsPrepare' command data)) {return false}
+  local 'mask' 49
+  if (command == 14) {mask = 17}
+  local 'irq' ('_planetX_wsWaitIRQ' 4 mask 1000)
+  if (command == 12) {'_planetX_wsBits' 13 128 false}
+  if (or (irq < 0) ((irq & 1) != 0)) {return false}
+  local 'error' ('_planetX_wsRead' 6)
+  if (or (error < 0) ((error & 27) != 0)) {return false}
+  if (command == 14) {return true}
+  return ('_planetX_wsReadFifo')
+}
+
+to '_planetX_wsReadFifo' {
+  local 'count' ('_planetX_wsRead' 10)
+  local 'control' ('_planetX_wsRead' 12)
+  if (or (count < 0) (control < 0)) {return false}
+  local 'lastBits' (control & 7)
+  _planetX_rfidRetBits = (count * 8)
+  if (and (count > 0) (lastBits > 0)) {_planetX_rfidRetBits = (((count - 1) * 8) + lastBits)}
+  _planetX_rfidRetCount = (minimum 16 (maximum 1 count))
+  _planetX_wsResponse = ('[data:newByteArray]' _planetX_rfidRetCount 0)
+  for i _planetX_rfidRetCount {
+    local 'value' ('_planetX_wsRead' 9)
+    if (value < 0) {return false}
+    atPut i _planetX_wsResponse value
+  }
+  return true
+}
+
+to '_planetX_wsWithCRC' data {
+  if (not ('_planetX_wsBits' 5 4 false)) {return ('[data:newByteArray]' 0)}
+  if (not ('_planetX_wsBits' 10 128 true)) {return ('[data:newByteArray]' 0)}
+  for byte data {
+    if (not ('_planetX_wsWrite' 9 byte)) {return ('[data:newByteArray]' 0)}
+  }
+  if (not ('_planetX_wsWrite' 1 3)) {return ('[data:newByteArray]' 0)}
+  if (('_planetX_wsWaitIRQ' 5 4 255) < 0) {return ('[data:newByteArray]' 0)}
+  local 'low' ('_planetX_wsRead' 34)
+  local 'high' ('_planetX_wsRead' 33)
+  if (or (low < 0) (high < 0)) {return ('[data:newByteArray]' 0)}
+  local 'out' ('[data:newByteArray]' ((size data) + 2) 0)
+  for i (size data) {atPut i out (at i data)}
+  atPut ((size data) + 1) out low
+  atPut ((size data) + 2) out high
+  return out
+}
+
+to '_planetX_wsRequest' {
+  if (not ('_planetX_wsWrite' 13 7)) {return false}
+  if (not ('_planetX_wsToCard' 12 ('[data:makeList]' 38))) {return false}
+  return (_planetX_rfidRetBits == 16)
+}
+
+to '_planetX_wsUid' {
+  if (not ('_planetX_wsWrite' 13 0)) {return false}
+  if (not ('_planetX_wsToCard' 12 ('[data:makeList]' 147 32))) {return false}
+  if (_planetX_rfidRetCount != 5) {return false}
+  local 'checksum' 0
+  local 'present' false
+  for i 4 {
+    checksum = (checksum ^ (at i _planetX_wsResponse))
+    if ((at i _planetX_wsResponse) != 0) {present = true}
+  }
+  if (or (not present) (checksum != (at 5 _planetX_wsResponse))) {return false}
+  _planetX_rfidUid = ('[data:copyFromTo]' _planetX_wsResponse 1 5)
+  return true
+}
+
+to '_planetX_wsSelect' {
+  local 'data' ('[data:newByteArray]' 7 0)
+  atPut 1 data 147
+  atPut 2 data 112
+  for i 5 {atPut (i + 2) data (at i _planetX_rfidUid)}
+  data = ('_planetX_wsWithCRC' data)
+  if ((size data) != 9) {return false}
+  if (not ('_planetX_wsToCard' 12 data)) {return false}
+  return (_planetX_rfidRetBits == 24)
+}
+
+to '_planetX_wsAuth' {
+  local 'data' ('[data:newByteArray]' 12 255)
+  atPut 1 data 96
+  atPut 2 data 11
+  for i 4 {atPut (i + 8) data (at i _planetX_rfidUid)}
+  if (not ('_planetX_wsToCard' 14 data)) {return false}
+  local 'status' ('_planetX_wsRead' 8)
+  return (and (status >= 0) ((status & 8) != 0))
+}
+
+to '_planetX_wsReadBlock' {
+  local 'data' ('_planetX_wsWithCRC' ('[data:makeList]' 48 8))
+  if ((size data) != 4) {return false}
+  if (not ('_planetX_wsToCard' 12 data)) {return false}
+  if (_planetX_rfidRetCount != 16) {return false}
+  _planetX_rfidBlock = ('[data:copyFromTo]' _planetX_wsResponse 1 16)
+  return true
+}
+
+to '_planetX_wsAck' data {
+  if (not ('_planetX_wsToCard' 12 data)) {return false}
+  if (or (_planetX_rfidRetBits != 4) (_planetX_rfidRetCount < 1)) {return false}
+  return (((at 1 _planetX_wsResponse) & 15) == 10)
+}
+
+to '_planetX_wsWriteBlock' {
+  local 'data' ('_planetX_wsWithCRC' ('[data:makeList]' 160 8))
+  if ((size data) != 4) {return false}
+  if (not ('_planetX_wsAck' data)) {return false}
+  data = ('_planetX_wsWithCRC' _planetX_rfidWrite)
+  if ((size data) != 18) {return false}
+  return ('_planetX_wsAck' data)
+}
+
+to '_planetX_wsAttempt' operation {
+  if (not ('_planetX_wsInit')) {return false}
+  if (not ('_planetX_wsRequest')) {return false}
+  if (not ('_planetX_wsUid')) {return false}
+  if (operation == 0) {return true}
+  local 'ok' false
+  if ('_planetX_wsSelect') {
+    if ('_planetX_wsAuth') {
+      if (operation == 1) {ok = ('_planetX_wsReadBlock')} else {ok = ('_planetX_wsWriteBlock')}
+    }
+  }
+  // Clear Crypto1 after authentication while the operation deadline permits.
+  '_planetX_wsBits' 8 8 false
+  return ok
+}
+
+to '_planetX_wsOperation' operation {
+  repeat 3 {
+    if ('_planetX_rfidExpired') {return false}
+    if ('_planetX_wsAttempt' operation) {return true}
+    if (operation == 0) {return false}
+  }
+  return false
 }

@@ -17,6 +17,8 @@ variables _planetX_rfidReady _planetX_rfidStatus _planetX_rfidRetBits _planetX_r
 variables _planetX_aiLensReady _planetX_aiLensData _planetX_aiLensCmd _planetX_aiLensLastFunc
 variables _planetX_oledReady _planetX_oledAddr _planetX_oledBusy
 
+variables _planetX_i2cRequestBusy _planetX_i2cQueue
+
 choices planetXBME280State 'temperature (°C)' 'humidity (0-100%)' 'pressure (hPa)' 'altitude (m)'
 choices planetXGestureName 'none' 'right' 'left' 'up' 'down' 'forward' 'backward' 'clockwise' 'counterclockwise' 'wave'
 choices planetXASRWord 'none' 'hello Xiaoen' 'turn headlights on' 'turn headlights off' 'turn left' 'turn right' 'move forward' 'move backward' 'line-tracking mode' 'obstacle-avoidance mode' 'park' 'start device' 'stop device' 'pause operation' 'resume operation' 'increase level' 'decrease level' 'play music' 'stop music' 'next track' 'run function one' 'run function two' 'learned phrase 1' 'learned phrase 2' 'learned phrase 3' 'learned phrase 4' 'learned phrase 5' 'learned phrase 6' 'learned phrase 7' 'learned phrase 8' 'learned phrase 9' 'learned phrase 10'
@@ -51,78 +53,98 @@ choices planetXTrackBitPattern '0000' '0001' '0010' '0011' '0100' '0101' '0110' 
   spec 'r' 'planetXAILensCheckFace' 'AI camera image contains a face?'
   spec 'r' 'planetXAILensFaceTotalNum' 'AI camera face count'
   spec 'r' 'planetXAILensFaceData' 'AI camera face _ value' 'menu.planetXAILensFaceStatus' 'x coordinate'
-  spec 'r' 'planetXAILensNumberCard' 'AI camera image contains number card _?' 'menu.planetXAILensNumberCard' '1'
-  spec 'r' 'planetXAILensLetterCard' 'AI camera image contains letter card _?' 'menu.planetXAILensLetterCard' 'A'
-  spec 'r' 'planetXAILensTrafficCard' 'AI camera image contains traffic sign card _?' 'menu.planetXAILensTrafficCard' 'forward'
+  spec 'r' 'planetXAILensNumberCard' 'AI camera image contains number card _ ?' 'menu.planetXAILensNumberCard' '1'
+  spec 'r' 'planetXAILensLetterCard' 'AI camera image contains letter card _ ?' 'menu.planetXAILensLetterCard' 'A'
+  spec 'r' 'planetXAILensTrafficCard' 'AI camera image contains traffic sign card _ ?' 'menu.planetXAILensTrafficCard' 'forward'
   spec 'r' 'planetXAILensOtherCard' 'AI camera image contains _ card?' 'menu.planetXAILensOtherCard' 'mouse'
   spec 'r' 'planetXAILensCardTotalNum' 'AI camera card count'
   spec 'r' 'planetXAILensCardData' 'AI camera card _ value' 'menu.planetXAILensCardStatus' 'x coordinate'
   spec 'r' 'planetXAILensColorCheck' 'AI camera image contains _ color card?' 'menu.planetXAILensColorCard' 'red'
   spec 'r' 'planetXAILensColorTotalNum' 'AI camera color-card count'
   spec 'r' 'planetXAILensLineData' 'AI camera black-line _ value' 'menu.planetXAILensLineStatus' 'offset angle'
-  spec 'r' 'planetXAILensLineDirection' 'AI camera image contains black line offset _?' 'menu.planetXAILensLineTrend' 'forward'
+  spec 'r' 'planetXAILensLineDirection' 'AI camera image contains black line offset _ ?' 'menu.planetXAILensLineTrend' 'forward'
   spec ' ' 'planetXAILensLearnObject' 'AI camera learn object in view as _' 'menu.planetXAILensLearnID' 'ID1'
   spec ' ' 'planetXAILensClearLearnObject' 'AI camera clear learned objects'
-  spec 'r' 'planetXAILensObjectCheck' 'AI camera image contains object _?' 'menu.planetXAILensLearnID' 'ID1'
+  spec 'r' 'planetXAILensObjectCheck' 'AI camera image contains object _ ?' 'menu.planetXAILensLearnID' 'ID1'
   spec 'r' 'planetXAILensObjectConfidence' 'AI camera object _ confidence' 'menu.planetXAILensLearnID' 'ID1'
   space
   space
   spec ' ' 'initGestureSensor' 'initialize gesture sensor'
   spec 'r' 'readGesture' 'gesture sensor current gesture'
-  spec 'r' 'isGesture' 'gesture sensor detected _?' 'menu.planetXGestureName' 'right'
+  spec 'r' 'isGesture' 'gesture sensor detected _ ?' 'menu.planetXGestureName' 'right'
   space
   space
   spec 'r' 'readColor' 'color sensor hue (0-360)'
-  spec 'r' 'checkColor' 'color sensor detected _?' 'menu.planetXColorName' 'red'
+  spec 'r' 'checkColor' 'color sensor detected _ ?' 'menu.planetXColorName' 'red'
   space
   space
   spec ' ' 'delASRLearn' 'speech recognition sensor clear learned phrases'
   spec ' ' 'setASRLearn' 'speech recognition sensor enter learning mode'
-  spec 'r' 'onASR' 'speech recognition sensor heard _?' 'menu.planetXASRWord' 'hello Xiaoen'
+  spec 'r' 'onASR' 'speech recognition sensor heard _ ?' 'menu.planetXASRWord' 'hello Xiaoen'
   spec 'r' 'readASRCode' 'speech recognition sensor current code'
 
 to '_planetX_extI2CInit' {
-  if (not _planetX_extI2CReady) {
-    _planetX_extI2CReady = ('[elfreaks_dev_sensor:i2cPortEnsureMaster]')
-  }
-  return _planetX_extI2CReady
+  // sensors primitives initialize Wire on their first call.
+  _planetX_extI2CReady = true
+  return true
 }
 
 to '_planetX_i2cWrite' addr bytes {
-  if (not ('_planetX_extI2CInit')) {return false}
-  return (('[elfreaks_dev_sensor:i2cPortWrite]' addr bytes 100) == (size bytes))
+  if (not ('_planetX_i2cAcquire')) {return false}
+  '[sensors:i2cSetClockSpeed]' 200000
+  local 'present' ('[sensors:i2cExists]' addr)
+  if present {'[sensors:i2cWrite]' addr bytes}
+  '_planetX_i2cRelease'
+  // i2cWrite has no success result; only presence was checked.
+  return present
 }
 
 to '_planetX_i2cRead' addr bytes {
-  if (not ('_planetX_extI2CInit')) {return false}
-  return (('[elfreaks_dev_sensor:i2cPortRead]' addr bytes 100) == (size bytes))
+  if (or ((size bytes) <= 0) ((size bytes) > 32)) {return false}
+  if (not ('_planetX_i2cAcquire')) {return false}
+  '[sensors:i2cSetClockSpeed]' 200000
+  local 'read' false
+  if ('[sensors:i2cExists]' addr) {
+    read = (('[sensors:i2cRead]' addr bytes) == (size bytes))
+  }
+  '_planetX_i2cRelease'
+  return read
 }
 
 to '_planetX_i2cReadReg' addr reg {
-  if (not ('_planetX_extI2CInit')) {return 0}
+  if (not ('_planetX_i2cAcquire')) {return 0}
+  '[sensors:i2cSetClockSpeed]' 200000
   local 'buf' ('[data:newByteArray]' 1 0)
-  if (('[elfreaks_dev_sensor:i2cPortWriteRead]' addr ('[data:makeList]' reg) buf 100) == 1) {
-    return (at 1 buf)
+  local 'value' 0
+  if ('[sensors:i2cExists]' addr) {
+    '[sensors:i2cWrite]' addr ('[data:makeList]' reg) false
+    if (('[sensors:i2cRead]' addr buf) == 1) {value = (at 1 buf)}
   }
-  return 0
+  '_planetX_i2cRelease'
+  return value
 }
 
 to '_planetX_i2cReadUInt16LE' addr reg {
-  if (not ('_planetX_extI2CInit')) {return 0}
+  if (not ('_planetX_i2cAcquire')) {return 0}
+  '[sensors:i2cSetClockSpeed]' 200000
   local 'buf' ('[data:newByteArray]' 2 0)
-  if (('[elfreaks_dev_sensor:i2cPortWriteRead]' addr ('[data:makeList]' reg) buf 100) == 2) {
-    return ((at 1 buf) + ((at 2 buf) << 8))
+  local 'value' 0
+  if ('[sensors:i2cExists]' addr) {
+    '[sensors:i2cWrite]' addr ('[data:makeList]' reg) false
+    if (('[sensors:i2cRead]' addr buf) == 2) {
+      value = ((at 1 buf) + ((at 2 buf) << 8))
+    }
   }
-  return 0
+  '_planetX_i2cRelease'
+  return value
 }
 
 to '_planetX_i2cExists' addr {
-  if (not ('_planetX_extI2CInit')) {return false}
-  local 'addrs' ('[elfreaks_dev_sensor:i2cPortScan]' 10)
-  for found addrs {
-    if (found == addr) {return true}
-  }
-  return false
+  if (not ('_planetX_i2cAcquire')) {return false}
+  '[sensors:i2cSetClockSpeed]' 200000
+  local 'present' ('[sensors:i2cExists]' addr)
+  '_planetX_i2cRelease'
+  return present
 }
 
 to '_planetX_gestureWriteReg' reg value {
@@ -328,7 +350,10 @@ to isGesture gesture {
 }
 
 to '_planetX_asrEnsure' {
-  '_planetX_extI2CInit'
+  if (not ('_planetX_extI2CInit')) {
+    _planetX_asrReady = false
+    return false
+  }
   if (_planetX_asrData == 0) {
     _planetX_asrData = ('[data:newByteArray]' 1 0)
   }
@@ -341,14 +366,17 @@ to '_planetX_asrEnsure' {
 }
 
 to '_planetX_asrReadRawCode' {
-  if (not ('_planetX_asrEnsure')) {
-    return 0
-  }
+  if (not ('_planetX_asrEnsure')) {return 0}
+  if (not ('_planetX_i2cAcquire')) {return 0}
   atPut 'all' _planetX_asrData 0
-  if (not ('_planetX_i2cRead' 11 _planetX_asrData)) {
-    return 0
-  }
-  return (at 1 _planetX_asrData)
+  // ASR requires standard mode on this board; the external bus clock is shared.
+  '[sensors:i2cSetClockSpeed]' 100000
+  local 'readCount' ('[sensors:i2cRead]' 11 _planetX_asrData)
+  local 'code' (at 1 _planetX_asrData)
+  '_planetX_i2cRelease'
+  // sensors fills missing bytes with 255; this is not a valid ASR code.
+  if (or (readCount != 1) (code == 255)) {return 0}
+  return code
 }
 
 to '_planetX_asrReadCode' {
@@ -371,25 +399,42 @@ to '_planetX_asrClearCache' {
 }
 
 to '_planetX_asrExpectedCode' word {
+  if (or (word == 'hello Xiaoen') (word == '你好小恩')) {
+    return 1
+  }
+  local 'code' ('_planetX_asrVehicleCode' word)
+  if (code > 0) {return code}
+  code = ('_planetX_asrDeviceCode' word)
+  if (code > 0) {return code}
+  code = ('_planetX_asrFunctionCode' word)
+  if (code > 0) {return code}
+  return ('_planetX_asrLearnedCode' word)
+}
+
+to '_planetX_asrVehicleCode' word {
+  return ('_planetX_asrMatchGroup' word 'turn headlights on,turn headlights off,turn left,turn right,move forward,move backward,line-tracking mode,obstacle-avoidance mode,park' '打开车灯,关闭车灯,向左转,向右转,向前进,向后退,巡线模式,避障模式,停车' 16)
+}
+
+to '_planetX_asrDeviceCode' word {
+  return ('_planetX_asrMatchGroup' word 'start device,stop device,pause operation,resume operation,increase level,decrease level,play music,stop music,next track' '启动设备,停止设备,暂停运行,继续运行,增加一档,降低一档,播放音乐,关闭音乐,切换音乐' 32)
+}
+
+to '_planetX_asrFunctionCode' word {
+  return ('_planetX_asrMatchGroup' word 'run function one,run function two' '执行功能一,执行功能二' 49)
+}
+
+to '_planetX_asrLearnedCode' word {
+  return ('_planetX_asrMatchGroup' word 'learned phrase 1,learned phrase 2,learned phrase 3,learned phrase 4,learned phrase 5,learned phrase 6,learned phrase 7,learned phrase 8,learned phrase 9,learned phrase 10' '自学习词条 1,自学习词条 2,自学习词条 3,自学习词条 4,自学习词条 5,自学习词条 6,自学习词条 7,自学习词条 8,自学习词条 9,自学习词条 10' 80)
+}
+
+to '_planetX_asrMatchGroup' word english chinese firstCode {
   local 'idx' 0
-  local 'items' ('[data:split]' 'hello Xiaoen,turn headlights on,turn headlights off,turn left,turn right,move forward,move backward,line-tracking mode,obstacle-avoidance mode,park,start device,stop device,pause operation,resume operation,increase level,decrease level,play music,stop music,next track,run function one,run function two,learned phrase 1,learned phrase 2,learned phrase 3,learned phrase 4,learned phrase 5,learned phrase 6,learned phrase 7,learned phrase 8,learned phrase 9,learned phrase 10' ',')
-  local 'legacyItems' ('[data:split]' '你好小恩,打开车灯,关闭车灯,向左转,向右转,向前进,向后退,巡线模式,避障模式,停车,启动设备,停止设备,暂停运行,继续运行,增加一档,降低一档,播放音乐,关闭音乐,切换音乐,执行功能一,执行功能二,自学习词条 1,自学习词条 2,自学习词条 3,自学习词条 4,自学习词条 5,自学习词条 6,自学习词条 7,自学习词条 8,自学习词条 9,自学习词条 10' ',')
+  local 'items' ('[data:split]' english ',')
+  local 'legacyItems' ('[data:split]' chinese ',')
   for item items {
     idx += 1
     if (or (item == word) ((at idx legacyItems) == word)) {
-      if (idx == 1) {
-        return 1
-      }
-      if (idx <= 10) {
-        return (idx + 14)
-      }
-      if (idx <= 19) {
-        return (idx + 21)
-      }
-      if (idx <= 21) {
-        return (idx + 29)
-      }
-      return (idx + 58)
+      return ((firstCode + idx) - 1)
     }
   }
   return 0
@@ -405,12 +450,21 @@ to readASRCode {
   return ('_planetX_asrReadCode')
 }
 
+to '_planetX_asrWrite' command {
+  if (not ('_planetX_i2cAcquire')) {return false}
+  '[sensors:i2cSetClockSpeed]' 100000
+  local 'present' ('[sensors:i2cExists]' 11)
+  if present {'[sensors:i2cWrite]' 11 command}
+  '_planetX_i2cRelease'
+  return present
+}
+
 to setASRLearn {
   if (not ('_planetX_asrEnsure')) {
     return
   }
   '_planetX_asrClearCache'
-  '_planetX_i2cWrite' 11 ('[data:makeList]' 80)
+  '_planetX_asrWrite' 80
   waitMillis 50
 }
 
@@ -419,7 +473,7 @@ to delASRLearn {
     return
   }
   '_planetX_asrClearCache'
-  '_planetX_i2cWrite' 11 ('[data:makeList]' 96)
+  '_planetX_asrWrite' 96
   waitMillis 50
 }
 
@@ -1112,4 +1166,29 @@ to planetXAILensObjectConfidence thingsID {
     }
   }
   return 0
+}
+
+to '_planetX_i2cAcquire' {
+  if (_planetX_i2cQueue == 0) {_planetX_i2cQueue = ('[data:makeList]')}
+  // Distinct objects identify requests without a wrapping ticket counter.
+  local 'request' ('[data:newByteArray]' 1 0)
+  '[data:addLast]' request _planetX_i2cQueue
+  if (('[data:find]' request _planetX_i2cQueue) < 1) {return false}
+  local 'start' (millisOp)
+  repeatUntil (and (not _planetX_i2cRequestBusy) ((at 1 _planetX_i2cQueue) == request)) {
+    if ((millisSince start) >= 500) {
+      local 'index' ('[data:find]' request _planetX_i2cQueue)
+      if (index > 0) {'[data:delete]' index _planetX_i2cQueue}
+      return false
+    }
+    waitMillis 1
+  }
+  _planetX_i2cRequestBusy = true
+  return true
+}
+
+to '_planetX_i2cRelease' {
+  if (not _planetX_i2cRequestBusy) {return}
+  '[data:delete]' 1 _planetX_i2cQueue
+  _planetX_i2cRequestBusy = false
 }

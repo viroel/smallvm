@@ -8,8 +8,9 @@ Screen display
 Sound control'
 tags smallmv esp32 onboard button rgb display sound
 
-variables _smv_buttonEdges
+variables _smv_buttonEdges _smv_buttonLoopStarted _smv_buttonLoopHeartbeat _smv_buttonRawMask _smv_buttonRawSince _smv_buttonStableMask _smv_buttonPhase _smv_buttonCandidateMask _smv_buttonCandidateSince _smv_buttonActiveMask
 
+choices portNumberMenu 'J1' 'J2' 'J3' 'J4'
 choices smvButtonMenu 'A' 'B' 'C' 'A+B' 'A+C' 'B+C'
 choices axisMenu 'X' 'Y' 'Z'
 choices smvButtonPressReleaseMenu 'pressed' 'released'
@@ -68,6 +69,8 @@ variables _smartiot_requestBusy _smartiot_switchLoopHeartbeat
   spec 'r' 'smartiotState' 'SmartIoT connection'
   spec 'r' 'smartIotSwitchState' 'SmartIoT switch _' 'menu.smartIotSwitchMenu' 'on'
   space
+  space
+  spec 'r' 'nezhaEsp32_getIoNum' 'pin for port _ _' 'menu.portNumberMenu menu.range:1-2' 'J1' 1
   advanced
   spec ' ' 'setSmartIotAddr' 'set SmartIoT server host _ port _' 'str num' 'http://www.smartiot.space' 8080
   spec 'r' 'smartIotLastResponse' 'SmartIoT last response'
@@ -78,7 +81,7 @@ to 'nezhaEsp32_getColorVal' color {
 }
 
 to 'nezhaEsp32_clear' {
-  [tft:clear]
+  [elfreaks_dev_sensor:clear]
 }
 
 to 'nezhaEsp32_setPixel' x y color {
@@ -308,24 +311,117 @@ to '_smv_buttonEdgeEntry' key {
   return newEdge
 }
 
-to '_smv_buttonNow' button {
-  local 'aPressed' ('[elfreaks_dev_sensor:buttonA]')
-  local 'bPressed' ('[elfreaks_dev_sensor:buttonB]')
-  local 'cPressed' ('[elfreaks_dev_sensor:buttonC]')
-  if (button == 'A') {
-    return aPressed
-  } (button == 'B') {
-    return bPressed
-  } (button == 'C') {
-    return cPressed
-  } (button == 'A+B') {
-    return (and aPressed bPressed)
-  } (button == 'A+C') {
-    return (and aPressed cPressed)
-  } (button == 'B+C') {
-    return (and bPressed cPressed)
+to '_smv_buttonMask' {
+  local 'mask' 0
+  if ('[elfreaks_dev_sensor:buttonA]') {mask += 1}
+  if ('[elfreaks_dev_sensor:buttonB]') {mask += 2}
+  if ('[elfreaks_dev_sensor:buttonC]') {mask += 4}
+  return mask
+}
+
+to '_smv_buttonName' mask {
+  if (mask == 1) {return 'A'}
+  if (mask == 2) {return 'B'}
+  if (mask == 4) {return 'C'}
+  if (mask == 3) {return 'A+B'}
+  if (mask == 5) {return 'A+C'}
+  if (mask == 6) {return 'B+C'}
+  return ''
+}
+
+to '_smv_buttonQueueEvent' mask event {
+  local 'button' ('_smv_buttonName' mask)
+  if (button == '') {return}
+  local 'entry' ('_smv_buttonEdgeEntry' button)
+  if (event == 'pressed') {atPut 3 entry true}
+  if (event == 'released') {atPut 4 entry true}
+}
+
+to '_smv_buttonPoll' {
+  local 'now' (millisOp)
+  local 'raw' ('_smv_buttonMask')
+  if (raw != _smv_buttonRawMask) {
+    _smv_buttonRawMask = raw
+    _smv_buttonRawSince = now
   }
-  return false
+  if (and (raw != _smv_buttonStableMask) ((millisSince _smv_buttonRawSince) >= 20)) {
+    _smv_buttonStableMask = raw
+  }
+  local 'mask' _smv_buttonStableMask
+
+  if (_smv_buttonPhase == 0) {
+    if (mask == 0) {return}
+    if (mask == 7) {_smv_buttonPhase = 3; return}
+    _smv_buttonCandidateMask = mask
+    _smv_buttonCandidateSince = now
+    if (or (mask == 3) (or (mask == 5) (mask == 6))) {
+      '_smv_buttonQueueEvent' mask 'pressed'
+      _smv_buttonActiveMask = mask
+      _smv_buttonPhase = 2
+    } else {
+      _smv_buttonPhase = 1
+    }
+    return
+  }
+
+  if (_smv_buttonPhase == 1) {
+    if (mask == 0) {
+      '_smv_buttonQueueEvent' _smv_buttonCandidateMask 'pressed'
+      '_smv_buttonQueueEvent' _smv_buttonCandidateMask 'released'
+      _smv_buttonPhase = 0
+      return
+    }
+    if ((millisSince _smv_buttonCandidateSince) >= 50) {
+      '_smv_buttonQueueEvent' _smv_buttonCandidateMask 'pressed'
+      _smv_buttonActiveMask = _smv_buttonCandidateMask
+      _smv_buttonPhase = 2
+      return
+    }
+    if (mask == 7) {_smv_buttonPhase = 3; return}
+    if (mask != _smv_buttonCandidateMask) {
+      if (and ((mask & _smv_buttonCandidateMask) != 0) (or (mask == 3) (or (mask == 5) (mask == 6)))) {
+        '_smv_buttonQueueEvent' mask 'pressed'
+        _smv_buttonActiveMask = mask
+        _smv_buttonPhase = 2
+        return
+      }
+      if ((mask & _smv_buttonCandidateMask) == 0) {
+        '_smv_buttonQueueEvent' _smv_buttonCandidateMask 'pressed'
+        '_smv_buttonQueueEvent' _smv_buttonCandidateMask 'released'
+        _smv_buttonCandidateMask = mask
+        _smv_buttonCandidateSince = now
+        return
+      }
+    }
+    return
+  }
+
+  if (_smv_buttonPhase == 2) {
+    if ((mask & _smv_buttonActiveMask) != _smv_buttonActiveMask) {
+      '_smv_buttonQueueEvent' _smv_buttonActiveMask 'released'
+      _smv_buttonPhase = 3
+    }
+  }
+  if (and (_smv_buttonPhase == 3) (mask == 0)) {
+    _smv_buttonPhase = 0
+    _smv_buttonActiveMask = 0
+  }
+}
+
+to '_smv_buttonLoop' {
+  forever {
+    _smv_buttonLoopHeartbeat = (millisOp)
+    '_smv_buttonPoll'
+    waitMillis 10
+  }
+}
+
+to '_smv_buttonEnsureLoop' {
+  if _smv_buttonLoopStarted {
+    if (and (_smv_buttonLoopHeartbeat != 0) ((millisSince _smv_buttonLoopHeartbeat) < 200)) {return}
+  }
+  _smv_buttonLoopStarted = true
+  sendBroadcast '_smv_buttonLoop'
 }
 
 to nezhaEsp32_getGaryAngle axis {
@@ -347,21 +443,12 @@ to nezhaEsp32_getGaryAcc axis {
     ax = 2
   }
 
-  return (('[elfreaks_dev_sensor:getGaryAcc]' ax) * 1000)
+  return ('[elfreaks_dev_sensor:getGaryAcc]' ax)
 }
 
 to nezhaEsp32_buttonEvent button event {
+  '_smv_buttonEnsureLoop'
   local 'entry' ('_smv_buttonEdgeEntry' button)
-  local 'now' ('_smv_buttonNow' button)
-  local 'was' (at 2 entry)
-  if (now != was) {
-    atPut 2 entry now
-    if now {
-      atPut 3 entry true
-    } else {
-      atPut 4 entry true
-    }
-  }
   if (or (event == 'pressed') (event == '按下')) {
     if (at 3 entry) {
       atPut 3 entry false
@@ -369,9 +456,11 @@ to nezhaEsp32_buttonEvent button event {
     }
     return false
   }
-  if (at 4 entry) {
-    atPut 4 entry false
-    return true
+  if (or (event == 'released') (event == '松开')) {
+    if (at 4 entry) {
+      atPut 4 entry false
+      return true
+    }
   }
   return false
 }
@@ -394,34 +483,34 @@ to nezhaEsp32_board_rgb_off_all {
 
 to nezhaEsp32_lvgl_title_bar state {
   if (or (state == 'hide') (or (state == '隐藏') (state == '隱藏'))) {
-    '[tft:screenSetTitleBarVisible]' false
+    '[elfreaks_dev_sensor:screenSetTitleBarVisible]' false
   } else {
-    '[tft:screenSetTitleBarVisible]' true
+    '[elfreaks_dev_sensor:screenSetTitleBarVisible]' true
   }
 }
 
 to nezhaEsp32_lvgl_set_bg color {
-  '[tft:screenSetBackground]' color
+  '[elfreaks_dev_sensor:screenSetBackground]' color
 }
 
 to nezhaEsp32_screenTextToLine text line color {
   if (isType line 'number') {
-    '[tft:screenLineText]' line text color
+    '[elfreaks_dev_sensor:screenLineText]' line text color
   } else {
-    '[tft:screenLineText]' ('[data:find]' line ('[data:makeList]' '1' '2' '3' '4' '5' '6' '7' '8' '9')) text color
+    '[elfreaks_dev_sensor:screenLineText]' ('[data:find]' line ('[data:makeList]' '1' '2' '3' '4' '5' '6' '7' '8' '9')) text color
   }
 }
 
 to nezhaEsp32_screenText text x y color {
-  return ('[tft:screenText]' text x y 0 1 color 0 true)
+  return ('[elfreaks_dev_sensor:screenText]' text x y 0 1 color 0 true)
 }
 
 to nezhaEsp32_screenUpdateText id text color {
-  '[tft:screenUpdateText]' id text 0 0 0 1 color 0 true
+  '[elfreaks_dev_sensor:screenUpdateText]' id text 0 0 0 1 color 0 true
 }
 
 to nezhaEsp32_screenDelete id {
-  '[tft:screenDelete]' id
+  '[elfreaks_dev_sensor:screenDelete]' id
 }
 
 to '_smartiotEnsureDefaults' {
@@ -729,4 +818,21 @@ to setSmartIotAddr host port {
 to smartIotLastResponse {
   if (_smartiot_lastResponse == 0) {return ''}
   return _smartiot_lastResponse
+}
+
+to nezhaEsp32_getIoNum port ioNum {
+  local 'portNum' 1
+  if (port == 'J2'){
+    portNum = 2
+  } (port == 'J3') {
+    portNum = 3
+  } (port == 'J4') {
+    portNum = 4
+  }
+  if (ioNum > 2) {
+    ioNum = 2
+  } (ioNum < 1) {
+    ioNum = 1
+  }
+  return ('[elfreaks_dev_sensor:getIoNum]' portNum ioNum)
 }

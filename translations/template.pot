@@ -8878,83 +8878,87 @@ msgstr ""
 msgid "SmartIoT last response"
 msgstr ""
 
-#. Library name
-msgid "Nezha ESP32 SR"
+#. Nezha ESP32 Library block
+msgid "pin for port _ _"
 msgstr ""
 
-#. Nezha ESP32 SR Library block
+#. Library name
+msgid "Nezha ESP32 Speech Recognition"
+msgstr ""
+
+#. Nezha ESP32 Speech Recognition Library block
 msgid "enable speech recognition _"
 msgstr ""
 
-#. Nezha ESP32 SR Library block
+#. Nezha ESP32 Speech Recognition Library block
 msgid "disable speech recognition"
 msgstr ""
 
-#. Nezha ESP32 SR Library block
+#. Nezha ESP32 Speech Recognition Library block
 msgid "when _ is recognized send broadcast _"
 msgstr ""
 
 #. Library name
-msgid "Nezha ESP32 Sport"
+msgid "Nezha ESP32 Motor"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "start motor _ speed _ % direction _"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "stop motor _"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "reset motor _ position : _"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "turn motor _ speed _ % direction _ for _ _ : _"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "turn motor _ speed _ % direction _ to absolute angle _ : _"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "set robot load _"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "set robot wheel diameter _ mm"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "set robot left wheel _ right wheel _"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "run robot left wheel speed _ % right wheel speed _ %"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "turn robot at _ % speed with _ acceleration by _ degrees : _"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "drive robot at _ % speed _ with _ acceleration for _ _ : _"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "stop robot"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "read motor _ speed (degrees/sec)"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "read motor _ absolute angle (degrees)"
 msgstr ""
 
-#. Nezha ESP32 Sport Library block
+#. Nezha ESP32 Motor Library block
 msgid "read motor _ relative angle (degrees)"
 msgstr ""
 
@@ -9191,15 +9195,15 @@ msgid "AI camera face _ value"
 msgstr ""
 
 #. AI_Module Library block
-msgid "AI camera image contains number card _?"
+msgid "AI camera image contains number card _ ?"
 msgstr ""
 
 #. AI_Module Library block
-msgid "AI camera image contains letter card _?"
+msgid "AI camera image contains letter card _ ?"
 msgstr ""
 
 #. AI_Module Library block
-msgid "AI camera image contains traffic sign card _?"
+msgid "AI camera image contains traffic sign card _ ?"
 msgstr ""
 
 #. AI_Module Library block
@@ -9227,7 +9231,7 @@ msgid "AI camera black-line _ value"
 msgstr ""
 
 #. AI_Module Library block
-msgid "AI camera image contains black line offset _?"
+msgid "AI camera image contains black line offset _ ?"
 msgstr ""
 
 #. AI_Module Library block
@@ -9239,7 +9243,7 @@ msgid "AI camera clear learned objects"
 msgstr ""
 
 #. AI_Module Library block
-msgid "AI camera image contains object _?"
+msgid "AI camera image contains object _ ?"
 msgstr ""
 
 #. AI_Module Library block
@@ -9255,7 +9259,7 @@ msgid "gesture sensor current gesture"
 msgstr ""
 
 #. AI_Module Library block
-msgid "gesture sensor detected _?"
+msgid "gesture sensor detected _ ?"
 msgstr ""
 
 #. AI_Module Library block
@@ -9263,7 +9267,7 @@ msgid "color sensor hue (0-360)"
 msgstr ""
 
 #. AI_Module Library block
-msgid "color sensor detected _?"
+msgid "color sensor detected _ ?"
 msgstr ""
 
 #. AI_Module Library block
@@ -9275,7 +9279,7 @@ msgid "speech recognition sensor enter learning mode"
 msgstr ""
 
 #. AI_Module Library block
-msgid "speech recognition sensor heard _?"
+msgid "speech recognition sensor heard _ ?"
 msgstr ""
 
 #. AI_Module Library block

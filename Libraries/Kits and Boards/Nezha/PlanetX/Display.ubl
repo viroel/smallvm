@@ -20,7 +20,9 @@ choices planetXNeoColor 'red' 'orange' 'yellow' 'green' 'blue' 'indigo' 'violet'
 choices planetXMatrixEmoji 'smile' 'crying face' 'neutral face' 'heart' 'check mark' 'cross'
 variables _planetX_extI2CReady _planetX_oledReady _planetX_oledAddr _planetX_oledBusy _planetX_oledLines
 
-  spec ' ' 'tm1637Create' 'numeric display set port _' 'menu.ioAdcPort' 'J1'
+  variables _planetX_i2cRequestBusy _planetX_i2cQueue
+
+spec ' ' 'tm1637Create' 'numeric display set port _' 'menu.ioAdcPort' 'J1'
   spec ' ' 'planetX_tm1637ShowNumber' 'numeric display show _ (0-9999)' 'num' 1234
   spec ' ' 'planetX_tm1637ShowDP' 'numeric display digit _ (1-4) decimal point show _' 'num bool' 2 true
   spec ' ' 'planetX_tm1637Clear' 'clear numeric display'
@@ -394,9 +396,9 @@ to planetX_neopixelRainbowShow {
 }
 
 to '_gpio_matrixCmd' value {
-  if (not ('_planetX_extI2CInit')) {return false}
-  return (('[elfreaks_dev_sensor:i2cPortWrite]' 112 value 100) == 1)
+  return ('_planetX_i2cPortWrite' 112 ('[data:makeList]' value))
 }
+
 to '_gpio_matrixEnsure' {
   if (not _gpio_i2cReady) {
     _gpio_i2cReady = ('_planetX_extI2CInit')
@@ -483,24 +485,32 @@ to matrixEmoji emoji {
 }
 
 to '_planetX_extI2CInit' {
-  if (not _planetX_extI2CReady) {
-    _planetX_extI2CReady = ('[elfreaks_dev_sensor:i2cPortEnsureMaster]')
-  }
-  return _planetX_extI2CReady
+  // sensors primitives initialize Wire on their first call.
+  _planetX_extI2CReady = true
+  return true
 }
 
 to '_planetX_i2cPortWrite' addr bytes {
-  if (not ('_planetX_extI2CInit')) {return false}
-  return (('[elfreaks_dev_sensor:i2cPortWrite]' addr bytes 100) == (size bytes))
+  if (not ('_planetX_i2cAcquire')) {return false}
+  '[sensors:i2cSetClockSpeed]' 200000
+  local 'present' ('[sensors:i2cExists]' addr)
+  if present {
+    if (and ((size bytes) > 32) ((at 1 bytes) == 64)) {
+      '_planetX_oledWriteDataUnlocked' addr bytes
+    } else {
+      '[sensors:i2cWrite]' addr bytes
+    }
+  }
+  '_planetX_i2cRelease'
+  return present
 }
 
 to '_planetX_i2cPortExists' addr {
-  if (not ('_planetX_extI2CInit')) {return false}
-  local 'addrs' ('[elfreaks_dev_sensor:i2cPortScan]' 10)
-  for found addrs {
-    if (found == addr) {return true}
-  }
-  return false
+  if (not ('_planetX_i2cAcquire')) {return false}
+  '[sensors:i2cSetClockSpeed]' 200000
+  local 'present' ('[sensors:i2cExists]' addr)
+  '_planetX_i2cRelease'
+  return present
 }
 
 to '_planetX_oledProbeAddr' addr {
@@ -700,4 +710,42 @@ to oledClear {
   '_planetX_oledEnsureLines'
   atPut 'all' _planetX_oledLines ''
   if (not ('_planetX_oledEnsure')) {return}
+}
+
+to '_planetX_i2cAcquire' {
+  if (_planetX_i2cQueue == 0) {_planetX_i2cQueue = ('[data:makeList]')}
+  // Distinct objects identify requests without a wrapping ticket counter.
+  local 'request' ('[data:newByteArray]' 1 0)
+  '[data:addLast]' request _planetX_i2cQueue
+  if (('[data:find]' request _planetX_i2cQueue) < 1) {return false}
+  local 'start' (millisOp)
+  repeatUntil (and (not _planetX_i2cRequestBusy) ((at 1 _planetX_i2cQueue) == request)) {
+    if ((millisSince start) >= 500) {
+      local 'index' ('[data:find]' request _planetX_i2cQueue)
+      if (index > 0) {'[data:delete]' index _planetX_i2cQueue}
+      return false
+    }
+    waitMillis 1
+  }
+  _planetX_i2cRequestBusy = true
+  return true
+}
+
+to '_planetX_i2cRelease' {
+  if (not _planetX_i2cRequestBusy) {return}
+  '[data:delete]' 1 _planetX_i2cQueue
+  _planetX_i2cRequestBusy = false
+}
+
+to '_planetX_oledWriteDataUnlocked' addr bytes {
+  // Each OLED data packet needs its own 0x40 control byte.
+  local 'offset' 2
+  repeatUntil (offset > (size bytes)) {
+    local 'count' (minimum 31 (((size bytes) - offset) + 1))
+    local 'packet' ('[data:newByteArray]' (count + 1) 0)
+    atPut 1 packet 64
+    for i count {atPut (i + 1) packet (at ((offset + i) - 1) bytes)}
+    '[sensors:i2cWrite]' addr packet
+    offset += count
+  }
 }
