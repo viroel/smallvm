@@ -1,21 +1,14 @@
 module AI_Module Output
 author 'Elecfreaks Team'
-version 1 3
+version 1 5
 description 'AI camera
 Gesture recognition sensor
 Color recognition sensor
 Voice recognition sensor'
-variables _planetX_extI2CReady _planetX_bmeReady _planetX_bmeAddr
-variables _planetX_bmeDigT1 _planetX_bmeDigT2 _planetX_bmeDigT3 _planetX_bmeDigP1 _planetX_bmeDigP2 _planetX_bmeDigP3 _planetX_bmeDigP4 _planetX_bmeDigP5 _planetX_bmeDigP6 _planetX_bmeDigP7 _planetX_bmeDigP8 _planetX_bmeDigP9
-variables _planetX_bmeDigH1 _planetX_bmeDigH2 _planetX_bmeDigH3 _planetX_bmeDigH4 _planetX_bmeDigH5 _planetX_bmeDigH6
-variables _planetX_bmeTemperature _planetX_bmePressure _planetX_bmeHumidity
 variables _planetX_gestureReady
 variables _planetX_asrReady _planetX_asrData _planetX_asrLastCode _planetX_asrLastReadTime
-variables _planetX_colorReady _planetX_colorHue _planetX_colorClear _planetX_colorR _planetX_colorG _planetX_colorB _planetX_colorAddr _planetX_colorNewMode _planetX_rtcReady
-variables _planetX_trackBitReady _planetX_trackBitStateValue
-variables _planetX_rfidReady _planetX_rfidStatus _planetX_rfidRetBits _planetX_rfidRetCount _planetX_rfidAck _planetX_rfidRecv _planetX_rfidUid _planetX_rfidBlock _planetX_rfidWrite _planetX_rfidKey
-variables _planetX_aiLensReady _planetX_aiLensData _planetX_aiLensCmd _planetX_aiLensLastFunc
-variables _planetX_oledReady _planetX_oledAddr _planetX_oledBusy
+variables _planetX_colorReady _planetX_colorHue _planetX_colorClear _planetX_colorR _planetX_colorG _planetX_colorB _planetX_colorAddr _planetX_colorNewMode
+variables _planetX_aiLensReady _planetX_aiLensData _planetX_aiLensCmd
 
 variables _planetX_i2cRequestBusy _planetX_i2cQueue
 
@@ -85,7 +78,6 @@ choices planetXTrackBitPattern '0000' '0001' '0010' '0011' '0100' '0101' '0110' 
 
 to '_planetX_extI2CInit' {
   // sensors primitives initialize Wire on their first call.
-  _planetX_extI2CReady = true
   return true
 }
 
@@ -498,7 +490,7 @@ to '_planetX_colorEnsure' {
   if ('_planetX_i2cExists' 67) {
     _planetX_colorAddr = 67
     local 'i' 0
-    repeatUntil (or (_planetX_colorNewMode) (i >= 20)) {
+    repeatUntil (or _planetX_colorNewMode (i >= 20)) {
       i += 1
       '_planetX_colorWriteReg' 129 202
       '_planetX_colorWriteReg' 128 23
@@ -864,7 +856,6 @@ to planetXAILensSwitchFunc fun {
   atPut 1 _planetX_aiLensCmd 32
   atPut 2 _planetX_aiLensCmd funcCode
   '_planetX_i2cWrite' 20 _planetX_aiLensCmd
-  _planetX_aiLensLastFunc = funcCode
   atPut 'all' _planetX_aiLensData 0
   waitMillis 50
 }

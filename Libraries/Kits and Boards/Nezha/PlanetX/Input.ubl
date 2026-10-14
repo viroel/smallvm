@@ -1,6 +1,6 @@
 module Input Control
 author 'Elecfreaks Team'
-version 1 9
+version 1 10
 description 'button
 crash sensor
 ultrasonic sensor
@@ -423,7 +423,7 @@ to '_gpio_ds18b20Raw' pin {
   }
   local 'result' (((at 2 dataBytes) << 8) | (at 1 dataBytes))
   if (result >= 32768) {
-    result -= 65536
+    result = (result - 65536)
   }
   _gpio_dsLastTemp = result
   return result
@@ -631,7 +631,7 @@ to '_planetX_bmeUpdateValues' {
   pRaw = (pRaw * 10)
   pVar1 = ((_planetX_bmeDigP9 * (((pRaw >> 3) * (pRaw >> 3)) >> 13)) >> 12)
   pVar2 = (((pRaw >> 2) * _planetX_bmeDigP8) >> 13)
-  _planetX_bmePressure = ('_planetX_divRound' (pRaw + ((pVar1 + pVar2 + _planetX_bmeDigP7) >> 4)) 100)
+  _planetX_bmePressure = ('_planetX_divRound' (pRaw + (((pVar1 + pVar2) + _planetX_bmeDigP7) >> 4)) 100)
   _planetX_bmePressure = (_planetX_bmePressure - 4)
   local 'adc_H' ((('_planetX_bmeReadReg' 253) << 8) + ('_planetX_bmeReadReg' 254))
   local 'hVar' (t - 76800)
@@ -944,26 +944,6 @@ to trackBitGray channel {
   return grayValue
 }
 
-to '_gpio_pinForPort' port pin {
-  if (pin == 'B') {
-    if (port == 'J2') {
-      return 7
-    } (port == 'J3') {
-      return 16
-    } (port == 'J4') {
-      return 18
-    }
-    return 5
-  }
-  if (port == 'J2') {
-    return 6
-  } (port == 'J3') {
-    return 15
-  } (port == 'J4') {
-    return 17
-  }
-  return 4
-}
 to '_gpio_buttonNow' port button {
   local 'pinC' ('_gpio_pinForPort' port 'A')
   local 'pinD' ('_gpio_pinForPort' port 'B')
