@@ -18,13 +18,6 @@
 	#include <NezhaMicroBlocks.h> // nezha_microblocks library (lib_deps)
 #endif
 
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32_RMT) || defined(ESP32_C3)
-	#include <driver/rmt.h>
-	#include <esp_heap_caps.h>
-	#include <esp_intr_alloc.h>
-	#include <limits.h>
-#endif
-
 // LED Matrix Pins on BBC micro:bit and Calliope
 
 static int disableLEDDisplay = false; // disable micro:bit 5x5 display and light sensor when true
@@ -1427,57 +1420,19 @@ static const int whiteTable[64] = {
 	35, 38, 41, 44, 47, 50, 54, 58, 62, 66, 70, 75, 80, 85, 90, 97, 104, 111, 118, 125, 132,
 	139, 146, 153, 160, 167, 174, 181, 188, 195, 202, 209, 216, 223, 230, 237, 244, 251, 255};
 
-#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32_RMT) || defined(ESP32_C3)
-static esp_err_t sendNeoPixelFrame(rmt_item32_t *items, int count) {
-	#if !defined(ARDUINO_ARCH_ESP32) || defined(ESP32_C3)
-		// The existing RMT backend owns channel 0; reuse it for the whole frame.
-		esp_err_t result = rmt_wait_tx_done(RMT_CHANNEL_0, portMAX_DELAY);
-		if (ESP_OK == result) result = rmt_set_mem_block_num(RMT_CHANNEL_0, 2);
-		if (ESP_OK == result) result = rmt_write_items(RMT_CHANNEL_0, items, count, true);
-		rmt_set_mem_block_num(RMT_CHANNEL_0, 1);
-		return result;
-	#else
-	int pin = __builtin_ctz((uint32_t) neoPixelPinMask);
-	if (neoPixelPinSet != &GPIO.out_w1ts) pin += 32;
-	uint32_t previousOutput = GPIO.func_out_sel_cfg[pin].val;
-	rmt_config_t config = RMT_DEFAULT_CONFIG_TX((gpio_num_t) pin, RMT_CHANNEL_0);
-	config.clk_div = 2; // 40 MHz
-	config.mem_block_num = 3; // fits three RGBW pixels + reset + stop at 48 items/block
-	esp_err_t result = rmt_config(&config);
-	if (ESP_OK == result) result = rmt_driver_install(RMT_CHANNEL_0, 0, ESP_INTR_FLAG_IRAM);
-	if (ESP_OK == result) {
-		result = rmt_write_items(RMT_CHANNEL_0, items, count, true);
-		rmt_driver_uninstall(RMT_CHANNEL_0);
-	}
-	GPIO.func_out_sel_cfg[pin].val = previousOutput;
-	return result;
-	#endif
-}
-#endif
-
 OBJ primNeoPixelSend(int argCount, OBJ *args) {
 	if (!neoPixelPinMask) initNeoPixelPin(-1); // if pin not set, use the internal NeoPixel pin
 
 	OBJ arg = args[0];
 	if (IS_TYPE(arg, ListType)) {
 		int count = obj2int(FIELD(arg, 0));
-		#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32_RMT) || defined(ESP32_C3)
-			if (count > ((INT_MAX / (int) sizeof(rmt_item32_t)) - 1) / neoPixelBits) return fail(insufficientMemoryError);
-			rmt_item32_t *items = NULL;
-			if (count > 0) {
-				if (!neoPixelPinMask) return falseObj;
-				items = (rmt_item32_t *) heap_caps_malloc(
-					((count * neoPixelBits) + 1) * sizeof(rmt_item32_t), MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
-				if (!items) return fail(insufficientMemoryError);
-			}
-		#endif
 		for (int i = 0; i < count; i++) {
 			OBJ item = FIELD(arg, i + 1);
 			int rgb = evalInt(item);
 			int r = gamma((rgb >> 16) & 0xFF);
 			int g = gamma((rgb >> 8) & 0xFF);
 			int b = gamma(rgb & 0xFF);
-			uint32_t val;
+			int val;
 			if (neoPixelIsRGB) {
 				val = (r << 16) | (g << 8) | b; // NeoPixel order is RGB
 			} else {
@@ -1486,28 +1441,8 @@ OBJ primNeoPixelSend(int argCount, OBJ *args) {
 			if (32 == neoPixelBits) { // send white as the final byte of four
 				val = (val << 8) | whiteTable[(rgb >> 24) & 0x3F];
 			}
-			#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32_RMT) || defined(ESP32_C3)
-				uint32_t mask = 1u << (neoPixelBits - 1);
-				for (int bit = 0; bit < neoPixelBits; bit++, mask >>= 1) {
-					items[(i * neoPixelBits) + bit] = (val & mask) ?
-						(rmt_item32_t) {{{31, 1, 17, 0}}} : (rmt_item32_t) {{{12, 1, 36, 0}}};
-				}
-			#else
-				sendNeoPixelData(val);
-			#endif
+			sendNeoPixelData(val);
 		}
-		#if defined(ARDUINO_ARCH_ESP32) || defined(ARDUINO_ARCH_ESP32_RMT) || defined(ESP32_C3)
-			if (items) {
-				int itemCount = count * neoPixelBits;
-				items[itemCount++] = (rmt_item32_t) {{{6000, 0, 6000, 0}}}; // 300 us reset
-				esp_err_t result = sendNeoPixelFrame(items, itemCount);
-				heap_caps_free(items);
-				if (ESP_OK != result) {
-					consolePrint("NeoPixel RMT send failed");
-					return falseObj;
-				}
-			}
-		#endif
 	} else {
 		int rgb = evalInt(arg);
 		int r = gamma((rgb >> 16) & 0xFF);
