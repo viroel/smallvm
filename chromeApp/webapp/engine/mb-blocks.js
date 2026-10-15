@@ -135,7 +135,7 @@ document, getDocumentPositionOf, isNaN, isString, newCanvas, parseFloat, isNil,
 radians, useBlurredShadows, SpeechBubbleMorph, modules, StageMorph,
 fontHeight, TableFrameMorph, SpriteMorph, Context, ListWatcherMorph, Rectangle,
 DialogBoxMorph, BlockInputFragmentMorph, PrototypeHatBlockMorph, WHITE, display,
-Costume, IDE_Morph, BlockDialogMorph, BlockEditorMorph, localize, CLEAR, Point,
+Costume, IDE_Morph, BlockDialogMorph, BlockEditorMorph, localized, CLEAR, Point,
 isSnapObject, PushButtonMorph, SpriteIconMorph, Process, AlignmentMorph, List,
 ToggleButtonMorph, DialMorph, SnapExtensions, CostumeIconMorph, SoundIconMorph,
 SVG_Costume, embedMetadataPNG, ThreadManager, snapEquals, InputList, BLACK,
@@ -757,7 +757,7 @@ SyntaxElementMorph.prototype.labelPart = function (spec) {
 				part = new ReporterBlockMorph();
 				part.category = 'variables';
 				part.color = SpriteMorph.prototype.blockColor.variables;
-				part.setSpec(localize('Input name'));
+				part.setSpec(localized('Input name'));
 				break;
 			default:
 				throw new Error('unknown label part type: "' + info.type + '"');
@@ -1089,7 +1089,7 @@ SyntaxElementMorph.prototype.showBubble = function (value, exportPic, target) {
 				() => ide.saveFileAs(
 					value,
 					'text/plain;charset=utf-8',
-					localize('data')
+					localized('data')
 				)
 			);
 			menu.addItem(
@@ -1168,8 +1168,8 @@ SyntaxElementMorph.prototype.exportPictureWithResult = function (aBubble) {
 	ide.saveFileAs(
 		embedMetadataPNG(pic, this.toXMLString()),
 		'image/png',
-		(ide.getProjectName() || localize('untitled')) + ' ' +
-		localize('script pic')
+		(ide.getProjectName() || localized('untitled')) + ' ' +
+		localized('script pic')
 	);
 };
 
@@ -1476,6 +1476,8 @@ BlockMorph.prototype.setSpec = function (spec, definition) {
 		inputIdx = -1;
 
 	if (!spec) {return; }
+
+	spec = this.localizedBlockSpec(spec);
 	this.parts().forEach(part =>
 		part.destroy()
 	);
@@ -1553,43 +1555,56 @@ BlockMorph.prototype.buildSpec = function () {
 	this.blockSpec = this.blockSpec.trim();
 };
 
-BlockMorph.prototype.localizeBlockSpec = function (spec) {
-	// answer the translated block spec where the translation itself
-	// is in the form of an abstract spec, i.e. with padded underscores
-	// in place for percent-sign prefixed slot specs.
-	var prefixes = ['%', '$'],
-		slotSpecs = [],
-		slotCount = -1,
-		abstractSpec,
-		translation;
+BlockMorph.prototype.localizedSpecSection = function (section) {
+	// Answer the translated block spec section. A section is a set of labels
+	// and input slots separated from other sections by colons. Each secton is
+	// translated separately. The input and output are Snap! style specs with
+	// input slot descriptors starting with %. Those Snap! slot descriptors are
+	// replaced by GP-style underscores before translation, then converted
+	// back to Snap! style descriptors in the translated result.
 
-	abstractSpec = this.parseSpec(spec).map(str => {
-		if (str.length > 1 && prefixes.includes(str[0])) {
-			slotSpecs.push(str);
+	let slotDescriptors = [];
+	let abstractSpec = this.parseSpec(section).map(str => {
+		if (str.length > 1 && ('%' == str[0])) {
+			slotDescriptors.push(str); // record the slot descriptors
 			return '_';
 		}
 		return str;
 	}).join(' ');
 
-	// make sure to also remove any explicit slot specs from the translation
-	translation = this.parseSpec(localize(abstractSpec)).map(str =>
-		(str.length > 1 && prefixes.includes(str[0])) ? '_' : str
+	// remove any Snap! style slot descripters from the translation
+	let translation = this.parseSpec(localized(abstractSpec)).map(str =>
+		(str.length > 1 && ('%' == str[0])) ? '_' : str
 	).join(' ');
 
 	// replace abstract slot placeholders in the translation with their
-	// concrete specs from the original block spec
+	// slot descriptors from the original block spec
+	let slotCount = -1;
 	return translation.split(' ').map(word => {
 		if (word === '_') {
 			slotCount += 1;
-			return slotSpecs[slotCount] || '';
+			return slotDescriptors[slotCount] || '';
 		}
 		return word;
 	}).join(' ');
 };
 
+BlockMorph.prototype.localizedBlockSpec = function (spec) {
+	// Answer a translated block spec. Both input and output strings are
+	// Snap! style specs with input slot descriptors starting with %.
+	// The spec is split into sections and each section is translated
+	// separately since each spec section has a separate section in the
+	// the translation dictionary.
+
+	return spec.split(':').map(section => {
+		return this.localizedSpecSection(section.trim());
+	}).join(' : ');
+};
+
 // BlockMorph menu:
 
 BlockMorph.prototype.userMenu = function () {
+	// Obsolete - Old BlockMorph shift-right-click menu used for testing.
 	var menu = new MenuMorph(this),
 		shiftClicked = this.world().currentKey === 16;
 
@@ -1684,8 +1699,80 @@ BlockMorph.prototype.chromeMenu = function () {
 		}
 		items.push(['delete block', () => this.userDestroy(), 'delete this block']);
 	}
+	items.push('-');
+
+	items.push('-');
+	if (this.canExpand()) {
+		items.push(['expand', () => this.expand()]);
+	}
+	if (this.canContract()) {
+		items.push(['collapse', () => this.contract()]);
+	}
+	if (this.canExpand() || this.canContract()) {
+		items.push('-');
+	}
+	if (this.hasHelp()) {
+		items.push(['help',
+			() => this.openHelp(),
+			'show help for this block in a browser']);
+	}
+	items.push('-');
+	items.push(['copy to clipboard',
+		() => this.copyToClipboard(),
+		'copy these blocks to the clipboard'])
+	items.push(['copy to clipboard as URL',
+		() => this.copyToClipboardAsURL(),
+		'copy these blocks to the clipboard as a URL'])
+	items.push('-');
+	items.push(['save picture of script',
+		() => this.exportAsImage(),
+		'save a picture of these blocks as a PNG file'])
+	if (!this.isTemplate) {
+		items.push(['save picture of script with result',
+			() => this.exportAsImageWithResult(),
+			'save a picture of these blocks and their result as a PNG file'])
+	}
 	return chromeMenuFor(world, items);
 };
+
+BlockMorph.prototype.copyToClipboard = function () {
+	let s = 'GP Script\n\n' +
+		'script ' + Math.round(this.left() - 200) + ' ' + Math.round(this.top()) + ' {\n' +
+		this.codeString() +
+		'\n}';
+	// Through the buffer, so the chrome's 'paste script from clipboard' can
+	// see it; that item tests for this text and nothing else produces it.
+	if (typeof setClipboard === 'function') setClipboard(s);
+	else navigator.clipboard.writeText(s);
+}
+
+
+BlockMorph.prototype.hasHelp = function () {
+	// ToDo...
+	return false;
+}
+
+BlockMorph.prototype.copyToClipboardAsURL = function () {
+	// ToDo...
+}
+
+BlockMorph.prototype.exportAsImage = function () {
+	// ToDo...
+}
+
+BlockMorph.prototype.exportAsImageWithResult = function () {
+	// ToDo...
+}
+
+BlockMorph.prototype.hasHelpLink = function () {
+	// ToDo...
+	return false;
+}
+
+BlockMorph.prototype.openHelp = function () {
+	// ToDo...
+}
+
 
 BlockMorph.prototype.type = function () {
 	// private
@@ -1786,7 +1873,7 @@ BlockMorph.prototype.setSelector = function (aSelector, inputOffset = 0) {
 	info = SpriteMorph.prototype.blocks[aSelector];
 	this.setCategory(info.category);
 	this.selector = aSelector;
-	this.setSpec(this.localizeBlockSpec(info.spec));
+	this.setSpec(info.spec);
 	this.defaults = info.defaults || [];
 
 	// restore default values
@@ -2759,6 +2846,26 @@ WorldMorph.prototype.droppedBinary = function (buffer, fileName) {
 
 WorldMorph.prototype.droppedText = function (text, fileName) {
 	MB_editor.processDroppedFile(fileName, text);
+};
+
+HandMorph.prototype.processDropWithoutPictures = HandMorph.prototype.processDrop;
+HandMorph.prototype.processDrop = function (event) {
+	// A picture keeps its scripts in a chunk of the file, and the image reader
+	// hands on a canvas, which cannot carry one. Take pictures here, by file
+	// name, and leave every other drop to the reader that suits it.
+	// Read the files the way morphic does: a drop's target is the element under
+	// the pointer and has none of its own, while a chooser's change event does.
+	var files = [...((event instanceof FileList) ? event
+		: event.target.files || event.dataTransfer.files || [])];
+	var rest = files.filter((file) => !MB_Editor.isScriptPicture(file.name));
+	for (const file of files) {
+		if (MB_Editor.isScriptPicture(file.name)) MB_editor.openDroppedFile(file);
+	}
+	if (rest.length === files.length) return this.processDropWithoutPictures(event);
+	// The reader takes the files from the target or the transfer, so hand it the
+	// rest the second way, whichever shape the drop arrived in.
+	if (rest.length > 0) return this.processDropWithoutPictures({ target: {},
+		dataTransfer: { files: rest, getData: () => '' } });
 };
 
 BlockMorph.prototype.destroy = function (justThis) {
@@ -4010,6 +4117,7 @@ ScriptsMorph.prototype.contextMenu = function () {
 };
 
 ScriptsMorph.prototype.userMenu = function () {
+	// Obsolete - ScriptsMorph shift-right-click menu used for testing.
 	var menu = new MenuMorph(this),
 		shiftClicked = this.world().currentKey === 16;
 
@@ -4085,14 +4193,14 @@ ScriptsMorph.prototype.exportScriptsPicture = function () {
 			ide.saveFileAs(
 				embedMetadataPNG(pic, xml),
 				'image/png',
-				(ide.getProjectName() || localize('untitled')) + ' ' +
-					localize('script pic')
+				(ide.getProjectName() || localized('untitled')) + ' ' +
+					localized('script pic')
 			);
 		} else {
 			ide.saveCanvasAs(
 				pic,
-				(ide.getProjectName() || localize('untitled')) + ' ' +
-					localize('script pic')
+				(ide.getProjectName() || localized('untitled')) + ' ' +
+					localized('script pic')
 			);
 		}
 	}
@@ -4965,36 +5073,17 @@ InputSlotMorph.prototype.fixLayout = function () {
 			+ this.typeInPadding * 2;
 	} else {
 		height = contents.height() + this.edge * 2; // + this.typeInPadding * 2
-		if (this.isNumeric) {
-			width = contents.width()
-				+ Math.floor(arrowWidth * 0.5)
-				+ height
-				+ this.typeInPadding * 2;
-		} else {
-			width = Math.max(
-				contents.width()
-					+ arrowWidth
-					+ this.edge * 2
-					+ this.typeInPadding * 2,
-				contents.rawHeight ? // single vs. multi-line contents
-					contents.rawHeight() + arrowWidth :
-					(fontHeight(contents.fontSize) / 1.3) + arrowWidth
-			);
-		}
+		width = contents.width()
+			+ Math.floor(arrowWidth * 0.5)
+			+ height
+			+ this.typeInPadding * 2;
 	}
 	this.bounds.setExtent(new Point(width, height));
 
-	if (this.isNumeric) {
-		contents.setPosition(new Point(
-			Math.floor(height / 2),
-			this.edge
-		).add(new Point(this.typeInPadding, 0)).add(this.position()));
-	} else {
-		contents.setPosition(new Point(
-			this.edge,
-			this.edge
-		).add(new Point(this.typeInPadding, 0)).add(this.position()));
-	}
+	contents.setPosition(new Point(
+		Math.floor(height / 2),
+		this.edge
+	).add(new Point(this.typeInPadding, 0)).add(this.position()));
 
 	if (arrow.isVisible) {
 		arrow.setPosition(new Point(
@@ -5112,35 +5201,26 @@ InputSlotMorph.prototype.render = function (ctx) {
 		.toString();
 	this.cachedClrDark = borderColor.darker(this.contrast).toString();
 
-	if (!this.isNumeric) {
-		ctx.fillRect(
-			this.edge,
-			this.edge,
-			this.width() - this.edge * 2,
-			this.height() - this.edge * 2
-		);
-	} else {
-		r = Math.max((this.height() - (this.edge * 2)) / 2, 0);
-		ctx.beginPath();
-		ctx.arc(
-			r + this.edge,
-			r + this.edge,
-			r,
-			radians(90),
-			radians(-90),
-			false
-		);
-		ctx.arc(
-			this.width() - r - this.edge,
-			r + this.edge,
-			r,
-			radians(-90),
-			radians(90),
-			false
-		);
-		ctx.closePath();
-		ctx.fill();
-	}
+	r = Math.max((this.height() - (this.edge * 2)) / 2, 0);
+	ctx.beginPath();
+	ctx.arc(
+		r + this.edge,
+		r + this.edge,
+		r,
+		radians(90),
+		radians(-90),
+		false
+	);
+	ctx.arc(
+		this.width() - r - this.edge,
+		r + this.edge,
+		r,
+		radians(-90),
+		radians(90),
+		false
+	);
+	ctx.closePath();
+	ctx.fill();
 
 	// draw my "wish" block, if any
 	if (this.selectedBlock) {
@@ -5296,7 +5376,7 @@ TemplateSlotMorph.prototype.contents = function () {
 
 TemplateSlotMorph.prototype.setContents = function (aString) {
 	var tmp = this.template();
-	tmp.setSpec(aString instanceof Array? localize(aString[0]) : aString);
+	tmp.setSpec(aString instanceof Array ? localized(aString[0]) : aString);
 	tmp.fixBlockColor(); // fix zebra coloring
 	tmp.fixLabelColor();
 };
@@ -5656,13 +5736,13 @@ BooleanSlotMorph.prototype.drawKnob = function (ctx, progress) {
 BooleanSlotMorph.prototype.textLabelExtent = function () {
 	var t, f;
 	t = new StringMorph(
-		localize('true'),
+		localized('true'),
 		this.fontSize,
 		null,
 		true // bold
 	);
 	f = new StringMorph(
-		localize('false'),
+		localized('false'),
 		this.fontSize,
 		null,
 		true // bold
@@ -5949,7 +6029,7 @@ ColorSlotMorph.prototype.evaluate = function () {
 
 ColorSlotMorph.prototype.fixLayout = function () {
 	// determine my extent
-	var side = this.fontSize + this.edge * 2 + this.typeInPadding * 2;
+	var side = this.fontSize + (4 * this.scale);
 	this.bounds.setWidth(side);
 	this.bounds.setHeight(side);
 };

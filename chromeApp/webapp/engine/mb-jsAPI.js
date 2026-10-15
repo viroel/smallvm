@@ -38,9 +38,7 @@ GP.apiCall = function (endPoint, params, callback) {
 			// 'serial', 'BLE' or 'boardie' (mb-comm-port.js). GP's webSerialConnect
 			// matches BLE by prefix and treats the rest as serial (MicroBlocksRuntime.gp).
 			if ('Boardie' == params[0]) {
-				// Not wired: Boardie needs the iframe GP builds in GP_openBoardie
-				// (gpSupport.js), which this build does not include.
-				alert(localized('Boardie is not available in this build.'));
+				GP_openBoardie(); // mb-boardie.js
 			} else {
 				MB_connection.connect(String(params[0]).startsWith('BLE') ? 'BLE' : 'serial');
 			}
@@ -48,7 +46,11 @@ GP.apiCall = function (endPoint, params, callback) {
 			break;
 		case 'board.disconnect':
 			// As GP's closePort (MicroBlocksRuntime.gp).
-			MB_connection.disconnect();
+			if (GP.boardie.isOpen) {
+				GP_closeBoardie(); // also disconnects
+			} else {
+				MB_connection.disconnect();
+			}
 			callback(0);
 			break;
 		case 'board.vmVersion':
@@ -86,12 +88,16 @@ GP.apiCall = function (endPoint, params, callback) {
 			callback(0);
 			break;
 
-		// Not implemented, but answered: a caller that waits for a reply and never
-		// gets one waits for ever, and windows.js nests one call inside another.
 		case 'board.installVM':
+			// params: eraseFlash, downloadFromServer (unused)
+			callback(0);
+			MB_Firmware.installVM(params[0]);
+			break;
 		case 'board.installVMfromRepo':
 		case 'board.installVMfromURL':
+			// These install ESP firmware only.
 			callback(0);
+			MB_Firmware.notSupportedYet(null);
 			break;
 		case 'board.downloadFile':
 			// Answer, then act: the download waits on a menu and the board.
@@ -219,8 +225,11 @@ GP.apiCall = function (endPoint, params, callback) {
 			break;
 		case 'library.showInfoDialog':
 		case 'locale.loadCustomFile':
+			callback();
+			break;
 		case 'locale.setLanguage':
 			callback();
+			MB_editor.updateAfterLanguageChange();
 			break;
 		case 'project.new':
 			// GP answers before acting (MicroBlocksAPI.gp:70), because newProject
@@ -279,23 +288,11 @@ GP.apiCall = function (endPoint, params, callback) {
 	}
 };
 
-// menus.js reads the clipboard through these, which gpSupport.js defines in the wasm build.
-// The chrome's paste items are hidden while clipboardBytes is empty, and that test runs
-// as the menu opens, so the buffer is what makes paste reachable.
+// menus.js shows its paste items from GP.clipboardBytes and clipboardText().
+// mb-editor.js fills that buffer and defines clipboardText().
 GP.clipboardBytes = [];
-function clipboardText() {
-	return new TextDecoder().decode(new Uint8Array(GP.clipboardBytes));
-}
 
-function setClipboard(text) {
-	// The buffer is what the chrome reads. Writing the browser's own clipboard is
-	// a courtesy: it is missing on an insecure origin and can be refused even on a
-	// secure one, and neither is a reason for the copy to fail.
-	GP.clipboardBytes = Array.from(new TextEncoder().encode(text));
-	try {
-		navigator.clipboard?.writeText?.(text)?.catch(() => {});
-	} catch (e) {} // eslint-disable-line no-empty
-}
+function setClipboard(text) { setGPClipboard(text); }
 
 // The id the chrome answers a menu or a dialog under, counted as primBrowserNextCallId
 // counts it (chromeApp/emscripten/browserPrims.c).

@@ -274,24 +274,17 @@ uint16_t bufferPixels[BUFFER_PIXELS_SIZE];
 				if (drawing && (0 == depth)) {
 					nezhaMB_CanvasEndDraw();
 					drawing = false;
-					// rectsPending = false;
 				}
 			}
 
 			void writePixelPreclipped(int16_t x, int16_t y, uint16_t color) override {
 				startWrite();
-				// if (rectsPending) { // rectangles are rendered at CanvasEndDraw but pixels at once
-				// 	nezhaMB_CanvasEndDraw();
-				// 	nezhaMB_CanvasBeginDraw();
-				// 	rectsPending = false;
-				// }
 				nezhaMB_CanvasSetPixel(x, y, color);
 				endWrite();
 			}
 			void writeFillRectPreclipped(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color) override {
 				startWrite();
 				nezhaMB_CanvasFillRect(x, y, w, h, color);
-				// rectsPending = true;
 				endWrite();
 			}
 			void writeFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color) override {
@@ -313,7 +306,6 @@ uint16_t bufferPixels[BUFFER_PIXELS_SIZE];
 		private:
 			int depth = 0;
 			bool drawing = false;
-			// bool rectsPending = false;
 		};
 
 		static void nezhaEndDrawing() {
@@ -1186,6 +1178,74 @@ uint16_t bufferPixels[BUFFER_PIXELS_SIZE];
 			tft->fillScreen(BLACK);
 		}
 
+	#elif defined(M5Stick_S3)
+		#define TFT_MOSI 39
+		#define TFT_SCLK 40
+		#define TFT_CS 41
+		#define TFT_DC 45
+		#define TFT_RST 21
+		#define TFT_BL 38
+
+		// StickS3 M5PM1 power management, needed by TFT display
+		// Register definitions: https://github.com/m5stack/M5PM1
+		#define PM1_ADDR 0x6E
+		#define PM1_POWER_CONFIG 0x06
+		#define PM1_I2C_CONFIG 0x09
+		#define PM1_GPIO_MODE 0x10
+		#define PM1_GPIO_OUTPUT 0x11
+		#define PM1_GPIO_DRIVE 0x13
+		#define PM1_GPIO_FUNCTION 0x16
+
+		static int powerStarted = false;
+
+		static int updatePM1(int reg, int mask, int value) {
+			int oldValue = readInternalI2CReg(PM1_ADDR, reg);
+			if (oldValue < 0) return false;
+			int newValue = (oldValue & ~mask) | (value & mask);
+			writeInternalI2CReg(PM1_ADDR, reg, newValue);
+			return readInternalI2CReg(PM1_ADDR, reg) == newValue;
+		}
+
+		void stickS3PowerInit() {
+			if (powerStarted) return;
+			// The first transaction wakes a sleeping PM1 and may fail.
+			readInternalI2CReg(PM1_ADDR, 0);
+			delay(10);
+			if (readInternalI2CReg(PM1_ADDR, 0) < 0) {
+				outputString("StickS3 M5PM1 not found");
+				return;
+			}
+			writeInternalI2CReg(PM1_ADDR, PM1_I2C_CONFIG, 0); // disable idle sleep, keep 100 kHz
+			int ok = updatePM1(PM1_POWER_CONFIG, 0x0D, 0x05); // charging and IMU LDO; EXT_5V input
+			ok &= updatePM1(PM1_GPIO_FUNCTION, 0xF0, 0); // PYG2 (LCD power) and PYG3 (speaker) as GPIO
+			ok &= updatePM1(PM1_GPIO_DRIVE, 0x0C, 0); // push-pull
+			ok &= updatePM1(PM1_GPIO_OUTPUT, 0x0C, 0x04); // LCD rail on, speaker amplifier off
+			ok &= updatePM1(PM1_GPIO_MODE, 0x0C, 0x0C); // outputs
+			if (!ok) {
+				outputString("StickS3 power initialization failed");
+				return;
+			}
+			delay(100); // allow the LCD power rail to settle
+			powerStarted = true;
+		}
+
+		void tftInit() {
+			stickS3PowerInit(); // enable the LCD power rail before initializing the display
+			Arduino_DataBus *bus = new Arduino_ESP32SPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, -1);
+			tft = new Arduino_ST7789(bus, TFT_RST, 1, true, 135, 240, 52, 40, 53, 40);
+			if (!tft->begin()) {
+				outputString("tftInit() failed!");
+			} else {
+				backlightPin = TFT_BL;
+				pinMode(TFT_BL, OUTPUT);
+				digitalWrite(TFT_BL, HIGH);
+				tftWidth = 240;
+				tftHeight = 135;
+				tftClear();
+				useTFT = true;
+			}
+		}
+
 	#elif defined(M5Atom_S3_TFT)
 		#define TFT_MOSI 21
 		#define TFT_SCLK 17
@@ -1401,7 +1461,7 @@ OBJ primSetBacklight(int argCount, OBJ *args) {
 		if (brightness > 10) brightness = 10;
 		pinMode(34, OUTPUT);
 		analogWrite(34, brightness * 25); // nRF5x boards use 8-bit analogWrite resolution
-	#elif defined(TTGO_RP2040) || defined(ARDUINO_WEACT)
+	#elif defined(TTGO_RP2040) || defined(ARDUINO_WEACT) || defined(M5Stick_S3)
 		pinMode(TFT_BL, OUTPUT);
 		if (brightness < 0) brightness = 0;
 		if (brightness > 10) brightness = 10;
@@ -1674,8 +1734,18 @@ static int drawString(const char *s, int x, int y, int color16b, int scale, int 
 
 static void drawText(OBJ value, int x, int y, int color16b, int scale, int wrap, int bgColor) {
 	#if defined(NEZHA_ESP32)
+		char numStr[16];
+		char *s;
+		if (isInt(value)) {
+			sprintf(numStr, "%d", obj2int(value));
+			s = numStr;
+		} else if (IS_TYPE(value, StringType) || isBoolean(value)) {
+			s = obj2str(value); // the Nezha font is UTF-8, so no CP437 conversion
+		} else {
+			return;
+		}
 		tft->startWrite();
-		nezhaMB_CanvasDrawText(x, y, obj2str(value), color16b, wrap, scale, bgColor);
+		nezhaMB_CanvasDrawText(x, y, s, color16b, wrap, scale, bgColor);
 		tft->endWrite();
 		return;
 	#endif
@@ -1706,7 +1776,6 @@ static void drawText(OBJ value, int x, int y, int color16b, int scale, int wrap,
 		if (!lineEnd) break;
 		line = lineEnd + 1;
 	}
-#endif
 }
 
 static OBJ primText(int argCount, OBJ *args) {
@@ -2373,7 +2442,6 @@ static OBJ primCloseDisplay(int argCount, OBJ *args) {
 
 #endif // HAS_EXTERNAL_DISPLAY_PRIMS
 
-#if (1)
 #else // stubs
 
 void tftClear() { }

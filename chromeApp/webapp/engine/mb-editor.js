@@ -1101,7 +1101,7 @@ console.log('unknown');
 			{ selector: 'return', args: [0], isReporter: false, next: null }));
 		this.addToBottom(hat);
 		this.updatePalette();
-		this.scriptChanged(); // xxx is this needed? (from manual merge)
+		this.scriptChanged();
 		return hat;
 	}
 
@@ -1360,6 +1360,13 @@ console.log('unknown');
 		this.undoStateChanged();
 	}
 
+	async updateAfterLanguageChange() {
+		// Reconstruct all scripts with the new translation.
+
+		if (this.scripts == null) return; // not yet initialized
+		await this.restoreUndoState(this.project.codeString());
+	}
+
 	scriptScale() { return this.blockSize / 125; }
 	blockSizePercent() { return this.blockSize; }
 
@@ -1381,26 +1388,9 @@ console.log('unknown');
 
 	applyBlockSize(percent) {
 		// Keep script positions in project file units while changing the rendered scale.
-		const oldScale = this.scriptScale();
-		const fontFactor = percent / this.blockSize;
-		const pane = this.scriptsPane();
-		const scripts = pane ? pane.children.filter(m => m instanceof BlockMorph) : [];
-		const positions = scripts.map(m => [
-			(m.left() - pane.left()) / oldScale,
-			(m.top() - pane.top()) / oldScale,
-		]);
 		this.blockSize = percent;
-		SyntaxElementMorph.prototype.setScale(1.5 * this.scriptScale());
-		if (this.palette) this.updatePalette();
-		if (pane) {
-			scripts.forEach((m, i) => {
-				this.resizeBlock(m, fontFactor);
-				m.setPosition(new Point(
-					pane.left() + positions[i][0] * this.scriptScale(),
-					pane.top() + positions[i][1] * this.scriptScale()));
-			});
-			pane.adjustBounds();
-		}
+		world.zoom(Math.max(Math.min(percent, 250), 50) / 100);
+		IDE.resize();
 	}
 
 	async setBlockScalePercent(percent) {
@@ -1409,6 +1399,7 @@ console.log('unknown');
 			const prefs = this.readUserPreferences();
 			prefs.blockSizePercent = percent;
 			localStorage['user-prefs'] = JSON.stringify(prefs);
+			this.blockSize = percent;
 		}
 		await this.codeManager.syncScripts();
 	}
@@ -1455,6 +1446,14 @@ console.log('unknown');
 		if (typeof FloatingWindow === 'undefined') return Promise.resolve(confirm(question));
 		return new Promise((resolve) => askChrome('window.confirm',
 			{ title: null, text: question, yesLabel: null, noLabel: null }, resolve));
+	}
+
+	informAndWait(msg, title) {
+		// Answer a promise of true once the user has read msg and clicked Ok. A window
+		// closed without clicking Ok never answers.
+		if (typeof FloatingWindow === 'undefined') { alert(msg); return Promise.resolve(true); }
+		return new Promise((resolve) => askChrome('window.inform',
+			{ title: title || null, text: String(msg) }, resolve));
 	}
 
 	prompt(question, defaultValue, editRule) {
@@ -1676,6 +1675,28 @@ console.log('unknown');
 		MB_editor.storeUndoState();
 	}
 
+	async importFromURL(url) {
+		// Open what a page address carries: a scripts fragment is pasted into the
+		// project and a project parameter replaces it. A parameter naming a web
+		// address is refused, and an address carrying neither does nothing.
+
+		const link = MB_ScriptExchange.fromURL(url);
+		if (link == null) return;
+		if ('scripts' === link.kind) return this.pasteScripts(link.text);
+		if ('projectLink' === link.kind) {
+			// Fetching an address named in a link would make opening the page
+			// issue a request the visitor never asked for.
+			alert(localized('Cannot open a project from a web address: ') + decodeURIComponent(link.url));
+			return;
+		}
+		if (!MB_ScriptExchange.isCompleteProject(link.text)) {
+			// Half a link loads half a project over the one the user had.
+			alert(localized('This link is incomplete and was not opened.'));
+			return;
+		}
+		return this.openProjectFromString(link.text, link.name);
+	}
+
 	async openProjectFromFile(location) {
 		// Open a built-in project, such as one chosen in the file picker.
 
@@ -1707,7 +1728,8 @@ console.log('unknown');
 	}
 
 	async processDroppedFile(fileName, data) {
-		// Act on a file by its extension: a project or a library.
+		// Act on a file by its extension: a project, a library or a picture.
+		// data is the file's text, except for a picture, which arrives as bytes.
 
 		const name = fileName.toLowerCase();
 		if (name.endsWith('.ubp') || name.endsWith('.ubp.txt')) await this.openProjectFromString(data, fileName, false);
@@ -1716,6 +1738,20 @@ console.log('unknown');
 				await this.codeManager.saveAllChunksAfterLoad();
 			}
 		}
+		else if (MB_Editor.isScriptPicture(name)) await this.importFromPNG(data);
+	}
+
+	static isScriptPicture(fileName) {
+		// A picture has to be read as bytes: the scripts it carries are in a
+		// chunk of the file that decoding it as text would not keep.
+		return fileName.toLowerCase().endsWith('.png');
+	}
+
+	async openDroppedFile(file) {
+		// Read one file the user dropped on the window and act on it.
+		const data = MB_Editor.isScriptPicture(file.name)
+			? new Uint8Array(await file.arrayBuffer()) : await file.text();
+		await this.processDroppedFile(file.name, data);
 	}
 
 	importLocalFile(callback) {
@@ -1859,8 +1895,14 @@ console.log('unknown');
 	}
 
 	showError(blockMorph, errorString) {
-		// XXX TO DO
-		console.log('Error:', errorString);
+		// Put the message on the block in a red bubble, the channel a runtime
+		// error from the board already uses. A block that is not on screen gets
+		// nothing, the corner showChunkError leaves silent for the same reason.
+		if (!(blockMorph instanceof BlockMorph)) {
+			console.log('Error:', errorString); // for debugging
+			return;
+		}
+		this.showResultOn(blockMorph, errorString, true);
 	}
 
 	showChunkError(chunkID, errorString, location)  {
@@ -1951,7 +1993,10 @@ function chromePoint(aWorld) {
 	const page = aWorld.worldCanvas.getBoundingClientRect();
 	const canvas = document.querySelector('#canvas.emscripten');
 	const hand = aWorld.hand.position();
-	return { x: hand.x + page.left - canvas.offsetLeft, y: hand.y + page.top - canvas.offsetTop };
+	return {
+		x: (hand.x * MB_editor.blockSize / 100) + page.left - canvas.offsetLeft,
+		y: (hand.y * MB_editor.blockSize / 100) + page.top - canvas.offsetTop
+	};
 }
 
 // What contextMenu answers when the chrome draws the menu, so the hand opens no Morphic one.
@@ -2054,8 +2099,7 @@ async function waitMSecs(msecs) {
 }
 
 function localized(s) {
-	// XXX TODO: Use actual localization system
-	return s;
+	return GetText.localize(s);
 }
 
 function isMobile() {
@@ -2118,4 +2162,87 @@ function varMustBeQuoted(varName) {
 	if (varName.includes(' ')) return true;
 	const ch = varName[0];
 	return /\d/.test(ch) || ch === '-';
+}
+
+// Clipboard support (TODO move to own file?)
+
+var MB = {};
+MB.clipboard = document.createElement('textarea');
+MB.clipboard.style.position = 'fixed';
+MB.clipboard.style.left = '0px';
+MB.clipboard.style.top = '0px';
+MB.clipboard.style.width = '1px';
+MB.clipboard.style.height = '1em';
+MB.clipboard.style.border = '0';
+MB.clipboard.style.padding = '0';
+MB.clipboard.style.margin = '0';
+MB.clipboard.style.outline = 'none';
+MB.clipboard.style.opacity = '0';
+document.body.appendChild(MB.clipboard);
+
+function setGPClipboard(s) {
+	// Called by GP's setClipboard primitive
+
+	GP.clipboardBytes = toUTF8Array(s);
+	MB.clipboard.value = s;
+
+	if ((typeof navigator.clipboard !== 'undefined') && (navigator.clipboard.writeText)) {
+		navigator.clipboard.writeText(s).catch(() => {});
+	} else {
+		MB.clipboard.focus();
+		MB.clipboard.select();
+		try {
+			document.execCommand('copy');
+		} catch (err) {
+			console.error('setGPClipboard failed', err);
+		}
+	}
+}
+
+async function readGPClipboard(s) {
+	if ((typeof navigator.clipboard !== 'undefined') && (navigator.clipboard.readText)) {
+		var s = await navigator.clipboard.readText().catch(() => {});
+		if (s) MB.clipboard.value = s;
+	} else {
+		MB.clipboard.focus();
+		MB.clipboard.select();
+		try {
+			document.execCommand('paste');
+		} catch (err) {
+			console.error('readGPClipboard failed', err);
+		}
+	}
+	GP.clipboardBytes = toUTF8Array(MB.clipboard.value);
+	return GP.clipboardBytes.length;
+}
+
+function toUTF8Array(str) {
+	// Convert a Javascript string into an array of UTF8 bytes.
+	var utf8 = [];
+	for (var i = 0; i < str.length; i++) {
+		var charcode = str.charCodeAt(i);
+		if (charcode < 0x80) utf8.push(charcode);
+		else if (charcode < 0x800) {
+			utf8.push(
+				0xc0 | (charcode >> 6),
+				0x80 | (charcode & 0x3f));
+		}
+		else if (charcode < 0x10000) {
+			utf8.push(
+				0xe0 | (charcode >> 12),
+				0x80 | ((charcode >> 6) & 0x3f),
+				0x80 | (charcode & 0x3f));
+		} else if (charcode <= 0x10FFFF) {
+			utf8.push(
+				0xf0 | (charcode >> 18),
+				0x80 | ((charcode >> 12) & 0x3f),
+				0x80 | ((charcode >> 6) & 0x3f),
+				0x80 | (charcode & 0x3f));
+		}
+	}
+	return utf8;
+}
+
+function clipboardText() {
+	return new TextDecoder().decode(new Uint8Array(GP.clipboardBytes).buffer);
 }
