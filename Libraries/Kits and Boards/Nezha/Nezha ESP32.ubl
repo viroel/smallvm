@@ -242,6 +242,7 @@ to efsound_set_tempo bpm {
 }
 
 to nezha32_sound_play_tone frequency ms {
+  '_nezha32_cancel_melody'
   if (ms <= 0) {
     return ('[elfreaks_dev_sensor:startTone]' frequency)
   }
@@ -252,11 +253,8 @@ to nezha32_sound_play_tone frequency ms {
 }
 
 to nezha32_play_sound soundName {
+  '_nezha32_cancel_melody'
   local 'ok' ('[elfreaks_dev_sensor:playSoundByName]' ('_efsound_sound_asset_name' soundName) true)
-  if ok {
-    _efsound_play_id += 1
-    _efsound_bg_melody = ''
-  }
 }
 
 to nezha32_sound_set_volume volume {
@@ -322,15 +320,19 @@ to nezha32_play_melody melody bpm {
   }
   if (bpm <= 0) {bpm = _efsound_tempo}
   efsound_set_tempo bpm
-  _efsound_play_id += 1
+  '_nezha32_cancel_melody'
   _efsound_bg_melody = melody
   _efsound_bg_bpm = bpm
   sendBroadcast '_efsound_background_loop'
 }
 
-to '_nezha32_stop_melody' {
+to '_nezha32_cancel_melody' {
   _efsound_play_id += 1
   _efsound_bg_melody = ''
+}
+
+to '_nezha32_stop_melody' {
+  '_nezha32_cancel_melody'
   '[elfreaks_dev_sensor:stopTone]'
 }
 
