@@ -19,6 +19,7 @@
 
 static OBJ primSerialOpen(int argCount, OBJ *args) { return falseObj; }
 static OBJ primSerialClose(int argCount, OBJ *args) { return falseObj; }
+static OBJ primSerialAvailable(int argCount, OBJ *args) { return zeroObj; }
 static OBJ primSerialRead(int argCount, OBJ *args) { return falseObj; }
 static OBJ primSerialReadInto(int argCount, OBJ *args) { return falseObj; }
 static OBJ primSerialWrite(int argCount, OBJ *args) { return falseObj; }
@@ -88,6 +89,7 @@ static OBJ primMIDIRecv(int argCount, OBJ *args) { return falseObj; }
 static PrimEntry entries[] = {
 	{"open", primSerialOpen},
 	{"close", primSerialClose},
+	{"available", primSerialAvailable},
 	{"read", primSerialRead},
 	{"readInto", primSerialReadInto},
 	{"write", primSerialWrite},

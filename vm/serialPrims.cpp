@@ -404,13 +404,29 @@ static OBJ primSerialClose(int argCount, OBJ *args) {
 // Empty byte array constant
 static uint32 emptyByteArray = HEADER(ByteArrayType, 0);
 
+static OBJ primSerialAvailable(int argCount, OBJ *args) {
+	if (!isOpen) return fail(serialPortNotOpen);
+
+	int byteCount = serialAvailable();
+	if (byteCount < 0) return fail(primitiveNotImplemented);
+	return int2obj(byteCount);
+}
+
 static OBJ primSerialRead(int argCount, OBJ *args) {
 	if (!isOpen) return fail(serialPortNotOpen);
 
+	int maxBytes = -1; // optional; no limit if omitted
+	if (argCount > 0) {
+		if (!isInt(args[0])) return fail(needsIntegerError);
+		maxBytes = obj2int(args[0]);
+		if (maxBytes < 0) return fail(needsIntegerError);
+	}
+
 	taskSleep(-1);
 	int byteCount = serialAvailable();
-	if (byteCount == 0) return (OBJ) &emptyByteArray;
 	if (byteCount < 0) return fail(primitiveNotImplemented);
+	if ((maxBytes >= 0) && (byteCount > maxBytes)) byteCount = maxBytes;
+	if (byteCount == 0) return (OBJ) &emptyByteArray;
 
 	int wordCount = (byteCount + 3) / 4;
 	OBJ result = newObj(ByteArrayType, wordCount, falseObj);
@@ -756,6 +772,7 @@ static OBJ primDUELinkRecv(int argCount, OBJ *args) {
 static PrimEntry entries[] = {
 	{"open", primSerialOpen},
 	{"close", primSerialClose},
+	{"available", primSerialAvailable},
 	{"read", primSerialRead},
 	{"readInto", primSerialReadInto},
 	{"write", primSerialWrite},
