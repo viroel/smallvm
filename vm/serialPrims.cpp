@@ -443,12 +443,20 @@ static OBJ primSerialReadInto(int argCount, OBJ *args) {
 
 	if (!isOpen) return fail(serialPortNotOpen);
 
+	int maxBytes = BYTES(buf); // optional second argument can lower this
+	if (argCount > 1) {
+		if (!isInt(args[1])) return fail(needsIntegerError);
+		int requested = obj2int(args[1]);
+		if (requested < 0) return fail(needsIntegerError);
+		if (requested < maxBytes) maxBytes = requested;
+	}
+
 	taskSleep(-1);
 	int byteCount = serialAvailable();
 	if (byteCount == 0) return zeroObj;
 	if (byteCount < 0) return fail(primitiveNotImplemented);
 
-	if (byteCount > (int) BYTES(buf)) byteCount = BYTES(buf);
+	if (byteCount > maxBytes) byteCount = maxBytes;
 	serialReadBytes((uint8 *) &FIELD(buf, 0), byteCount);
 	return int2obj(byteCount);
 }
