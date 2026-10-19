@@ -5,7 +5,6 @@
 // Copyright 2026 John Maloney and Bernat Romagosa
 
 // mb-decompiler.js - Decompiles bytecodes back to block trees
-// XXX Preliminary port; not yet tested or debugged!
 // Works internally in block tree nodes (see below) and converts them to
 // blocks in decompileProject, which is where the rest of the IDE takes over.
 
@@ -80,6 +79,9 @@ class MB_Decompiler {
 			}
 		}
 		project.main.scripts = scripts;
+		project.fixFunctionLocals();
+		// The board holds every global it was sent; keep only the ones in use.
+		for (const varName of project.unusedGlobals()) project.deleteVariable(varName);
 		// A read-back is a different document: the positions above are invented
 		// per read, so these names are new ones and not the file's.
 		project.main.assignScriptIds();
@@ -882,7 +884,7 @@ class MB_Decompiler {
 		}
 		if (isImplementation) lib.beImplementation();
 		for (const dependency of lib.dependencies) {
-			if (!project.libraryNamed(dependency)) {
+			if (!project.libraryNamed(dependency) && !project.replacementFor(dependency)) {
 				await this.addEmbeddedLibrary(dependency, project);
 			}
 		}

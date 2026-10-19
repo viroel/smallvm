@@ -18,19 +18,26 @@ class MB_Parser {
 		this.complete = false;
 		this.inString = false;
 		this.EOF = {}; // Unique value indicating that there is no more data to parse
+		this.problems = []; // each syntax error reported, in order
 	}
 
 	// Public class methods
 
-	static parse(srcString, fileName = '<string>') {
+	static parse(srcString, fileName = '<string>', problems = null) {
 		// Parse the given string containing zero or more commands.
-		// Return an array of command parse trees.
+		// Return an array of command parse trees. Parsing stops at the first
+		// command that cannot be read; a problems array, if given, collects the
+		// syntax errors that stopped it, so it stays empty when the whole string was read.
 
 		let result = [];
 		let p = new MB_Parser(srcString, fileName);
 		while (!p.atEnd()) {
+			const reported = p.problems.length;
 			let parseTree = p.nextParseTree(false);
-			if (!parseTree) break;
+			if (!parseTree) {
+				if (problems) problems.push(...p.problems.slice(reported));
+				break;
+			}
 			result.push(parseTree);
 		}
 		return result;
@@ -278,13 +285,7 @@ class MB_Parser {
 		if (!spec) spec = MB_Specs.specFor(selector, args, isReporter); // no usable spec; specFor extends its own
 		else if (fromSource) spec = MB_Specs.extendSpecForArgs(spec, args);
 		b.setSpec(spec);
-		// try to get category from libraries in the project first
-		let cat = MB_editor.project.categoryForSelector(selector);
-		if (cat == 'other') {
-			// if selector not found in a library, look in built-in specs
-			cat = MB_Specs.categoryForSelector(selector);
-		}
-		b.setCategory(cat);
+		b.setCategory(MB_Specs.categoryForSelector(selector));
 		b.isDraggable = true;
 		let inputs = b.inputs();
 
@@ -313,6 +314,7 @@ class MB_Parser {
 		if (fromSource) {
 			for (let i = args.length; i < inputs.length; i++) inputs[i].markUnsupplied();
 		}
+		b.fixElseSection();
 		return b;
 	}
 
@@ -639,78 +641,7 @@ class MB_Parser {
 
 	parseError(problem) {
 		console.log('MicroBlocks syntax error:', (this.fileName + ':' + this.lineNumber), problem);
+		this.problems.push(problem);
 	}
 
 } // end of class MB_Parser
-
-// Parser Tests
-
-function parser_test1() {
-	let p = new MB_Parser("33 1 2 3 foo 'bar' nil true false\n -1 -3.14 -314e-1 -314E-2");
-	while (!p.atEnd()) {
-		p.skipWhiteSpace();
-		let v = p.readToken();
-		if (v != p.EOF) console.log(v);
-	}
-}
-
-function parser_test2() {
-	let p = new MB_Parser("'xxx");
-	p.skipWhiteSpace();
-	let v = p.readToken(); // gives error - no closing string quote
-}
-
-function parser_test3() {
-	let p = new MB_Parser("  'foo'  ");
-	console.log(p.readCmd());
-}
-
-function parser_test4() {
-	let p = new MB_Parser(" { stop; go }  ");
-	let cmds = p.readCmdList(false);
-	console.log(cmds);
-}
-
-function parser_test(s) {
-	let cmds = MB_Parser.parse(s);
-	cmds.forEach( (cmd) => {
-		MB_editor.addBlockToScripts(MB_Parser.blockFor(cmd));
-	});
-}
-
-function parser_test5() {
-	parser_test("  stop; go\nanother 123 \n  'the end'");
-}
-
-function parser_test6() {
-	parser_test("  print ((1 + 2) * 3) { stop }  ");
-}
-
-function parser_test7() {
-	parser_test("script 915 125 {\nwhenButtonPressed 'A'\nwaitMillis 500\n}\n\nscript 100 200 {\nwhenButtonPressed 'B'\nwaitMillis 300\n}");
-}
-
-function parser_test8() {
-	parser_test("digitalReadOp 'hello' 1 true false 'foo'");
-}
-
-function parser_test9() {
-	parser_test("\n\nscript 206 288 {\nspiSend 0\n\n}\n\n");
-}
-
-function parser_test10() {
-	parser_test("x = (v 'foo')");
-}
-
-function parser_testFile() {
-	function parseFile(fileName, contents) {
-		let startT = Date.now();
-		let cmdList = MB_Parser.parse(contents);
-		let parseTime = Date.now() - startT;
-		for (const cmd of cmdList) {
-			console.log(cmd[0], cmd.slice(1));
-		}
-		console.log(fileName, 'parse time:', parseTime, 'msecs');
-	}
-	MB_editor.importLocalFile(parseFile);
-}

@@ -4,16 +4,14 @@
 //
 // Copyright 2025 John Maloney, Bernat Romagosa, and Jens Mönig
 //
-// mb-gpAPI.js - Support for Javascript calls to GP functions
+// mb-jsAPI.js - Support for Javascript calls to GP functions
 //
-// John Maloney and Bernat Romagosa, 2026
+// John Maloney, Bernat Romagosa, and Sam McHardy 2026
 
-// This is an alternative to the API mechanism that calls GP for use in the all-Javascript
-// version -- at least during the transition period. Instead of queueing a call to be
-// handled by GP, it dispatches the call directly with the given parameters, then calls
-// the callback function.
-//
-// NOTE: Either this file or mb-gpAPI.js should be loaded, not both.
+// This API mechanism is used to make calls from the DOM part of the UI into the "engine".
+// It behaves the same as the API mechanism used to interfact the DOM-based UI to GP.
+// However, instead of queueing a call to be handled by GP, it dispatches the call directly
+// with the given parameters, then invokes the callback function with the result, if any.
 
 GP = { apiResponses: {} } // windows.js stores a dialog's answer in apiResponses
 GP.apiCall = function (endPoint, params, callback) {
@@ -48,6 +46,10 @@ GP.apiCall = function (endPoint, params, callback) {
 			// As GP's closePort (MicroBlocksRuntime.gp).
 			if (GP.boardie.isOpen) {
 				GP_closeBoardie(); // also disconnects
+			} else if (MB_connection.isConnected()) {
+				// A disconnect the user asked for leaves the board running the
+				// IDE's program, as it will after its next power-up.
+				MB_editor.stopSyncAndStartAll().finally(() => MB_connection.disconnect());
 			} else {
 				MB_connection.disconnect();
 			}
@@ -128,6 +130,14 @@ GP.apiCall = function (endPoint, params, callback) {
 			callback(0);
 			MB_editor.uploadFileToBoard();
 			break;
+		case 'board.snapshotCode':
+			callback(0);
+			MB_editor.snapshotCode();
+			break;
+		case 'ide.openVMFolder':
+			callback(0);
+			MB_editor.openVMFolder();
+			break;
 		case 'ide.applyUserPreferences':
 			// Answer, then repaint: the chrome sends this on every tick of a
 			// settings menu item and does not wait for the canvas to catch up.
@@ -145,7 +155,7 @@ GP.apiCall = function (endPoint, params, callback) {
 				cnv.style.height = slot.height + 'px';
 				cnv.width = slot.width;
 				cnv.height = slot.height;
-				world.setExtent(new Point(slot.width, slot.height));
+				world.setExtent(new Point(slot.width, slot.height).divideBy(ZOOM)); // the world is drawn ZOOM times its size
 				if (typeof mbEditor === 'object') { mbEditor.fixLayout(); }
 			}
 			callback();
@@ -225,11 +235,17 @@ GP.apiCall = function (endPoint, params, callback) {
 			MB_editor.exportMyBlocksAsLibrary();
 			break;
 		case 'library.showInfoDialog':
+			callback(0);
+			MB_editor.showLibraryInfo(params[0]);
+			break;
 		case 'locale.loadCustomFile':
-			callback();
+			callback(0);
+			MB_editor.readCustomTranslationFile();
 			break;
 		case 'locale.setLanguage':
-			callback();
+			callback(0);
+			// The chrome sends false at startup when no language has been saved.
+			if (typeof params[0] === 'string') MB_editor.saveToUserPreferences('locale', params[0]);
 			MB_editor.updateAfterLanguageChange();
 			break;
 		case 'project.new':
@@ -266,7 +282,7 @@ GP.apiCall = function (endPoint, params, callback) {
 			break;
 		case 'scripts.setExportedScriptScale':
 			callback(0);
-			MB_editor.exportedScriptScale = Number(params[0]);
+			MB_editor.exportedScriptScale = Number(params[0]) / 100;
 			break;
 		case 'scripts.restoreZoom':
 			MB_editor.restoreZoom();
@@ -285,7 +301,8 @@ GP.apiCall = function (endPoint, params, callback) {
 			callback(0);
 			break;
 		default:
-			callback();
+			console.log('unknown API endpoint', endPoint);
+			callback('Unknown API endpoint');
 	}
 };
 

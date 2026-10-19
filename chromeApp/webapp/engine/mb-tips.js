@@ -87,21 +87,40 @@ MB_Tips.opUnderPointer = function () {
 	return block ? block.selector : null;
 }
 
+MB_Tips.overPaneDivider = function () {
+	if ((typeof world === 'undefined') || !world.hand) return false;
+	return !!MB_editor.paletteResizer && (world.hand.morphAtPointer() === MB_editor.paletteResizer);
+}
+
 MB_Tips.chromeTipFor = function (block) {
 	// [title, text] for the chrome's tip bar, as GP's MicroBlocksTipBar contentsFor.
 
+	if (this.overPaneDivider()) return [
+		localized('Pane Divider'),
+		localized('Drag to change pane width.')];
 	if (!block) return ['', ''];
 	let top = block.topBlock();
 	let next = block.nextBlock ? block.nextBlock() : null;
-	let tip = ['Script', '[l] to run. [r] menu.'];
+	let tip = [
+		localized('Script'),
+		localized('[l] to run. [r] menu.')];
 	if ((typeof HatBlockMorph !== 'undefined') && (block instanceof HatBlockMorph) && !next) {
-		tip = ['Hat Block', '[l] to run, or drag to build scripts. [r] menu.'];
+		tip = [
+			localized('Hat Block'),
+			localized('[l] to run, or drag to build scripts. [r] menu.')];
 	} else if ('reporter' === block.type()) {
-		if (block === top) tip = ['Reporter Block', '[l] to see value, or drop into an input slot. [r] menu.'];
+		if (block === top) tip = [
+			localized('Reporter Block'),
+			localized('[l] to see value, or drop into an input slot. [r] menu.')];
 	} else if ((block === top) && !next) {
-		tip = ['Command Block', '[l] to run, or drag to build scripts. [r] menu.'];
+		tip = [
+			localized('Command Block'),
+			localized('[l] to run, or drag to build scripts. [r] menu.')];
 	}
-	let description = ('Script' === tip[0]) ? '' : MB_Help.descriptionFor(block.selector);
+	let description = ('Script' === tip[0]) ? '' : localized(MB_Help.descriptionFor(block.selector));
+	if (MB_editor.devMode()) {
+		tip[1] = ''; // suppress the gesture hint in dev mode
+	}
 	return description ? [tip[0], description + '    ' + tip[1]] : tip;
 }
 

@@ -150,6 +150,7 @@
 		<!-- Snap Blocks -->
 		<script type="text/javascript" src="engine/morphic.js"></script>
 		<script type="text/javascript" src="engine/mb-blocks.js"></script>
+		<script type="text/javascript" src="engine/mb-block-search.js"></script>
 		<script type="text/javascript" src="engine/mb-code-manager.js"></script>
 		<script type="text/javascript" src="engine/mb-comm-port.js"></script>
 		<script type="text/javascript" src="engine/mb-compare.js"></script>
@@ -165,6 +166,7 @@
 		<script type="text/javascript" src="engine/mb-help-strings.js"></script>
 		<script type="text/javascript" src="engine/mb-help.js"></script>
 		<script type="text/javascript" src="engine/mb-jsAPI.js"></script>
+		<script type="text/javascript" src="engine/mb-library-widgets.js"></script>
 		<script type="text/javascript" src="engine/mb-boardie.js"></script>
 		<script type="text/javascript" src="engine/mb-parser.js"></script>
 		<script type="text/javascript" src="engine/mb-project.js"></script>
@@ -210,14 +212,15 @@
 					IDE.init();
 					mbEditor = MB_editor.open(world);
 					IDE.resize(); // place the world canvas over the workspace slot
+					// Started first, so the IDE keeps running while a link's project asks a question.
+					requestAnimationFrame(loop);
 					try {
-						// A link the page was opened with, before the loop starts.
+						// A link the page was opened with.
 						await MB_editor.importFromURL(location.href);
 					} catch (error) {
 						// The IDE still runs: a link nobody can open is not a dead page.
 						console.error('Could not open this link:', error);
 					}
-					requestAnimationFrame(loop);
 				}, 500);
 			};
 		</script>

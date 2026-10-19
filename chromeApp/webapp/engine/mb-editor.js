@@ -6,7 +6,7 @@
 
 // mb-editor.js - MicroBlocks top-level editor.
 
-/* global MB_Files, MB_FilePicker, MB_Parser, MB_Specs, MB_Project, Color, Point, BlockMorph, ReporterBlockMorph, ScriptsMorph, ScrollFrameMorph, StringMorph, world */
+/* global MB_BlockSearchBox, MB_Files, MB_FilePicker, MB_LibraryImportDialog, MB_LibraryInfoDialog, MB_Parser, MB_Specs, MB_Project, Color, Point, BlockMorph, ReporterBlockMorph, ScriptsMorph, ScrollFrameMorph, StringMorph, world */
 
 class MB_Editor {
 	constructor() {
@@ -20,14 +20,16 @@ class MB_Editor {
 		this.lastProjectFolder = 'Examples'; // where the file picker opens
 		this.lastLibraryFolder = 'Libraries'; // and where it opens for a library
 		this.runningChunks = new Map(); // used for block highlighting
+		this.stoppingHighlights = new Map(); // block -> timer that unhighlights it
 		this.resultBubbles = new Map(); // block -> the bubble showing its value
+		this.blockForResultImage = null; // the script to save a picture of when its result arrives
 		this.chunkErrorListeners = []; // called with each decoded board error
 		// Turns the board's four location bytes into a site, called with the bytes
 		// and then the message's own chunk id; the chunk the fault is in is the
 		// low byte of the location. Null sends every error to the task's chunk.
 		this.errorDecoder = (location, chunkID) => this.decodeErrorLocation(location, chunkID);
 		this.saveNeeded = false; // the scripts changed since the last step
-		this.exportedScriptScale = 1; // set by the chrome; the picture uses the on-screen scale
+		this.exportedScriptScale = 0.65; // block scale of a script picture, set by the chrome
 		this.lastTransferPercent = null; // the last transfer percentage sent to the chrome
 		this.spinnerShowing = false; // the chrome is showing the spinner this port raised
 		this.unsavedEdits = false; // the project changed since it was last opened or saved
@@ -37,16 +39,16 @@ class MB_Editor {
 		this.undoStack = [];
 		this.redoStack = [];
 		this.watchProjectVariables();
-		this.blockSize = 125;
+		this.blockSize = 100;
 	}
 
 	open(world) {
-		this.paletteWidth = 200;
+		this.paletteWidth = 208;
 
 		this.palette = new ScrollFrameMorph();
 		this.palette.contents.acceptsDrops = true;
 		this.palette.contents.reactToDropOf = (droppedMorph) => {
-			if (droppedMorph instanceof BlockMorph) {
+			if ((droppedMorph instanceof BlockMorph) || (droppedMorph instanceof SelectedScriptsMorph)) {
 				droppedMorph.destroy();
 				this.scriptChanged(); // its chunk is deleted at the next step
 			}
@@ -59,6 +61,9 @@ class MB_Editor {
 		// What FrameMorph's constructor would have set; ScriptsMorph takes no
 		// scroll frame, and adjustBounds does nothing without one.
 		this.scripts.scrollFrame = this.scriptsFrame;
+		// The scripting pane scrolls itself while a block is dragged near its edge; the palette does not.
+		this.scriptsFrame.enableAutoScrolling = false;
+		this.palette.enableAutoScrolling = false;
 
 		// The panes exist now, so they can take their colours. This is the only
 		// place that gives them one, here and on every later change.
@@ -66,6 +71,11 @@ class MB_Editor {
 
 		world.add(this.palette);
 		world.add(this.scriptsFrame);
+		this.paletteResizer = this.newPaneResizer();
+		world.add(this.paletteResizer); // after the panes, so it is in front
+
+		// A right-click that no morph answers opens nothing.
+		world.contextMenu = () => null;
 
 		// morphic asks each of the world's own morphs whether the page is holding
 		// work, and warns before the browser unloads it if any says yes
@@ -80,23 +90,42 @@ class MB_Editor {
 
 		// Escape with nothing being edited goes to the chrome, as GP's Page sends it. Until
 		// morphic refocuses its keyboard textarea after a click, the key goes to the body.
+		// The IDE's keys act unless a chrome dialog has them. Morphic handles a key before
+		// this listener, ending an edit or closing a menu, so who had the keys is read first.
+		// A key aimed at text no longer in the world frees the keys and goes no further,
+		// not even to morphic. A removed morph keeps its parent, so the text is gone when
+		// any ancestor has let it go.
+		const gone = (m) => (m.parent !== null) && (!m.parent.children.includes(m) || gone(m.parent));
 		if (world.keyboardHandler) document.addEventListener('keydown', (event) => {
-			if (('Escape' === event.key) && !world.keyboardFocus &&
-				[document.body, world.keyboardHandler].includes(event.target)) {
-				fireIDEEvent('ide.keyPressed', 'ESC');
-			}
+			if (!world.cursor || !gone(world.cursor.target)) return;
+			world.stopEditing();
+			event.stopPropagation();
+			event.preventDefault();
+		}, true);
+		let morphicHadKeys = false;
+		document.addEventListener('keydown', () => { morphicHadKeys = !!(world.keyboardFocus || world.activeMenu); }, true);
+		if (world.keyboardHandler) document.addEventListener('keydown', (event) => {
+			if (MB_BlockSearchBox.tookKey()) return; // first, so the mark never outlives its key
+			if (morphicHadKeys || ![document.body, world.keyboardHandler].includes(event.target)) return;
+			if (event.isComposing || (229 === event.keyCode)) return; // an input method is composing
+			const spinnerWasUp = this.spinnerShowing; // Escape below cancels it
+			if ('Escape' === event.key) fireIDEEvent('ide.keyPressed', 'ESC');
+			if ((typeof GP === 'object') && GP.delegateKeyboardEvents) return;
+			if (this.shortcutKey(event, spinnerWasUp) || this.searchKey(event) || this.scripts.selectionKey(event)
+				|| this.scrollKey(event)) event.preventDefault();
 		});
 
 		// A block released on the world rather than on a pane, as under the tip bar, slides back
 		// to where it was picked up. A duplicate with nowhere to return to is discarded, and one
 		// grabbed again mid-slide comes back here with no hand, so it is kept in view.
 		world.reactToDropOf = (morph, hand) => {
-			if (!(morph instanceof BlockMorph)) return;
+			if (!((morph instanceof BlockMorph) || (morph instanceof SelectedScriptsMorph))) return;
 			if (hand && hand.grabOrigin) morph.slideBackTo(hand.grabOrigin);
 			else if (hand) morph.destroy();
 			else {
 				this.scripts.add(morph);
 				morph.keepWithin(this.scriptsFrame);
+				if (morph instanceof SelectedScriptsMorph) morph.unpackInto(this.scripts);
 			}
 		};
 
@@ -129,23 +158,48 @@ class MB_Editor {
 			new Point(world.width() - this.paletteWidth,
 			this.palette.height()
 		));
+		if (this.paletteResizer) {
+			this.paletteResizer.setPosition(this.palette.topRight());
+			this.paletteResizer.setExtent(new Point(15, this.palette.height()));
+		}
+	}
+
+	newPaneResizer() {
+		// A strip over the left edge of the scripting area. Dragging it sets the
+		// palette's width, from 90 to 600 and no closer than 25 to the world's right edge.
+		const resizer = new Morph();
+		resizer.color = new Color(180, 180, 255);
+		resizer.alpha = 0; // drawn only while the pointer is over it
+		let offset = 0;
+		const highlight = (on) => {
+			resizer.alpha = on ? 0.6 : 0;
+			world.worldCanvas.style.cursor = on ? 'ew-resize' : '';
+			resizer.changed();
+		};
+		// A block being carried passes through to the scripting area below.
+		resizer.topMorphAt = (point) => (world.hand.children.length ? null : Morph.prototype.topMorphAt.call(resizer, point));
+		resizer.mouseEnter = () => highlight(true);
+		resizer.mouseLeave = () => highlight(false);
+		resizer.mouseDownLeft = (pos) => {
+			offset = pos.x - resizer.left();
+			resizer.lockMouseFocus();
+		};
+		resizer.mouseMove = (pos, button) => {
+			if (button !== 'left') return;
+			const right = pos.x - offset - this.palette.left();
+			this.paletteWidth = Math.max(90, Math.min(right, 600, world.width() - 25));
+			this.fixLayout();
+		};
+		return resizer;
 	}
 
 	scriptsPane() { return this.scripts; }
 
 	removeAllScripts() {
+		this.scriptsPane().cancelSelection();
 		let allScripts = this.scriptsPane().children.slice();
 		allScripts.forEach((m) => { m.destroy(); });
-	}
-
-	addBlockToScripts(b) {
-		// For testing. Add the given block to the scripts pane at a random position.
-
-		let scriptsPane = this.scriptsPane();
-		b.setPosition(new Point(this.randomBetween(200, 800), this.randomBetween(10, 300)));
-		scriptsPane.add(b);
-		scriptsPane.adjustBounds();
-		scriptsPane.changed();
+		this.removeResultBubbles(); // they sit on the world, not in the pane
 	}
 
 	addBlockToScriptsAt(b, x, y) {
@@ -153,8 +207,9 @@ class MB_Editor {
 		// x and y are relative to the pane, which is what updateProject records.
 
 		let scriptsPane = this.scriptsPane();
-		const scale = this.scriptScale();
-		b.setPosition(scriptsPane.position().add(new Point(x * scale, y * scale)));
+		b.setPosition(scriptsPane.position().add(new Point(x, y)));
+		b.category = MB_Specs.categoryForSelector(b.selector);
+		b.setColor(b.colorFor(b.category));
 		scriptsPane.add(b);
 		scriptsPane.adjustBounds();
 		scriptsPane.changed();
@@ -174,7 +229,7 @@ class MB_Editor {
 			project: () => this.project,
 			scriptEditor: () => this.scriptsPane(),
 			installLibraryNamed: (libName) => this.installLibraryNamed(libName),
-			blockScale: () => this.scriptScale(), // exchange positions are in file units
+			blockScale: () => 1, // the block size magnifies the whole world, so pane and file units are equal
 		};
 	}
 
@@ -311,7 +366,23 @@ class MB_Editor {
 
 		const lib = this.project.libraryNamed(libName);
 		if (!lib) return;
-		for (const dependency of lib.dependencies) await this.importEmbeddedLibrary(dependency);
+		for (const dependency of lib.dependencies) {
+			// a loaded library already implements this dependency
+			if (this.project.replacementFor(lib.dependencyName(dependency))) continue;
+			if (dependency.startsWith('http')) {
+				await this.importLibraryDependencyFromUrl(dependency);
+			} else {
+				await this.importEmbeddedLibrary(dependency);
+			}
+		}
+	}
+
+	async importLibraryDependencyFromUrl(dependency) {
+		// Fetch a dependency named by its web address. A version requirement after a '#'
+		// is not checked.
+
+		const hash = dependency.lastIndexOf('#');
+		await this.importLibraryFromUrl((hash < 0) ? dependency : dependency.slice(0, hash));
 	}
 
 	scriptStringFor(aBlock) {
@@ -324,7 +395,12 @@ class MB_Editor {
 	allScriptsString() {
 		// The text that copying the whole scripts pane writes.
 
-		const blocks = this.scriptsPane().children.filter((m) => m instanceof BlockMorph);
+		return this.scriptsString(this.scriptsPane().children.filter((m) => m instanceof BlockMorph));
+	}
+
+	scriptsString(blocks) {
+		// The text that copying the scripts with the given top blocks writes.
+
 		const exporter = new MB_ScriptExchange(this.project);
 		return 'GP Scripts\n' + exporter.exportScripts(this.exchangeScripter(), blocks);
 	}
@@ -398,8 +474,12 @@ class MB_Editor {
 
 	hideDefinition(funcName) {
 		// Remove the pane's definition hat for funcName; a paste that defines it brings its own.
-		for (const m of this.scriptsPane().children.slice()) {
-			if (m instanceof BlockMorph && m.selector === 'to' && m.argList()[0] === funcName) m.destroy();
+		const pane = this.scriptsPane();
+		for (const m of pane.children.slice()) {
+			if (this.isDefinitionHatFor(m, funcName)) {
+				if (pane.selection && pane.selection.includes(m)) pane.cancelSelection();
+				m.destroy();
+			}
 		}
 	}
 
@@ -411,8 +491,7 @@ class MB_Editor {
 	}
 
 	definitionShown(funcName) {
-		return this.scriptsPane().children.some((m) =>
-			m instanceof BlockMorph && m.selector === 'to' && m.argList()[0] === funcName);
+		return this.definitionHatFor(funcName) != null;
 	}
 
 	showFunctions(functions) {
@@ -616,7 +695,7 @@ class MB_Editor {
 	}
 
 	addPaletteLabel(text) {
-		let label = new StringMorph(text, 14 * this.scriptScale());
+		let label = new StringMorph(text, 14);
 		label.setColor(this.paneColors().label); // labels are rebuilt, not recoloured
 		label.toggleWeight();
 		label.setPosition(new Point(this.palette.contents.left() + 5, this.paletteY));
@@ -757,6 +836,31 @@ class MB_Editor {
 		this.addBlocksForSpecs(specs, cat.substring(4));
 	}
 
+	searchKey(event) {
+		// Ctrl-Space opens the block search box, as does Cmd-Space where the system
+		// leaves it to the page. Not while an input method is composing.
+		if ((' ' !== event.key) || !(event.ctrlKey || event.metaKey) || event.isComposing) return false;
+		MB_BlockSearchBox.open();
+		return true;
+	}
+
+	scrollKey(event) {
+		// The arrows, Page Up, Page Down, Home and End scroll the pane under the pointer,
+		// and a held key keeps scrolling. With Cmd, Ctrl or Alt the key is the browser's.
+		const steps = { ArrowLeft: [50, 0], ArrowRight: [-50, 0], ArrowUp: [0, 50], ArrowDown: [0, -50] };
+		if (event.ctrlKey || event.metaKey || event.altKey) return false;
+		if (!(event.key in steps) && !['PageUp', 'PageDown', 'Home', 'End'].includes(event.key)) return false;
+		if ((typeof Menus !== 'undefined') && Menus.current()) return false;
+		const frame = world.hand.morphAtPointer().parentThatIsA(ScrollFrameMorph);
+		if (!frame) return false;
+		const page = Math.round(frame.height() / 3);
+		const [dx, dy] = steps[event.key] || { PageUp: [0, page], PageDown: [0, -page], Home: [0, 1e6], End: [0, -1e6] }[event.key];
+		if (dx) frame.scrollX(dx);
+		if (dy) frame.scrollY(dy);
+		frame.adjustScrollBars();
+		return true;
+	}
+
 	// Run/stop
 
 	async startAll() {
@@ -768,10 +872,58 @@ class MB_Editor {
 		}
 	}
 
+	shortcutKey(event, spinnerWasUp) {
+		// Answer whether a key pressed with no text being edited acted. An open chrome menu
+		// takes Escape and blocks the rest. Otherwise Escape stops a read from the board first,
+		// an open file picker takes Enter and Escape, and Escape stops every script only when
+		// there is no spinner to cancel and no selection.
+		const menu = (typeof Menus !== 'undefined') && Menus.current();
+		const picker = world.children.find((m) => m.picker instanceof MB_FilePicker);
+		const letter = (event.ctrlKey || event.metaKey) ? event.key.toLowerCase() : null;
+		if (event.repeat || menu) { // a held key acts once
+			if (menu && !event.repeat && ('Escape' === event.key)) Menus.close();
+			return ['Escape', 'Enter', 'Delete'].includes(event.key) || ['z', 's', 'o', ' '].includes(letter);
+		}
+		if (('Escape' === event.key) && (this.readFromBoard || (MB_connection.decompiler != null))) {
+			MB_connection.stopDecompilation(); // a read from the board, armed or running, goes first
+		} else if (picker && ('Escape' === event.key)) {
+			picker.picker.removeFromOwner();
+		} else if (picker && ('Enter' === event.key)) {
+			picker.picker.okay();
+			return false; // a selection still runs
+		} else if ('Escape' === event.key) {
+			if (spinnerWasUp) return true;
+			if (this.scripts.hasSelection()) return false;
+			this.stopAll();
+		} else if (('z' === letter) && (world.hand.children.length === 0)) {
+			if (event.shiftKey) this.redo(); else this.undo();
+		} else if (('s' === letter) && !event.shiftKey) {
+			this.saveProject();
+		} else if (('o' === letter) && !event.shiftKey) {
+			this.openProjectMenu();
+		} else {
+			return false;
+		}
+		return true;
+	}
+
 	async stopAll(forceRecompile) {
 		try {
 			this.updateProject();
 			await this.codeManager.stopAndSyncScripts(false, forceRecompile);
+		} catch (e) {
+			this.reportError(e);
+		}
+	}
+
+	async stopSyncAndStartAll() {
+		// Stop the board, bring it into line with the project, and start it.
+		try {
+			this.updateProject();
+			await this.codeManager.stopAndSyncScripts();
+			// Not codeManager.syncAndStartAll: that would sync a second time and can alert "not connected".
+			MB_connection.sendMsg('startAllMsg', 1); // chunk type 1 means 16-bit instructions
+			await MB_connection.sendQueue; // written before the caller closes the port
 		} catch (e) {
 			this.reportError(e);
 		}
@@ -792,6 +944,8 @@ class MB_Editor {
 		let runningChunkID = this.runningChunks.get(top);
 		if (runningChunkID !== undefined) {
 			MB_connection.sendMsg('stopChunkMsg', runningChunkID);
+		} else if ('not connected' == MB_connection.updateConnection()) {
+			this.showError(top, localized('Board not connected'));
 		} else {
 			let chunkID = this.codeManager.ensureChunkIdFor(top);
 			this.compileAndRun(top, chunkID);
@@ -822,12 +976,19 @@ console.log('unknown');
 			return; // unknown chunk
 		}
 
+		// A script that stops keeps its highlight for half a second, so one that
+		// runs again at once does not flicker.
+		clearTimeout(this.stoppingHighlights.get(runningBlock));
+		this.stoppingHighlights.delete(runningBlock);
 		if (isRunning) {
-			runningBlock.addHighlight();
+			if (!runningBlock.getHighlight()) runningBlock.addHighlight();
 			this.runningChunks.set(runningBlock, chunkID);
 		} else {
-			runningBlock.removeHighlight();
 			this.runningChunks.delete(runningBlock);
+			this.stoppingHighlights.set(runningBlock, setTimeout(() => {
+				this.stoppingHighlights.delete(runningBlock);
+				runningBlock.removeHighlight();
+			}, 500));
 		}
 	}
 
@@ -872,8 +1033,8 @@ console.log('unknown');
 			if (aBlockMorph instanceof BlockMorph) {
 				// An edit to a definition in the pane goes back to its function.
 				if (aBlockMorph.isFunctionDefinition()) aBlockMorph.updateDefinedFunction();
-				let x = Math.round((aBlockMorph.left() - this.scripts.left()) / this.scriptScale());
-				let y = Math.round((aBlockMorph.top() - this.scripts.top()) / this.scriptScale());
+				let x = Math.round(aBlockMorph.left() - this.scripts.left());
+				let y = Math.round(aBlockMorph.top() - this.scripts.top());
 				newScripts.push([x, y, aBlockMorph]);
 			}
 		}
@@ -911,6 +1072,14 @@ console.log('unknown');
 		this.saveTextAsFile(lib.codeString(this.project), lib.moduleName + '.ubl');
 	}
 
+	showLibraryInfo(libName) {
+		// A read-only window with a library's description, version, author and dependencies.
+
+		const lib = this.project.libraryNamed(libName);
+		if (!lib) return;
+		new MB_LibraryInfoDialog(lib).open(world);
+	}
+
 	async reloadLibrary(libName) {
 		// Replace a library with the shipped file of its name and show it. Only a
 		// library with a shipped path qualifies; one that arrived with the project
@@ -922,20 +1091,71 @@ console.log('unknown');
 		if (!filePath) return;
 		const data = await MB_Files.readFile(filePath);
 		if (!data) return;
-		let moduleName = this.project.addLibraryFromString(data, libName, '//' + filePath);
-		this.codeManager.recompileNeeded(); // its functions were loaded anew
-		this.librariesChanged();
-		this.updateLibraryList();
-		this.selectLibrary(moduleName);
+		await this.importLibraryFromString(data, filePath);
 	}
 
 	importLibrary() {
-		// Show the file picker on the shipped libraries. Its Computer button
+		// Show the library picker on the shipped libraries. Its Computer button
 		// leads to the browser's chooser, whose file arrives at processDroppedFile.
 
 		const open = MB_FilePicker.findOpen(world);
 		if (open) open.removeFromOwner();
-		new MB_FilePicker((path) => this.openLibraryFile(path), this.lastLibraryFolder, ['.ubl']).open(world);
+		const dialog = new MB_LibraryImportDialog((path) => this.openLibraryFile(path), this.lastLibraryFolder);
+		dialog.filePicker.onSelectCloud(() => this.promptLibraryURL(dialog.filePicker));
+		dialog.open(world);
+	}
+
+	async promptLibraryURL(picker) {
+		// Ask for the web address of a library and import it, closing the picker if it arrives.
+
+		const url = await this.prompt(localized('Library URL?'), 'https://');
+		if (!url) return;
+		if (!(url.endsWith('.ubl') || url.endsWith('.ubp')) || (url.lastIndexOf('/') < 10)) {
+			this.inform(localized('Invalid URL'));
+			return;
+		}
+		if (!(await this.importLibraryFromUrl(url))) return;
+		picker.removeFromOwner();
+		await this.codeManager.saveAllChunksAfterLoad(); // a connected board takes the new chunks
+	}
+
+	async importLibraryFromUrl(fullUrl) {
+		// Fetch a library from the web and import it. Answers true if it arrived.
+
+		const failed = (msg) => {
+			this.informAndWait(localized(msg), 'Could not fetch library');
+			return false;
+		};
+		let response = null, text = null;
+		try {
+			response = await fetch(MB_Editor.codebergFileURL(fullUrl) || fullUrl);
+			if (response.ok) text = await response.text();
+		} catch (e) {
+			// A host that is down and one whose answer the browser will not let a page
+			// read (no Access-Control-Allow-Origin) both arrive here, and look the same.
+			return failed('The host may be down, or may not allow web pages to read it.');
+		}
+		if (404 === response.status) return failed('File not found in server.');
+		if (!text || !text.startsWith('module ')) {
+			return failed('That URL does not return a MicroBlocks library.');
+		}
+		return null !== (await this.importLibraryFromString(text, fullUrl));
+	}
+
+	static codebergFileURL(fullUrl) {
+		// The API address of a Codeberg file link, or null if it is not one:
+		// OWNER/REPO/{src|raw}/{branch|commit|tag}/REF/PATH becomes api/v1/repos/OWNER/REPO/raw/PATH?ref=REF
+
+		const prefix = ['https://codeberg.org/', 'http://codeberg.org/'].find((p) => fullUrl.startsWith(p));
+		if (!prefix) return null;
+		const parts = fullUrl.slice(prefix.length).split('?')[0].split('/');
+		if (parts.length < 6) return null;
+		const [owner, repo, route, refKind, ref] = parts;
+		if (!['src', 'raw'].includes(route)) return null;
+		if (!['branch', 'commit', 'tag'].includes(refKind)) return null;
+		const filePath = parts.slice(5).join('/');
+		if (!filePath) return null;
+		return `https://codeberg.org/api/v1/repos/${owner}/${repo}/raw/${filePath}?ref=${ref}`;
 	}
 
 	async openLibraryFile(filePath) {
@@ -954,21 +1174,31 @@ console.log('unknown');
 
 	async importLibraryFromString(data, filePath, asImplementation) {
 		// Add a library to the project with the libraries it depends on, and show
-		// it, replacing one of the same name. A filePath under Libraries leaves
-		// the library a path the reload verb can read it back from; a bare file
-		// name from the user's computer does not. Answers the module name, or null.
+		// it, replacing one of the same name and any implementing the same library.
+		// A filePath under Libraries leaves the library a path the reload verb can
+		// read it back from, and a web address is passed on as its source; a bare
+		// file name from the user's computer leaves neither. Answers the module
+		// name, or null.
 
-		const fileName = filePath.slice(filePath.lastIndexOf('/') + 1);
+		const isURL = /^https?:\/\//.test(filePath);
+		const namePath = isURL ? filePath.split('?')[0] : filePath;
+		const fileName = namePath.slice(namePath.lastIndexOf('/') + 1);
 		const libName = this.project.withoutExtension(fileName);
-		if (!this.definesALibrary(data)) {
-			this.inform(localized('No library found in: ') + fileName);
+		const problems = [];
+		if (!this.definesALibrary(data, problems)) {
+			const msg = (problems.length > 0) ? 'Could not read: ' : 'No library found in: ';
+			this.inform(localized(msg) + fileName);
 			return null;
 		}
-		// Before the new module goes in, while the old one's functions can still
-		// be named: a hat left behind defines a block the project has stopped having.
+		// A shown hat of a library being replaced would otherwise stay on the
+		// pane, defining a block the project no longer has.
 		const replacing = this.project.libraryNamed(libName);
-		this.hideLibraryDefinitions(libName);
-		const moduleName = this.project.addLibraryFromString(data, libName, '//' + filePath);
+		this.hideLibraryDefinitions(replacing);
+		const oldLibs = Array.from(this.project.libraries.values());
+		const moduleName = this.project.addLibraryFromString(data, libName, isURL ? filePath : '//' + filePath);
+		for (const old of oldLibs) {
+			if (!this.project.libraryNamed(old.moduleName)) this.hideLibraryDefinitions(old); // one it replaced
+		}
 		if (asImplementation && (!replacing || replacing.isImplementationLib())) {
 			this.project.libraryNamed(moduleName).beImplementation();
 		}
@@ -979,10 +1209,24 @@ console.log('unknown');
 		this.librariesChanged();
 		this.updateLibraryList();
 		this.selectLibrary(moduleName); // last, so a dependency's own select does not win
+		this.reportReplacedLibraries(this.project.libraryNamed(moduleName), oldLibs);
 		return moduleName;
 	}
 
-	definesALibrary(data) {
+	reportReplacedLibraries(lib, oldLibs) {
+		// Tell the user which of oldLibs, no longer in the project, lib replaced.
+
+		if (!lib) return;
+		const msg = [];
+		for (const old of oldLibs) {
+			if ((old.moduleName !== lib.moduleName) && !this.project.libraryNamed(old.moduleName) && lib.replaces(old)) {
+				msg.push(localized('%1 replaces %2').replace('%1', lib.moduleName).replace('%2', old.moduleName) + '.');
+			}
+		}
+		if (msg.length > 0) this.inform(msg.join('\n'));
+	}
+
+	definesALibrary(data, problems = []) {
 		// Whether a file's text would give the project a library with anything in
 		// it. A library's block specs are its 'spec' commands and its functions
 		// its 'to' commands, so one of either is the whole question. A file with
@@ -991,21 +1235,20 @@ console.log('unknown');
 
 		let cmdList = null;
 		try {
-			cmdList = MB_Parser.parse(data);
+			cmdList = MB_Parser.parse(data, '<string>', problems);
 		} catch (e) {
 			return false;
 		}
+		if (problems.length > 0) return false; // only the part before the damage would load
 		for (const cmd of cmdList || []) {
 			if (Array.isArray(cmd) && (('spec' === cmd[0]) || ('to' === cmd[0]))) return true;
 		}
 		return false;
 	}
 
-	hideLibraryDefinitions(libName) {
-		// Take the definition hats of a library the project already holds off the
-		// scripting pane. A project without that library has none to take.
+	hideLibraryDefinitions(lib) {
+		// Take the definition hats of a library's functions off the scripting pane.
 
-		const lib = this.project.libraryNamed(libName);
 		if (!lib) return;
 		for (const func of lib.functions) this.hideDefinition(func.functionName);
 	}
@@ -1048,11 +1291,11 @@ console.log('unknown');
 
 	async promptForVariable() {
 		// Ask for a name and make a global of it. An unanswered prompt gives null,
-		// which createVariable would take for a name.
+		// which createVariable would take for a name. Answers the name added.
 
 		const name = await this.prompt(localized('New variable name?'), '');
-		if (!name) return;
-		this.createVariable(name);
+		if (!name) return null;
+		return this.createVariable(name);
 	}
 
 	deleteVariable(name) {
@@ -1147,6 +1390,126 @@ console.log('unknown');
 		for (const f of this.project.allFunctions()) if (f.cmdList && uses(f.cmdList.expression())) count++;
 		for (const entry of this.project.scriptsToScan()) if (entry[2] && uses(entry[2].expression())) count++;
 		return count;
+	}
+
+	findUsers(aBlock, purpose) {
+		// Show a menu of the functions, then the scripts in the pane, that use aBlock:
+		// 'users' call it, 'accessors' read the variable it names, 'modifiers' set it.
+		const isUse = this.useTest(aBlock, purpose);
+		const functions = this.project.allFunctions().filter((f) => {
+			if ('users' === purpose) return f.allCalls().includes(aBlock.selector);
+			let found = false;
+			f.forAllBlocks((b) => { found = found || isUse(b); });
+			return found;
+		});
+		const scripts = [];
+		for (const script of this.scriptsPane().children) {
+			if (!(script instanceof BlockMorph)) continue;
+			const user = script.allChildren().find((m) => (m instanceof BlockMorph) && isUse(m));
+			if (user) scripts.push([script, user]);
+		}
+		if (functions.length + scripts.length === 0) {
+			this.inform(localized({
+				users: 'This block is not being used in this project',
+				accessors: 'This variable is not being read anywhere in this project',
+				modifiers: 'This variable is not being modified anywhere in this project',
+			}[purpose]));
+			return;
+		}
+		const items = [];
+		let id = 1;
+		for (const f of functions) {
+			items.push([String(id++), () => this.jumpToUserIn(f.functionName, isUse), null,
+				this.pictureOf(this.blockForFunction(f)), '--block']);
+		}
+		if (functions.length > 0) items.push('-');
+		for (const [script, user] of scripts) {
+			items.push([String(id++), () => this.jumpToBlock(user), null,
+				this.pictureOf(script, 600, 200), '--script']);
+		}
+		chromeMenuFor(world, items);
+	}
+
+	useTest(aBlock, purpose) {
+		// Answer a test of one block morph: does it call aBlock, read the variable
+		// aBlock names, or set or change that variable.
+		const varNameOf = (b) => ('v' === b.selector) ? b.blockSpec : b.inputs()[0].evaluate();
+		if ('users' === purpose) return (b) => b.selector === aBlock.selector;
+		const varName = varNameOf(aBlock);
+		if ('accessors' === purpose) return (b) => ('v' === b.selector) && (b.blockSpec === varName);
+		return (b) => ['=', '+='].includes(b.selector) && (varNameOf(b) === varName);
+	}
+
+	blockForFunction(func) {
+		// A block that calls func, coloured as the palette colours it.
+		const lib = [...this.project.libraries.values()].find((m) => m.functions.includes(func));
+		return MB_Specs.blockForSpec(this.paletteSpecForFunction(func), lib ? lib.moduleCategory : 'My Blocks');
+	}
+
+	pictureOf(aMorph, maxWidth = 2000, maxHeight = 4000) {
+		// A PNG data URL of aMorph and everything on it, cut off at maxWidth by maxHeight
+		// image pixels. Morphic draws at the ceiling of the device pixel ratio.
+		const ratio = Math.ceil(window.devicePixelRatio || 1);
+		const pic = newCanvas(aMorph.fullBounds().extent().min(new Point(maxWidth / ratio, maxHeight / ratio)));
+		pic.getContext('2d').drawImage(aMorph.fullImage(), 0, 0);
+		return pic.toDataURL('image/png');
+	}
+
+	jumpToUserIn(funcName, isUse) {
+		// Show the definition of funcName and point out the first block in it that isUse accepts.
+		this.showAndScrollToDefinition(funcName);
+		const hat = this.definitionHatFor(funcName);
+		const user = hat && hat.allChildren().find((m) => (m instanceof BlockMorph) && isUse(m));
+		if (user) this.jumpToBlock(user);
+	}
+
+	jumpToBlock(aBlock) {
+		// Scroll aBlock into view and flash it yellow six times so the eye finds it.
+		this.scrollScriptsToShow(aBlock.fullBounds());
+		(async () => {
+			for (let i = 0; i < 6; i++) {
+				aBlock.flash(new Color(255, 255, 0));
+				await waitMSecs(50);
+				aBlock.unflash();
+				await waitMSecs(80);
+			}
+		})();
+	}
+
+	definitionHatFor(funcName) {
+		return this.scriptsPane().children.find((m) => this.isDefinitionHatFor(m, funcName));
+	}
+
+	isDefinitionHatFor(aMorph, funcName) {
+		return aMorph instanceof BlockMorph && aMorph.selector === 'to' && aMorph.argList()[0] === funcName;
+	}
+
+	showAndScrollToDefinition(funcName) {
+		// Show the definition of funcName, adding its hat below the scripts if the
+		// pane has none, and scroll the pane to it.
+		this.showDefinition(this.project.functionNamed(funcName));
+		const hat = this.definitionHatFor(funcName);
+		if (hat) this.scrollScriptsToShow(hat.fullBounds());
+	}
+
+	scrollScriptsToShow(aRect) {
+		// Scroll the scripts pane the least distance that brings aRect into view, or
+		// its top-left part when aRect is larger than the visible pane. The vertical
+		// scroll bar's width is always kept clear.
+		const frame = this.scriptsFrame, pane = this.scriptsPane();
+		const right = frame.right() - frame.scrollBarSize;
+		const bottom = frame.bottom() - (frame.hBar.isVisible ? frame.scrollBarSize : 0);
+		const width = Math.min(aRect.width(), right - frame.left());
+		const height = Math.min(aRect.height(), bottom - frame.top());
+		let dx = 0, dy = 0;
+		if (aRect.left() + width > right) dx = right - (aRect.left() + width);
+		else if (aRect.left() < frame.left()) dx = frame.left() - aRect.left();
+		if (aRect.top() + height > bottom) dy = bottom - (aRect.top() + height);
+		else if (aRect.top() < frame.top()) dy = frame.top() - aRect.top();
+		if ((dx === 0) && (dy === 0)) return;
+		pane.moveBy(new Point(dx, dy));
+		pane.adjustBounds();
+		frame.adjustScrollBars();
 	}
 
 	async deleteFunctionWithConfirm(name) {
@@ -1384,7 +1747,7 @@ console.log('unknown');
 		// shown and the project is rebuilt from it, rather than mutated in place.
 		this.saveNeeded = false;
 		this.project = new MB_Project();
-		if (source != null) this.project.loadFromString(source, false);
+		if (source != null) this.project.loadFromString(source);
 		this.watchProjectVariables();
 		this.removeAllScripts();
 		for (const [x, y, script] of this.project.main.scripts) {
@@ -1419,14 +1782,40 @@ console.log('unknown');
 		await this.restoreUndoState(this.project.codeString());
 	}
 
-	scriptScale() { return this.blockSize / 125; }
+	readCustomTranslationFile() {
+		// Let the user choose a .po file and use it as a language named after the
+		// file. It is not saved as the locale: the server has no such file to load.
+		const inp = document.createElement('input');
+		inp.type = 'file';
+		inp.style.display = 'none';
+		inp.accept = '.po';
+		inp.addEventListener('cancel', () => inp.remove());
+		inp.addEventListener('change', async () => {
+			inp.remove();
+			const file = inp.files[0];
+			if (file) await this.installTranslation(await file.text(), file.name.replace(/\.[^.]*$/, ''));
+		});
+		document.body.appendChild(inp);
+		inp.click();
+	}
+
+	async installTranslation(text, langName) {
+		// Use the text of a .po file as the strings of the named language.
+		GetText.locales[langName] = {};
+		GetText.parseLocale(text, langName);
+		GetText.currentLocale = langName;
+		GetText.localizable.forEach((e) => e.localize());
+		await this.updateAfterLanguageChange();
+	}
+
 	blockSizePercent() { return this.blockSize; }
 
-	resizeBlock(block, fontFactor) {
+	resizeBlock(block, fontFactor, scale = SyntaxElementMorph.prototype.scale) {
 		// TextMorph includes multi-line input text, which is separate from StringMorph.
 		const parts = block.allChildren();
 		for (const part of parts) {
-			if (part instanceof SyntaxElementMorph) part.setScale(SyntaxElementMorph.prototype.scale);
+			if (part instanceof SyntaxElementMorph) part.setScale(scale);
+			if (part instanceof BlockExpanderMorph) part.setExtent(part.extent().multiplyBy(fontFactor));
 			if (part instanceof StringMorph || part instanceof TextMorph) {
 				part.setFontSize(part.fontSize * fontFactor);
 				part.fixLayout();
@@ -1479,6 +1868,12 @@ console.log('unknown');
 		} catch (e) {
 			return {};
 		}
+	}
+
+	saveToUserPreferences(key, value) {
+		const prefs = this.readUserPreferences();
+		prefs[key] = value;
+		localStorage['user-prefs'] = JSON.stringify(prefs);
 	}
 
 	// File operations
@@ -1534,6 +1929,7 @@ console.log('unknown');
 	}
 
 	clearProject() {
+		this.closeAllDialogs();
 		this.project = new MB_Project();
 		this.watchProjectVariables();
 		this.codeManager = new MB_CodeManager(this.project);
@@ -1553,6 +1949,23 @@ console.log('unknown');
 		// each of those is an edit. An empty project has nothing to lose.
 		this.unsavedEdits = false;
 		return cleared;
+	}
+
+	closeAllDialogs() {
+		// Close whatever the old project left open: everything on the world but the
+		// two panes and the divider between them, the chrome's windows (the graph among them),
+		// the graph's samples and the spinner.
+		// A block in the hand stays, since the hand is not a child of the world.
+		const keep = [this.palette, this.scriptsFrame, this.paletteResizer];
+		for (const m of world.children.slice()) {
+			if (!keep.includes(m)) m.destroy();
+		}
+		// The port also runs with no DOM, and with a partial one.
+		if ((typeof document !== 'undefined') && (typeof document.querySelectorAll === 'function')) {
+			document.querySelectorAll('win-').forEach((w) => w.remove());
+		}
+		if (this.spinnerShowing) fireIDEEvent('spinner.hide');
+		this.clearLoggedData();
 	}
 
 	updateProjectProperties() {
@@ -1598,6 +2011,10 @@ console.log('unknown');
 
 		const canvas = this.scriptsPane().scriptsPicture();
 		if (!canvas) return null; // no scripts
+		return this.canvasPNG(canvas);
+	}
+
+	canvasPNG(canvas) {
 		const url = canvas.toDataURL('image/png');
 		const base64 = url.slice(url.indexOf(',') + 1);
 		if (!base64) return null;
@@ -1617,6 +2034,93 @@ console.log('unknown');
 		if (pngBytes == null) return;
 		const withText = MB_ScriptPicture.addScriptText(pngBytes, this.allScriptsString());
 		this.saveDataAsFile(new Uint8Array(withText), 'allScripts' + Date.now() + '.png', 'image/png');
+	}
+
+	exportScriptImage(topBlock, result = null, isError = false) {
+		// Save a PNG picture of the given script at the export scale, carrying the script's text.
+		// If result is not null, include a speech bubble showing the result.
+
+		const start = Date.now();
+		const scale = this.exportedScriptScale;
+		const px = 2 * scale; // image pixels per block unit, doubled for high resolution
+		const script = this.scaledScriptCopy(topBlock, px);
+		const fb = script.fullBounds();
+		let scriptW = fb.width();
+		let scriptH = fb.height();
+		if (this.isReporterScript(topBlock)) {
+			scriptH += 2 * px; // padding to align reporter and command block bottoms in the Wiki
+		}
+
+		let bubble = null, bubbleW = 0, bubbleH = 0, bubbleInsetX = 0, bubbleInsetY = 0;
+		if (result != null) {
+			bubble = new SpeechBubbleMorph(this.exportBubbleText(String(result), px),
+				isError ? new Color(255, 190, 190) : null, 6 * px, px);
+			bubbleW = bubble.fullBounds().width();
+			bubbleH = bubble.fullBounds().height();
+			bubbleInsetX = 5 * scale;
+			bubbleInsetY = 5 * scale;
+			if (topBlock instanceof HatBlockMorph) bubbleInsetY = (script.height() / 2) + (3 * scale);
+		}
+
+		// add an extra pixel all around to allow for anti-aliasing
+		scriptW += 2;
+		scriptH += 2;
+
+		let pic = newCanvas(new Point(scriptW + bubbleW - bubbleInsetX, scriptH + bubbleH - bubbleInsetY), true);
+		const ctx = pic.getContext('2d');
+		ctx.drawImage(script.fullImage(), 1, (bubbleH - bubbleInsetY) + 1);
+		if (bubble) {
+			const adjustment = Math.round(6 * scale); // the bubble's bounds are slightly too large
+			const x = (script.width() - bubbleInsetX) + adjustment;
+			ctx.drawImage(bubble.fullImage(), x, -adjustment);
+			if (topBlock instanceof HatBlockMorph) pic = cropTransparent(pic); // remove extra space
+		}
+
+		const pngBytes = this.canvasPNG(pic);
+		if (pngBytes == null) return;
+		const withText = MB_ScriptPicture.addScriptText(pngBytes, this.scriptStringFor(topBlock));
+		if ((Date.now() - start) > 4500) {
+			// after ~4.5 seconds the browser wants a click before it will save a file
+			this.inform(localized('PNG preparation complete.'));
+		}
+		this.saveDataAsFile(new Uint8Array(withText), 'scriptImage' + Math.round(performance.now()) + '.png', 'image/png');
+	}
+
+	scaledScriptCopy(topBlock, px) {
+		// A copy of the script laid out at px pixels per block unit, so it draws sharp at that size.
+		const copy = topBlock.fullCopy();
+		this.resizeBlock(copy, px, px);
+		return copy;
+	}
+
+	isReporterScript(topBlock) {
+		// A definition counts as the block it defines.
+		if (!topBlock.isFunctionDefinition()) return topBlock instanceof ReporterBlockMorph;
+		const spec = this.project.blockSpecs.get(topBlock.definedFunctionName());
+		return (spec != null) && ('r' === spec.blockType);
+	}
+
+	exportBubbleText(aString, px) {
+		// The text of a result bubble in a script picture, wrapped at 200 image pixels.
+		const text = new TextMorph(aString, 18 * px, 'sans-serif', false, false, 'center', null, 'Arial');
+		if (text.width() <= 200) return text;
+		return new TextMorph(aString, 18 * px, 'sans-serif', false, false, 'center', 200, 'Arial');
+	}
+
+	exportScriptImageWithResult(aBlock) {
+		// Run the script and save its picture when the result arrives (see exportResultImage).
+
+		const topBlock = aBlock.topBlock();
+		if (topBlock.isFunctionDefinition()) return;
+		this.blockForResultImage = topBlock;
+		if (!this.codeManager.isRunning(topBlock)) this.codeManager.evalOnBoard(topBlock);
+	}
+
+	exportResultImage(aBlock, value, isError) {
+		if ((aBlock == null) || (aBlock !== this.blockForResultImage)) return;
+		this.blockForResultImage = null;
+		// show the result bubble briefly before saving
+		setTimeout(() => this.exportScriptImage(aBlock, value, isError), 500);
 	}
 
 	browserReadBytes(handler) {
@@ -1647,15 +2151,19 @@ console.log('unknown');
 		// Put a file the user chooses onto the board. The chooser takes any file,
 		// not just a project.
 
-		await this.browserReadBytes(async (fileName, bytes) => {
-			fireIDEEvent('spinner.show', { title: localized('Writing file to board...'),
-				subtitle: fileName, note: null, percent: 0 });
-			try {
-				await MB_connection.writeFileToBoard(fileName, bytes);
-			} finally {
-				fireIDEEvent('spinner.hide');
-			}
-		});
+		await this.browserReadBytes((fileName, bytes) => this.writeFileToBoard(fileName, bytes));
+	}
+
+	async writeFileToBoard(fileName, bytes) {
+		// Another transfer is running, and its spinner is the one showing.
+		if (MB_connection.busy()) return false;
+		fireIDEEvent('spinner.show', { title: localized('Writing file to board...'),
+			subtitle: fileName, note: null, percent: 0 });
+		try {
+			return await MB_connection.writeFileToBoard(fileName, bytes);
+		} finally {
+			fireIDEEvent('spinner.hide');
+		}
 	}
 
 	async downloadFileFromBoard() {
@@ -1685,6 +2193,18 @@ console.log('unknown');
 		this.saveDataAsFile(bytes, fileName);
 	}
 
+	async snapshotCode() {
+		// Ask the board to save its code in a file, named by the user.
+		const title = (this.projectName || '').replace(/\.[^.]*$/, '');
+		MB_connection.snapshotCode(await this.prompt(localized('Code file name?'), title));
+	}
+
+	openVMFolder() {
+		// The server's folder of VM builds, the pilot one when the IDE is a pilot.
+		const pilot = ['run-pilot', ':8000'].some((s) => location.href.includes(s));
+		window.open('https://microblocks.fun/downloads/' + (pilot ? 'pilot' : 'latest') + '/vm/', '_blank');
+	}
+
 	async toggleBLE() {
 		// Not a toggle, despite the endpoint's name: it asks and sends the answer
 		// either way, so declining sends 0.
@@ -1707,14 +2227,25 @@ console.log('unknown');
 	}
 
 	async openProjectFromString(contents, name, clearFirst = true) {
+		if (!MB_Project.isProjectText(contents)) {
+			// Opening it would replace the project, and the board's code, with
+			// whatever part of it could be read.
+			alert(localized('Could not read: ') + name);
+			return;
+		}
 		if (!(await MB_editor.canReplaceCurrentProject())) return;
+		// Asked before anything is cleared, so the open project and the board stay as
+		// they are until every question is answered.
+		const libraryUpdates = await new MB_Project().checkForNewerLibraryVersions(contents);
 		// clearFirst decides whether the empty project becomes an undo state before
 		// the new one loads, because clearProject stores one. Clearing therefore
 		// adds a step for undo to stop at. A dropped file passes false and skips it.
 		const cleared = clearFirst ? MB_editor.clearProject() : null;
+		// Without clearProject the old scripts stay on screen, and the next save keeps them.
+		if (!clearFirst) MB_editor.removeAllScripts();
 		MB_editor.saveNeeded = false; // don't save scripts while project is loading, as GP does
 		MB_editor.project.onVariableChange = null;
-		MB_editor.project.loadFromString(contents);
+		MB_editor.project.loadFromString(contents, libraryUpdates);
 		MB_editor.watchProjectVariables();
 		MB_editor.project.main.scripts.forEach( (entry) => {
 			let x = entry[0], y = entry[1], script = entry[2];
@@ -1787,7 +2318,7 @@ console.log('unknown');
 
 	browserReadFile(ext) {
 		// Let the user choose a file with the browser's file chooser, limited to
-		// the extension if one is given. The file goes to processDroppedFile.
+		// the extension if one is given. The file is read as a dropped one is.
 
 		const inp = document.createElement('input');
 		inp.type = 'file';
@@ -1797,15 +2328,16 @@ console.log('unknown');
 		inp.addEventListener('change', async () => {
 			inp.remove();
 			const file = inp.files[0];
-			if (file) await this.processDroppedFile(file.name, await file.text());
+			if (file) await this.openDroppedFile(file);
 		});
 		document.body.appendChild(inp);
 		inp.click();
 	}
 
 	async processDroppedFile(fileName, data) {
-		// Act on a file by its extension: a project, a library or a picture.
-		// data is the file's text, except for a picture, which arrives as bytes.
+		// Act on a file by its extension: a project, a library, graph data or a
+		// picture. Any other file is written to the board, unless it is one the IDE
+		// should open. data is the file's text for the first three, and its bytes otherwise.
 
 		const name = fileName.toLowerCase();
 		if (name.endsWith('.ubp') || name.endsWith('.ubp.txt')) await this.openProjectFromString(data, fileName, false);
@@ -1814,7 +2346,39 @@ console.log('unknown');
 				await this.codeManager.saveAllChunksAfterLoad();
 			}
 		}
+		else if (name.endsWith('.csv')) this.importLoggedData(data);
 		else if (MB_Editor.isScriptPicture(name)) await this.importFromPNG(data);
+		else if (name.endsWith('.po')) await this.installTranslation(data, MB_Editor.droppedTranslationName(fileName));
+		else if (!MB_Editor.isUnsupportedIDEFile(name)) await this.writeFileToBoard(fileName, data);
+	}
+
+	importLoggedData(text) {
+		// Replace the graph's data with the file's: one sample a line, its values
+		// separated by a comma and a space.
+		const lines = text.replaceAll(',', '').split(/\r\n|\r|\n/);
+		if (lines[lines.length - 1] === '') lines.pop(); // the final newline
+		this.clearLoggedData();
+		for (const line of lines) this.addLoggedData(line);
+	}
+
+	static droppedTranslationName(fileName) {
+		// A dropped .po replaces the current language's strings. English is what
+		// every other language falls back to, so it keeps its own and the file
+		// becomes a language named after it.
+		const current = GetText.currentLocale;
+		return (!current || current === 'en') ? fileName.replace(/\.[^.]*$/, '') : current;
+	}
+
+	static isTextFile(fileName) {
+		// A project, a library, graph data or a translation. Every other file is read as bytes.
+		const name = fileName.toLowerCase();
+		return ['.ubp', '.ubp.txt', '.ubl', '.csv', '.po'].some((ext) => name.endsWith(ext));
+	}
+
+	static isUnsupportedIDEFile(fileName) {
+		// Firmware: the IDE's to install, not the board's, though it does not
+		// install it yet.
+		return fileName.toLowerCase().endsWith('.bin');
 	}
 
 	static isScriptPicture(fileName) {
@@ -1823,10 +2387,22 @@ console.log('unknown');
 		return fileName.toLowerCase().endsWith('.png');
 	}
 
+	async openDroppedFiles(files) {
+		// One at a time, in order: a project load and a board write must not overlap,
+		// and the board takes one file transfer at a time.
+		for (const file of files) {
+			try {
+				await this.openDroppedFile(file);
+			} catch (e) {
+				console.error(e);
+			}
+		}
+	}
+
 	async openDroppedFile(file) {
-		// Read one file the user dropped on the window and act on it.
-		const data = MB_Editor.isScriptPicture(file.name)
-			? new Uint8Array(await file.arrayBuffer()) : await file.text();
+		// Read one file the user dropped or chose and act on it.
+		const data = MB_Editor.isTextFile(file.name)
+			? await file.text() : new Uint8Array(await file.arrayBuffer());
 		await this.processDroppedFile(file.name, data);
 	}
 
@@ -1910,7 +2486,14 @@ console.log('unknown');
 			fireIDEEvent('spinner.hide');
 		}
 		if (project == null) return;
-		this.project = project;
+		// Loaded the way a file is: a block takes its label from the editor's project,
+		// so the blocks are built once this project is the editor's.
+		this.project = new MB_Project();
+		this.project.loadFromString(project.codeString());
+		// The text does not record which libraries were loaded as implementations.
+		for (const lib of project.libraries.values()) {
+			if (lib.isImplementationLib()) this.project.libraryNamed(lib.moduleName).beImplementation();
+		}
 		this.watchProjectVariables();
 		this.removeAllScripts();
 		this.project.main.scripts.forEach(
@@ -1947,6 +2530,7 @@ console.log('unknown');
 			return;
 		}
 		this.showResultOn(block, value, isError);
+		this.exportResultImage(block, value, isError);
 	}
 
 	showResultOn(block, value, isError) {
@@ -1959,10 +2543,32 @@ console.log('unknown');
 			String(value),
 			isError ? new Color(255, 190, 190) : null);
 		world.add(bubble);
+		bubble.step = () => this.followBlock(bubble, block);
+		this.placeResultBubble(bubble, block);
+		this.resultBubbles.set(block, bubble);
+	}
+
+	followBlock(bubble, block) {
+		// Each frame: go when the block is deleted, move when it moves or scrolls.
+		// A removed morph keeps its parent, so the block is gone when any link lets go.
+		let m = block;
+		while (m.parent && m.parent.children.includes(m)) m = m.parent;
+		if (!(m instanceof WorldMorph) && !(m instanceof HandMorph)) {
+			this.removeResultBubble(block);
+			return;
+		}
+		if (!block.bounds.eq(bubble.blockBounds)) this.placeResultBubble(bubble, block);
+	}
+
+	placeResultBubble(bubble, block) {
 		// Bottom left of the bubble at the block's right edge, where GP puts it.
 		bubble.setPosition(block.rightCenter().add(new Point(2, -bubble.height())));
-		bubble.keepWithin(world);
-		this.resultBubbles.set(block, bubble);
+		bubble.keepWithin(block.world());
+		bubble.blockBounds = block.bounds;
+	}
+
+	removeResultBubbles() {
+		for (const block of [...this.resultBubbles.keys()]) this.removeResultBubble(block);
 	}
 
 	removeResultBubble(aBlock) {
@@ -1997,6 +2603,7 @@ console.log('unknown');
 			location: raw, decoded: site });
 		if ((block instanceof BlockMorph) && block.world()) {
 			this.showResultOn(block, errorString, true);
+			if (this.codeManager) this.exportResultImage(this.codeManager.blockForChunkID(chunkID), errorString, true);
 			return;
 		}
 		this.showResult(chunkID, errorString, true);
@@ -2045,7 +2652,12 @@ console.log('unknown');
 	clearRunningHighlights() {
 		// Called on disconnect. Everything the board put on the screen goes with
 		// it, bubbles included -- GP clears them together too (:2717).
-		for (const block of [...this.resultBubbles.keys()]) this.removeResultBubble(block);
+		this.removeResultBubbles();
+		for (const [block, timer] of this.stoppingHighlights) {
+			clearTimeout(timer);
+			block.removeHighlight();
+		}
+		this.stoppingHighlights = new Map();
 		for (const block of this.runningChunks.keys()) block.removeHighlight();
 		this.runningChunks = new Map();
 	}
@@ -2066,14 +2678,15 @@ function fireIDEEvent(name, value) {
 }
 
 // The hand's position as the chrome expects GP's: menus.js adds the offset of
-// #canvas.emscripten, while the hand is relative to the world's own canvas.
+// #canvas.emscripten, while the hand is in world units on the world's own canvas,
+// which morphic draws ZOOM times larger.
 function chromePoint(aWorld) {
 	const page = aWorld.worldCanvas.getBoundingClientRect();
 	const canvas = document.querySelector('#canvas.emscripten');
 	const hand = aWorld.hand.position();
 	return {
-		x: (hand.x * MB_editor.blockSize / 100) + page.left - canvas.offsetLeft,
-		y: (hand.y * MB_editor.blockSize / 100) + page.top - canvas.offsetTop
+		x: (hand.x * ZOOM) + page.left - canvas.offsetLeft,
+		y: (hand.y * ZOOM) + page.top - canvas.offsetTop
 	};
 }
 
@@ -2117,9 +2730,15 @@ function checkChromeAnswers() {
 }
 
 function chromeMenuFor(aWorld, items) {
-	// Show items, each '-' or [label, action, tip], as GP's menuFor does.
+	// Show items, each '-' or [label, action, tip, image, class], in the chrome's menu.
+	// An item with an image, a PNG data URL, shows the picture in place of its label.
 	const p = chromePoint(aWorld);
-	const descriptors = items.map((item) => ('-' === item) ? { label: '-' } : { label: item[0], tip: item[2] });
+	const descriptors = items.map((item) => {
+		if ('-' === item) return { label: '-' };
+		const d = { label: item[0], tip: item[2] };
+		if (item[3]) Object.assign(d, { image: item[3], class: item[4] });
+		return d;
+	});
 	askChrome('menu', { x: p.x, y: p.y, class: null, items: descriptors }, (label) => {
 		const chosen = items.find((item) => item[0] === label);
 		if (chosen) chosen[1]();
@@ -2184,6 +2803,24 @@ function isMobile() {
 	return false;
 }
 
+function cropTransparent(canvas) {
+	// The smallest part of a non-retina canvas that holds all of its non-transparent pixels.
+	const w = canvas.width, h = canvas.height;
+	const data = canvas.getContext('2d').getImageData(0, 0, w, h).data;
+	let left = w, top = h, right = -1, bottom = -1;
+	for (let y = 0; y < h; y++) {
+		for (let x = 0; x < w; x++) {
+			if (data[(((y * w) + x) * 4) + 3] === 0) continue;
+			left = Math.min(left, x); right = Math.max(right, x);
+			top = Math.min(top, y); bottom = Math.max(bottom, y);
+		}
+	}
+	if (right < 0) return canvas; // nothing drawn
+	const result = newCanvas(new Point((right - left) + 1, (bottom - top) + 1), true);
+	result.getContext('2d').drawImage(canvas, -left, -top);
+	return result;
+}
+
 function blockScale() {
 	// The pixels-per-unit that block morphs lay themselves out with. GP's
 	// blockScale is (global 'blockScale') * (global 'scale') and serves the
@@ -2242,7 +2879,7 @@ function varMustBeQuoted(varName) {
 	return /\d/.test(ch) || ch === '-';
 }
 
-// Clipboard support (TODO move to own file?)
+// Clipboard support (XXX TODO maybe move to own file?)
 
 var MB = {};
 MB.clipboard = document.createElement('textarea');

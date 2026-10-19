@@ -35,10 +35,14 @@ Menus.language.init = function () {
 					window.open('https://wiki.microblocks.fun/en/translating', '_blank');
 				}
 			});
-			this.items.push({ label: '-' });
+			this.items.push({
+				label: '-',
+				hidden: () => { return !IDE.userPreference('devMode'); }
+			});
 			this.items.push({
 				label: 'Custom...',
-				action: () => { GP.apiCall('locale.loadCustomFile'); }
+				action: () => { GP.apiCall('locale.loadCustomFile'); },
+				hidden: () => { return !IDE.userPreference('devMode'); }
 			});
 		});
 };
@@ -89,6 +93,12 @@ Menus.settings = {
 			label: 'autoload board libraries',
 			checked: () => { return !IDE.userPreference('boardLibAutoLoadDisabled'); },
 			action: () => { IDE.toggleUserPreference('boardLibAutoLoadDisabled'); },
+			hidden: () => { return !IDE.userPreference('devMode'); }
+		},
+		{ label: '-', hidden: () => { return !IDE.userPreference('devMode'); } },
+		{
+			label: 'open vm folder on microblocks.fun',
+			action: () => { GP.apiCall('ide.openVMFolder'); },
 			hidden: () => { return !IDE.userPreference('devMode'); }
 		},
 		{ label: '-', hidden: () => { return !IDE.userPreference('devMode'); } },
@@ -174,6 +184,13 @@ Menus.project = {
 		{
 			label: 'get file from board',
 			action: () => { GP.apiCall('board.downloadFile'); },
+			hidden: () => { return !IDE.userPreference('devMode'); },
+			disabled: () => { return !IDE.board.hasFS }
+		},
+		{ label: '-', hidden: () => { return !IDE.userPreference('devMode'); } },
+		{
+			label: 'snapshot code on board',
+			action: () => { GP.apiCall('board.snapshotCode'); },
 			hidden: () => { return !IDE.userPreference('devMode'); },
 			disabled: () => { return !IDE.board.hasFS }
 		}
@@ -331,7 +348,7 @@ Menus.blockZoomLevels = {
 		return {
 			label: level + '%',
 			action: (target) => { GP.apiCall('scripts.setZoom', [level]); },
-			checked: () => { return IDE.userPreference('blockSizePercent') == level }
+			checked: () => { return IDE.blockSizePercent() == level }
 		}
 	})
 };

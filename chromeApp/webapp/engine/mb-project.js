@@ -13,8 +13,8 @@
 	the libraries it uses.
 */
 
-/* global MB_editor, MB_Function, MB_Parser, MB_Specs, BlockMorph, HatBlockMorph,
-	ReporterBlockMorph */
+/* global MB_editor, MB_Files, MB_Function, MB_Parser, MB_Specs, BlockMorph, HatBlockMorph,
+	ReporterBlockMorph, localized */
 
 // --- Module-level helpers ---
 
@@ -207,6 +207,10 @@ class MB_Project {
 		let oldLib = this.libraries.get(libName);
 		if (oldLib) oldLib.updatingLibrary(module, this);
 		this.libraries.delete(libName);
+		// only one library that implements a given library can be in the project
+		for (const lib of Array.from(this.libraries.values())) {
+			if (module.replaces(lib)) this.removeLibraryNamed(lib.moduleName);
+		}
 		this.libraries.set(libName, module);
 
 		// new library functions supersede earlier versions
@@ -232,6 +236,15 @@ class MB_Project {
 		}
 	}
 
+	replacementFor(libName) {
+		// Return a library other than libName that implements libName, or null if there is none.
+		if (libName.startsWith('_')) libName = libName.slice(1);
+		for (const lib of this.libraries.values()) {
+			if ((libName !== lib.moduleName) && lib.implementsLib(libName)) return lib;
+		}
+		return null;
+	}
+
 	categoryForOp(op) {
 		if (op === '-') return null; // ignore dash used as a spacer in library block lists
 		for (const lib of this.libraries.values()) {
@@ -240,12 +253,56 @@ class MB_Project {
 		return null;
 	}
 
-	checkForNewerLibraryVersions(autoConfirm = false) {
-		// Check for newer versions of libraries used in this project.
-		// If true is passed to the optional autoConfirm parameter, update old
-		// libraries without asking. Otherwise ask the user for confirmation.
+	async checkForNewerLibraryVersions(s, autoConfirm = false) {
+		// Check for newer versions of libraries used in the project text s, and answer
+		// the ones to load in their place, as loadFromString takes them. This project
+		// is not changed. If true is passed to the optional autoConfirm parameter,
+		// update old libraries without asking. Otherwise ask the user for confirmation.
 
-		// XXX TODO This requires UI interaction so skip for now.
+		let updates = new Map();
+		for (const modCmds of this.librariesIn(this.splitCmdListIntoModules(this.parseProject(s))).values()) {
+			let lib = new MB_Module();
+			lib.loadModuleNameAndCategory(modCmds);
+			lib.loadVersion(modCmds);
+			let newCmds = await lib.getNewerVersion();
+			if (!newCmds) continue;
+			// localized() has no parameter substitution, so the name is filled in here.
+			let question = localized('Found a newer version of %1.').replace('%1', lib.moduleName) + '\n' +
+				localized('Do you want me to update the one in the project?');
+			if (autoConfirm || await MB_editor.confirm(question)) updates.set(lib.moduleName, newCmds);
+		}
+		return updates;
+	}
+
+	librariesIn(cmdsByModule) {
+		// The commands of each library in a project's modules, by name. Of a library
+		// given twice, the last copy, the one loadFromString keeps.
+		let libs = new Map();
+		for (const modCmds of cmdsByModule.slice(1)) {
+			let lib = new MB_Module();
+			lib.loadModuleNameAndCategory(modCmds);
+			libs.set(lib.moduleName, modCmds);
+		}
+		return libs;
+	}
+
+	updateLibrarySpecs(libCmdLists, libraryUpdates) {
+		// Give the project the specs of each library being updated before any block is
+		// built, so scripts show the new labels and a dropped block shows as obsolete.
+		// Answer the ops each new version keeps only as obsolete, by library name.
+		let obsoleteOps = new Map();
+		for (const modCmds of libCmdLists) {
+			let oldLib = new MB_Module();
+			oldLib.loadModuleNameAndCategory(modCmds);
+			let newCmds = libraryUpdates.get(oldLib.moduleName);
+			if (!newCmds) continue;
+			let newLib = new MB_Module();
+			oldLib.loadSpecs(modCmds);
+			newLib.loadSpecs(newCmds);
+			oldLib.updatingLibrary(newLib, this); // newLib.blockList collects the obsolete ops
+			obsoleteOps.set(oldLib.moduleName, newLib.blockList);
+		}
+		return obsoleteOps;
 	}
 
 	// Scripts
@@ -452,6 +509,9 @@ class MB_Project {
 	unusedGlobals() {
 		// Return global vars that are not referenced in any script or function.
 
+		// a variable reporter holds its name as its label, not in an input
+		const varNameOf = (b) => ('v' === b.selector) ? b.blockSpec : b.inputs()[0].evaluate();
+
 		// make a list of global variables not owned by any library
 		let unusedGlobals = new Set(this.main.variableNames);
 		for (const lib of this.libraries.values()) {
@@ -463,10 +523,7 @@ class MB_Project {
 			// an entry is a three-element list: [x, y, script]
 			if (!entry[2]) continue; // a script entry is [x, y, BlockMorph|null]
 			entry[2].forAllBlocks( b => {
-				if (['v', '=', '+='].includes(b.selector)) {
-					let inputs = b.inputs();
-					if (inputs.length > 0) unusedGlobals.delete(inputs[0].evaluate());
-				}
+				if (['v', '=', '+='].includes(b.selector)) unusedGlobals.delete(varNameOf(b));
 			});
 		}
 
@@ -476,11 +533,8 @@ class MB_Project {
 			if (!f.cmdList) continue;
 			f.cmdList.forAllBlocks( b => {
 				if (['v', '=', '+='].includes(b.selector)) {
-					let inputs = b.inputs();
-					if (inputs.length > 0) {
-						let varName = inputs[0].evaluate();
-						if (!localAndArgs.has(varName)) unusedGlobals.delete(varName);
-					}
+					let varName = varNameOf(b);
+					if (!localAndArgs.has(varName)) unusedGlobals.delete(varName);
 				}
 			});
 		}
@@ -490,37 +544,64 @@ class MB_Project {
 
 	// Loading
 
-	loadFromString(s, updateLibraries = true) {
+	loadFromString(s, libraryUpdates = null) {
+		// libraryUpdates, if given, maps a library's name to the commands of a newer
+		// version to load in its place, as checkForNewerLibraryVersions answers them.
 		this.main = new MB_Module('main');
 		this.libraries = new Map();
 		this.blockSpecs = new Map();
 		this.varIndices = new Map();
 		this.nextVarIndex = 0;
 
-		let cmdList = MB_Parser.parse(s);
-		if (cmdList.length > 0 && Array.isArray(cmdList[0]) && cmdList[0][0] === 'projectName') {
-			cmdList = cmdList.slice(1);
-		}
+		let cmdList = this.parseProject(s);
 		this.loadSpecs(cmdList);
 
 		let cmdsByModule = this.splitCmdListIntoModules(cmdList);
+		let obsoleteOps = libraryUpdates ? this.updateLibrarySpecs(this.librariesIn(cmdsByModule).values(), libraryUpdates) : new Map();
 		let isFirst = true;
-		for (const modCmds of cmdsByModule) {
-			if (isFirst) {
-				this.main.loadFromCmds(modCmds, this);
-				isFirst = false;
-			} else {
-				let lib = new MB_Module();
-				lib.loadFromCmds(modCmds, this);
-				this.libraries.set(lib.moduleName, lib);
-			}
+		// Add libraries first so we can set block category andcolors for main module scripts
+		for (const modCmds of cmdsByModule.slice(1)) {
+			let lib = new MB_Module();
+			lib.loadModuleNameAndCategory(modCmds);
+			if (obsoleteOps.has(lib.moduleName)) continue; // its newer version is added below
+			lib.loadFromCmds(modCmds, this);
+			this.libraries.set(lib.moduleName, lib);
+		}
+		if (cmdsByModule.length > 0) {
+			// Load the main program, if any
+			this.main.loadFromCmds(cmdsByModule[0], this);
 		}
 
-		if (updateLibraries) this.checkForNewerLibraryVersions();
+		for (const [libName, ops] of obsoleteOps) {
+			let lib = new MB_Module(libName).loadFromCmds(libraryUpdates.get(libName), this);
+			lib.blockList.push(...ops);
+			this.addLibrary(lib);
+		}
+
 		this.updatePrimitives();
 		this.fixFunctionLocals();
 		this.buildDefinitionHats(); // last: the passes above read plain script entries
 		return this;
+	}
+
+	static isProjectText(s) {
+		// The parser read the whole text and found at least one of the commands a
+		// project file is made of. Anything else would load as an empty project,
+		// or as the part before the damage.
+		const problems = [];
+		const cmdList = MB_Parser.parse(s, '<string>', problems);
+		const projectCmds = ['module', 'script', 'to', 'spec', 'variables'];
+		return (problems.length === 0)
+			&& cmdList.some((cmd) => Array.isArray(cmd) && projectCmds.includes(cmd[0]));
+	}
+
+	parseProject(s) {
+		// The commands of a project file, without its projectName line.
+		let cmdList = MB_Parser.parse(s);
+		if (cmdList.length > 0 && Array.isArray(cmdList[0]) && cmdList[0][0] === 'projectName') {
+			cmdList = cmdList.slice(1);
+		}
+		return cmdList;
 	}
 
 	addLibraryFromString(s, libName, fileName) {
@@ -532,13 +613,14 @@ class MB_Project {
 		for (const modCmds of cmdsByModule) {
 			let lib = new MB_Module();
 			lib.loadFromCmds(modCmds, this);
+			if ('main' === lib.moduleName) continue; // a project file's own scripts are not a library
 			if (!lib.moduleName) lib.moduleName = libName;
 
 			// set path based on fileName
 			if (fileName) {
 				if (fileName.startsWith('//Libraries/')) {
 					lib.path = this.withoutExtension(fileName.slice('//Libraries/'.length));
-				} else if (fileName.startsWith('http://')) {
+				} else if (fileName.startsWith('http://') || fileName.startsWith('https://')) {
 					lib.path = fileName;
 				} else {
 					lib.path = null;
@@ -605,8 +687,11 @@ class MB_Project {
 	// Post-load processing
 
 	fixFunctionLocals() {
-		// XXX TODO: would remove project variables that appear as function locals in GP.
-		// In the JS port, MB_Function.collectLocalVars() handles this separately.
+		// Remove project variables from the functions' local variables.
+		const projectVars = new Set(this.allVariableNames());
+		for (const f of this.allFunctions()) {
+			f.localVars = f.localVars.filter((name) => !projectVars.has(name));
+		}
 	}
 
 	buildDefinitionHats() {
@@ -642,7 +727,7 @@ class MB_Project {
 
 	saveLoadTest(fileName) {
 		let s1 = this.codeString();
-		let p2 = new MB_Project().loadFromString(s1, false);
+		let p2 = new MB_Project().loadFromString(s1);
 		let s2 = p2.codeString();
 		if (s1 != s2) {
 			console.log('saveLoadTest failed:', fileName, s1.length, s2.length);
@@ -661,6 +746,7 @@ class MB_Project {
 
 	equal(proj) {
 		// XXX Is this used?
+		// Could be useful for testing: e.g. comparing a save/read round trip
 
 		if (!this.main.equal(proj.main)) return false;
 		for (const lib of this.libraries.values()) {
@@ -695,6 +781,7 @@ class MB_Module {
 		this.moduleName = name || null;
 		this.moduleCategory = 'Library';
 		this.dependencies = [];
+		this.implementedLibs = []; // libraries this one can stand in for
 		this.version = [1, 0];
 		this.author = 'unknown';
 		this.description = '';
@@ -724,6 +811,17 @@ class MB_Module {
 	setDependencies(deps) { this.dependencies = Array.from(deps); }
 	setScripts(newScripts) { this.scripts = Array.from(newScripts); }
 	hasSpecFor(selector) { return this.blockSpecs.has(selector); }
+
+	implementsLib(libName) {
+		// Return true if this library can stand in for the library with the given name.
+		return (libName === this.moduleName) || this.implementedLibs.includes(libName);
+	}
+
+	replaces(otherLib) {
+		// Return true if this library and otherLib implement the same library.
+		if (otherLib.implementsLib(this.moduleName)) return true;
+		return this.implementedLibs.some((libName) => otherLib.implementsLib(libName));
+	}
 
 	mintScriptId(x, y, bodyText, taken) {
 		// A name for one top-level script, from its rounded position and body text
@@ -892,6 +990,10 @@ class MB_Module {
 			result.push(this.arrayToDeclaration(this.dependencies, 'depends'));
 		}
 
+		if (this.implementedLibs.length > 0) {
+			result.push(this.arrayToDeclaration(this.implementedLibs, 'implements'));
+		}
+
 		if (this.tags.length > 0) {
 			result.push(this.arrayToDeclaration(this.tags, 'tags'));
 		}
@@ -992,6 +1094,7 @@ class MB_Module {
 		this.loadVersion(cmdList);
 		this.loadAuthor(cmdList);
 		this.loadDependencies(cmdList);
+		this.loadImplements(cmdList);
 		this.loadTags(cmdList);
 		this.loadDescription(cmdList);
 		this.loadChoices(cmdList);
@@ -1042,6 +1145,17 @@ class MB_Module {
 			}
 		}
 		this.dependencies = deps;
+	}
+
+	loadImplements(cmdList) {
+		let libNames = [];
+		for (const cmd of cmdList) {
+			if (!Array.isArray(cmd) || cmd[0] !== 'implements') continue;
+			for (let i = 1; i < cmd.length; i++) {
+				libNames.push(String(stringArg(cmd[i])));
+			}
+		}
+		this.implementedLibs = libNames;
 	}
 
 	loadTags(cmdList) {
@@ -1191,6 +1305,30 @@ class MB_Module {
 			'printIt': 'graphIt',
 		};
 		return primMap[oldPrim] || null;
+	}
+
+	async getNewerVersion() {
+		// Return the commands of the shipped library with this module's name if its
+		// version is newer, or null.
+		if (this.moduleName === 'main') return null;
+		let cmds = await this.embeddedLibraryCmds(this.moduleName);
+		if (!cmds) return null;
+		let candidate = new MB_Module();
+		candidate.loadVersion(cmds);
+		let v1 = this.version, v2 = candidate.version;
+		if ((v2[0] > v1[0]) || ((v1[0] === v2[0]) && (v2[1] > v1[1]))) return cmds;
+		return null;
+	}
+
+	async embeddedLibraryCmds(libName) {
+		// Return the commands of the shipped library in a file named libName.ubl, in any folder, or null.
+		let libFileName = libName + '.ubl';
+		for (const filePath of MB_Files.allFilesIn('Libraries')) {
+			if (filePath.slice(filePath.lastIndexOf('/') + 1) !== libFileName) continue;
+			let data = await MB_Files.readFile(filePath);
+			return (data === undefined) ? null : MB_Parser.parse(data);
+		}
+		return null;
 	}
 
 	updatingLibrary(newerModule, owningProject) {
@@ -1543,7 +1681,7 @@ class MB_ScriptExchange {
 		// something: a script, a function, a block or a variable.
 		if (!text.endsWith('\n')) return false;
 		try {
-			const project = new MB_Project().loadFromString(text, false);
+			const project = new MB_Project().loadFromString(text);
 			return (project.main.scripts.length > 0) || (project.main.functions.length > 0)
 				|| (project.blockSpecs.size > 0) || (project.main.variableNames.length > 0);
 		} catch (error) {
@@ -1663,79 +1801,5 @@ class MB_ScriptPicture {
 		let crc = 0xFFFFFFFF;
 		for (const b of bytes) crc = MB_ScriptPicture.crcTable[(crc ^ b) & 0xFF] ^ (crc >>> 8);
 		return (crc ^ 0xFFFFFFFF) >>> 0;
-	}
-}
-
-// Testing...
-
-function testLoad() {
-	function loadFile(fileName, contents) {
-		let project = new MB_Project();
-		let startT = Date.now();
-		project.loadFromString(contents);
-		let msecs = Date.now() - startT;
-		console.log(fileName, project.stats(), msecs, 'msecs');
-		MB_editor.removeAllScripts();
-		project.main.scripts.forEach( (entry) => {
-			let x = entry[0], y = entry[1], script = entry[2];
-			MB_editor.addBlockToScriptsAt(script, x, y);
-		});
-	}
-	MB_editor.importLocalFile(loadFile);
-}
-
-function testShow() {
-	let codeString =
-		"whenButtonPressed 'A'\n" +
-		"[display:mbDisplay] 15237450\n" +
-		"waitMillis 1000\n" +
-		"[display:mbDisplayOff]\n";
-	let parseTree = MB_Parser.parse(codeString);
-	let b = MB_Parser.blockFor(parseTree);
-	MB_editor.addBlockToScripts(b);
-}
-
-function testLoad2() {
-	function loadFile(fileName, contents) {
-		let project = new MB_Project();
-		project.loadFromString(contents);
-		let s1 = project.codeString();
-		let p2 = new MB_Project().loadFromString(s1, false);
-		let s2 = p2.codeString();
-		console.log(s1);
-		console.log(s2);
-console.log("Lengths:", s1.length, s2.length, s1 == s2);
-	}
-	MB_editor.importLocalFile(loadFile);
-}
-
-async function testLoadExamples() {
-	for (const fileName of MB_Files.allFilesIn('Examples')) {
-		let data = await MB_Files.readFile(fileName);
-
-		let startT = Date.now();
-		let project = new MB_Project();
-		project.loadFromString(data);
-		let msecs = Date.now() - startT;
-//		console.log(fileName, project.stats(), msecs, 'msecs');
-		project.saveLoadTest(fileName);
-	}
-}
-
-async function testCompileExamples() {
-	for (const fileName of MB_Files.allFilesIn('Examples')) {
-		let startT = Date.now();
-		let data = await MB_Files.readFile(fileName);
-		let project = new MB_Project().loadFromString(data);
-		let mainModule = project.main;
-		let compiler = new MB_Compiler(project);
-		let scriptBytes = 0, functionBytes = 0;
-		for (const scriptRec of mainModule.scripts) {
-			scriptBytes += compiler.compiledBytesFor(scriptRec[2]).length;
-		}
-		for (const f of project.allFunctions()) {
-			functionBytes += compiler.compiledBytesFor(f.functionName).length;
-		}
-		console.log(fileName + ': ' + scriptBytes + ', ' + functionBytes + '; total: ' + (scriptBytes + functionBytes));
 	}
 }
