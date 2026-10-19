@@ -567,15 +567,6 @@ method uploadESP32VM ESPTool vmData eraseFlag boardName {
 		return true
 	}
 
-	if (boardName == 'Nezha for ESP32') {
-		// Application-only upgrade at the OTA_0 address. Preserve the existing
-		// bootloader, partition table, and filesystem partitions.
-		flashAddress = (hex '0x10000')
-		uploadCompressed this flashAddress vmData
-		print 'uploaded Nezha for ESP32 firmware at' flashAddress (byteCount vmData) 'bytes'
-		return true
-	}
-
 	if ('ESP32-S2' == chipType) {
 		bootloaderAddress = (hex '1000')
 		data = (readEmbeddedFile (join 'esp32/bootloader_s2.bin') true)
@@ -709,19 +700,6 @@ method setFlashParameters ESPTool flashSizeMB {
 	args = (list)
 	add32Int this args 0 // Flash ID
 	add32Int this args (flashSizeMB * (1024 * 1024)) // total Flash size
-	add32Int this args (64 * 1024) // block size
-	add32Int this args (4 * 1024) // sector size
-	add32Int this args 256 // page size
-	add32Int this args (hex 'ffff') // status mask
-	sendCmd this (hex '0b') args
-	return (not (errorResponse this))
-}
-
-method setNezhaFlashParameters ESPTool {
-	// Assumes Flash is 16 MB for now. (Later, could detect the actual size.)
-	args = (list)
-	add32Int this args 0 // Flash ID
-	add32Int this args (16 * (1024 * 1024)) // total size; assume 16 MB
 	add32Int this args (64 * 1024) // block size
 	add32Int this args (4 * 1024) // sector size
 	add32Int this args 256 // page size
