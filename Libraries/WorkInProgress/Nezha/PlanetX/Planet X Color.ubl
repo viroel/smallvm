@@ -1,23 +1,30 @@
 module 'Planet X Color' Input
 author 'Elecfreaks Team'
-version 1 0
-depends '_Planet X Support'
-choices planetXColorName red green blue cyan magenta yellow white
+version 1 1 
+depends '_Planet X Support' 
+choices planetXColorName red green blue cyan magenta yellow white 
 description 'Planet X color recognition sensor: hue and color detection.
 WIKI:
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05006'
-variables _planetX_colorReady _planetX_colorHue _planetX_colorClear _planetX_colorR _planetX_colorG _planetX_colorB _planetX_colorAddr _planetX_colorNewMode
+variables _planetX_colorReady _planetX_colorHue _planetX_colorClear _planetX_colorR _planetX_colorG _planetX_colorB _planetX_colorAddr _planetX_colorNewMode 
 
   spec 'r' 'planetXColorHue' 'color sensor hue (0-360)'
   spec 'r' 'planetXColorDetected' 'color sensor detected _ ?' 'menu.planetXColorName' 'red'
-
-  // Internal blocks; visible only when implementation blocks are shown.
+  spec 'r' '_planetX_colorCeilDivide' '_planetX_colorCeilDivide _ _' 'auto auto' 0 1
   spec 'r' '_planetX_colorEnsure' '_planetX_colorEnsure'
   spec 'r' '_planetX_colorHueFromRGB' '_planetX_colorHueFromRGB _ _ _' 'auto auto auto' 0 0 0
   spec 'r' '_planetX_colorIsWhite' '_planetX_colorIsWhite'
   spec 'r' '_planetX_colorReadReg' '_planetX_colorReadReg _' 'auto' 0
   spec 'r' '_planetX_colorReadUInt16LE' '_planetX_colorReadUInt16LE _' 'auto' 0
   spec ' ' '_planetX_colorWriteReg' '_planetX_colorWriteReg _ _' 'auto auto' 0 0
+
+to '_planetX_colorCeilDivide' numerator denominator {
+  local 'result' (numerator / denominator)
+  if (and (numerator > 0) ((numerator % denominator) != 0)) {
+    result += 1
+  }
+  return result
+}
 
 to '_planetX_colorEnsure' {
   '_planetX_extI2CInit'
@@ -58,9 +65,9 @@ to '_planetX_colorEnsure' {
 }
 
 to '_planetX_colorHueFromRGB' color_r color_g color_b {
-  local 'R' ((color_r * 100) / 255)
-  local 'G' ((color_g * 100) / 255)
-  local 'B' ((color_b * 100) / 255)
+  local 'R' ('_planetX_colorCeilDivide' (color_r * 100) 255)
+  local 'G' ('_planetX_colorCeilDivide' (color_g * 100) 255)
+  local 'B' ('_planetX_colorCeilDivide' (color_b * 100) 255)
   local 'maxVal' (maximum R (maximum G B))
   local 'minVal' (minimum R (minimum G B))
   local 'delta' (maxVal - minVal)
@@ -69,14 +76,14 @@ to '_planetX_colorHueFromRGB' color_r color_g color_b {
   }
   local 'Hue' 0
   if (maxVal == R) {
-    Hue = ((60 * (G - B)) / delta)
+    Hue = ('_planetX_colorCeilDivide' (60 * (G - B)) delta)
     if (G < B) {
       Hue += 360
     }
   } (maxVal == G) {
-    Hue = (((60 * (B - R)) / delta) + 120)
+    Hue = (('_planetX_colorCeilDivide' (60 * (B - R)) delta) + 120)
   } else {
-    Hue = (((60 * (R - G)) / delta) + 240)
+    Hue = (('_planetX_colorCeilDivide' (60 * (R - G)) delta) + 240)
   }
   return (maximum 0 (minimum Hue 360))
 }
@@ -139,13 +146,13 @@ to planetXColorHue {
     r = ('_planetX_colorReadUInt16LE' 160)
     g = ('_planetX_colorReadUInt16LE' 162)
     b = ('_planetX_colorReadUInt16LE' 164)
-    r = ((r * 507) / 1000)
-    g = ((g * 321) / 1000)
-    b = ((b * 276) / 1000)
-    _planetX_colorClear = ((_planetX_colorClear * 3) / 10)
+    r = ('_planetX_colorCeilDivide' (r * 507) 1000)
+    g = ('_planetX_colorCeilDivide' (g * 321) 1000)
+    b = ('_planetX_colorCeilDivide' (b * 276) 1000)
+    _planetX_colorClear = ('_planetX_colorCeilDivide' (_planetX_colorClear * 3) 10)
     if (and (r > b) (r > g)) {
-      b = ((b * 118) / 100)
-      g = ((g * 95) / 100)
+      b = ('_planetX_colorCeilDivide' (b * 118) 100)
+      g = ('_planetX_colorCeilDivide' (g * 95) 100)
     }
     temp_c = _planetX_colorClear
     temp_r = r
@@ -175,14 +182,15 @@ to planetXColorHue {
     temp_g = g
     temp_b = b
   }
-  local 'avg' (maximum 1 (_planetX_colorClear / 3))
-  _planetX_colorR = (maximum 0 (minimum ((r * 255) / avg) 255))
-  _planetX_colorG = (maximum 0 (minimum ((g * 255) / avg) 255))
-  _planetX_colorB = (maximum 0 (minimum ((b * 255) / avg) 255))
+  local 'avg' (maximum 1 ('_planetX_colorCeilDivide' _planetX_colorClear 3))
+  _planetX_colorR = (maximum 0 (minimum ('_planetX_colorCeilDivide' (r * 255) avg) 255))
+  _planetX_colorG = (maximum 0 (minimum ('_planetX_colorCeilDivide' (g * 255) avg) 255))
+  _planetX_colorB = (maximum 0 (minimum ('_planetX_colorCeilDivide' (b * 255) avg) 255))
   _planetX_colorHue = ('_planetX_colorHueFromRGB' _planetX_colorR _planetX_colorG _planetX_colorB)
   if (or (and (and (and _planetX_colorNewMode (_planetX_colorHue >= 180)) (_planetX_colorHue <= 201)) (and (temp_c >= 6000) ((temp_b - temp_g) < 1000))) (and (temp_r > 4096) (and (temp_g > 4096) (temp_b > 4096)))) {
-    temp_c = ((temp_c * 13000) / 15000)
-    _planetX_colorHue = (180 + ((13000 - temp_c) / 1000))
+    temp_c = ('_planetX_colorCeilDivide' (temp_c * 13000) 15000)
+    _planetX_colorHue = (180 + ('_planetX_colorCeilDivide' (13000 - temp_c) 1000))
   }
   return _planetX_colorHue
 }
+

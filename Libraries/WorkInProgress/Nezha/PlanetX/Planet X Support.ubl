@@ -1,17 +1,16 @@
 module 'Planet X Support' Control
 author 'Elecfreaks Team'
-version 1 1
-choices planetXPort J1 J2 J3 J4
-choices planetXNumberCard '0' '1' '2' '3' '4' '5' '6' '7' '8' '9'
-choices planetXLetterCard A B C D E
-choices planetXObjectValue 'x coordinate' 'y coordinate' width height 'confidence (%)' id
-choices planetXOnOff off on
-choices planetXBasicColor red green blue white black yellow
+version 1 1 
+choices planetXOnOff off on 
+choices planetXBasicColor red green blue white black yellow 
+choices planetXLetterCard A B C D E 
+choices planetXPort J1 J2 J3 J4 
+choices planetXNumberCard '0' '1' '2' '3' '4' '5' '6' '7' '8' '9' 
+choices planetXObjectValue 'x coordinate' 'y coordinate' width height 'confidence (%)' id 
 description 'Shared Planet X menus, I2C initialization, FIFO transaction lock and sensor communication.
 Import this as an implementation dependency.'
-variables _planetX_extI2CReady _planetX_i2cRequestBusy _planetX_i2cQueue
+variables _planetX_extI2CReady _planetX_i2cRequestBusy _planetX_i2cQueue 
 
-  // Internal blocks; visible only when implementation blocks are shown.
   spec 'r' '_planetX_extI2CInit' '_planetX_extI2CInit'
   spec 'r' '_planetX_i2cAcquire' '_planetX_i2cAcquire'
   spec ' ' '_planetX_i2cRelease' '_planetX_i2cRelease'
@@ -46,12 +45,6 @@ to '_planetX_i2cAcquire' {
   }
   _planetX_i2cRequestBusy = true
   return true
-}
-
-to '_planetX_i2cRelease' {
-  if (not _planetX_i2cRequestBusy) {return}
-  '[data:delete]' 1 _planetX_i2cQueue
-  _planetX_i2cRequestBusy = false
 }
 
 to '_planetX_i2cExists' addr {
@@ -104,6 +97,12 @@ to '_planetX_i2cReadUInt16LE' addr reg {
   return value
 }
 
+to '_planetX_i2cRelease' {
+  if (not _planetX_i2cRequestBusy) {return}
+  '[data:delete]' 1 _planetX_i2cQueue
+  _planetX_i2cRequestBusy = false
+}
+
 to '_planetX_i2cWrite' addr bytes {
   if (not ('_planetX_i2cAcquire')) {return false}
   '[sensors:i2cSetClockSpeed]' 200000
@@ -114,3 +113,4 @@ to '_planetX_i2cWrite' addr bytes {
   '_planetX_i2cRelease'
   return present
 }
+

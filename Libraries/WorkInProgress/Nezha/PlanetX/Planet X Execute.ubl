@@ -1,8 +1,8 @@
 module 'Planet X Execute' Control
 author 'Elecfreaks Team'
-version 2 1
-depends '_Planet X Support'
-choices planetXMP3Action play stop 'next track' 'previous track' pause
+version 2 1 
+depends '_Planet X Support' 
+choices planetXMP3Action play stop 'next track' 'previous track' pause 
 description 'laser
 WIKI:
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05013
@@ -21,7 +21,7 @@ https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05012
 MP3
 WIKI:
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05038'
-variables _planetX_mp3Pin
+variables _planetX_mp3Pin 
 
   spec ' ' 'planetX_laserSwitch' 'laser module _ turn _' 'menu.planetXPort bool' 'J1' true
   space
@@ -35,40 +35,47 @@ variables _planetX_mp3Pin
   spec ' ' 'planetX_mp3PlayTrack' 'MP3 play track _ : repeat _' 'num bool' 1 false
   spec ' ' 'planetX_mp3LoopFolder' 'MP3 loop folder _' 'num' 1
   spec ' ' 'planetX_mp3Execute' 'MP3 execute _' 'menu.planetXMP3Action' 'play'
-
-  // Internal blocks; visible only when implementation blocks are shown.
   spec ' ' '_planetX_mp3Ensure' '_planetX_mp3Ensure'
   spec ' ' '_planetX_mp3Send' '_planetX_mp3Send _ _ _' 'auto auto auto' 0 0 0
   spec ' ' '_planetX_ledBrightness' '_planetX_ledBrightness _ _ _' 'auto auto auto' 0 0 0
   spec ' ' '_planetX_motorFan' '_planetX_motorFan _ _ _' 'auto auto auto' 0 0 0
 
-to planetX_mp3SetPort port {
-  local 'pin' 5
+to '_planetX_ledBrightness' port on optionalBrightness {
+  local 'brightness' (argOrDefault 3 100)
+  brightness = (maximum 0 (minimum brightness 100))
+  local 'pin' 4
   if (port == 'J2') {
-    pin = 7
+    pin = 6
   } (port == 'J3') {
-    pin = 16
+    pin = 15
   } (port == 'J4') {
-    pin = 18
+    pin = 17
   }
-  _planetX_mp3Pin = pin
-  '[elfreaks_dev_sensor:wifiUartInit]' port 9600
-  waitMillis 50
-  planetX_mp3SetVolume 25
+  if (and on (brightness > 0)) {
+    analogWriteOp pin ((1023 * brightness) / 100)
+  } else {
+    analogWriteOp pin 0
+    digitalWriteOp pin false
+  }
 }
 
-to planetX_mp3Execute action {
-  local 'cmd' (hexToInt '0D')
-  if (or (action == 'stop') (action == '停止')) {
-    cmd = (hexToInt '16')
-  } (or (or (action == 'next track') (action == '切换音乐')) (action == '下一首')) {
-    cmd = (hexToInt '01')
-  } (or (action == 'previous track') (action == '上一首')) {
-    cmd = (hexToInt '02')
-  } (or (action == 'pause') (action == '暂停')) {
-    cmd = (hexToInt '0E')
+to '_planetX_motorFan' port on optionalSpeed {
+  local 'speed' (argOrDefault 3 100)
+  speed = (maximum 0 (minimum speed 100))
+  local 'pin' 4
+  if (port == 'J2') {
+    pin = 6
+  } (port == 'J3') {
+    pin = 15
+  } (port == 'J4') {
+    pin = 17
   }
-  '_planetX_mp3Send' cmd 0 0
+  if (and on (speed > 0)) {
+    analogWriteOp pin ((1023 * speed) / 100)
+  } else {
+    analogWriteOp pin 0
+    digitalWriteOp pin false
+  }
 }
 
 to '_planetX_mp3Ensure' {
@@ -95,15 +102,6 @@ to '_planetX_mp3Send' cmd arg1 arg2 {
   waitMillis 100
 }
 
-to planetX_mp3PlayFolder folderNum fileNum repeat {
-  folderNum = (maximum 1 (minimum folderNum 99))
-  fileNum = (maximum 1 (minimum fileNum 255))
-  '_planetX_mp3Send' (hexToInt '0F') folderNum fileNum
-  if repeat {
-    '_planetX_mp3Send' (hexToInt '19') 0 0
-  }
-}
-
 to planetX_laserSwitch port on {
   local 'pin' 5
   if (port == 'J2') {
@@ -116,55 +114,40 @@ to planetX_laserSwitch port on {
   digitalWriteOp pin on
 }
 
-to _planetX_ledBrightness port on optionalBrightness {
-  local 'brightness' (argOrDefault 3 100)
-  brightness = (maximum 0 (minimum brightness 100))
-  local 'pin' 4
-  if (port == 'J2') {
-    pin = 6
-  } (port == 'J3') {
-    pin = 15
-  } (port == 'J4') {
-    pin = 17
-  }
-  if (and on (brightness > 0)) {
-    analogWriteOp pin ((1023 * brightness) / 100)
-  } else {
-    analogWriteOp pin 0
-    digitalWriteOp pin false
-  }
-}
-
 to planetX_ledSwitch port on {
-  _planetX_ledBrightness port on 100
-}
-
-to _planetX_motorFan port on optionalSpeed {
-  local 'speed' (argOrDefault 3 100)
-  speed = (maximum 0 (minimum speed 100))
-  local 'pin' 4
-  if (port == 'J2') {
-    pin = 6
-  } (port == 'J3') {
-    pin = 15
-  } (port == 'J4') {
-    pin = 17
-  }
-  if (and on (speed > 0)) {
-    analogWriteOp pin ((1023 * speed) / 100)
-  } else {
-    analogWriteOp pin 0
-    digitalWriteOp pin false
-  }
+  '_planetX_ledBrightness' port on 100
 }
 
 to planetX_motorFanSwitch port on {
-  _planetX_motorFan port on 100
+  '_planetX_motorFan' port on 100
+}
+
+to planetX_mp3Execute action {
+  local 'cmd' (hexToInt '0D')
+  if (or (action == 'stop') (action == '停止')) {
+    cmd = (hexToInt '16')
+  } (or (or (action == 'next track') (action == '切换音乐')) (action == '下一首')) {
+    cmd = (hexToInt '01')
+  } (or (action == 'previous track') (action == '上一首')) {
+    cmd = (hexToInt '02')
+  } (or (action == 'pause') (action == '暂停')) {
+    cmd = (hexToInt '0E')
+  }
+  '_planetX_mp3Send' cmd 0 0
 }
 
 to planetX_mp3LoopFolder folderNum {
   folderNum = (maximum 1 (minimum folderNum 99))
   '_planetX_mp3Send' (hexToInt '17') 0 folderNum
+}
+
+to planetX_mp3PlayFolder folderNum fileNum repeat {
+  folderNum = (maximum 1 (minimum folderNum 99))
+  fileNum = (maximum 1 (minimum fileNum 255))
+  '_planetX_mp3Send' (hexToInt '0F') folderNum fileNum
+  if repeat {
+    '_planetX_mp3Send' (hexToInt '19') 0 0
+  }
 }
 
 to planetX_mp3PlayTrack tracking repeat {
@@ -176,7 +159,23 @@ to planetX_mp3PlayTrack tracking repeat {
   }
 }
 
+to planetX_mp3SetPort port {
+  local 'pin' 5
+  if (port == 'J2') {
+    pin = 7
+  } (port == 'J3') {
+    pin = 16
+  } (port == 'J4') {
+    pin = 18
+  }
+  _planetX_mp3Pin = pin
+  '[elfreaks_dev_sensor:wifiUartInit]' port 9600
+  waitMillis 50
+  planetX_mp3SetVolume 25
+}
+
 to planetX_mp3SetVolume volume {
   volume = (maximum 0 (minimum volume 25))
   '_planetX_mp3Send' (hexToInt '06') 0 volume
 }
+

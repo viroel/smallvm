@@ -1,10 +1,10 @@
 module 'Planet X Display' Output
 author 'Elecfreaks Team'
-version 2 1
-depends '_Planet X Support'
-choices planetXNeoColor red orange yellow green blue indigo violet purple white black
-choices planetXNeoMode 'RGB(GRB order)' RGBW 'RGB(RGB order)'
-choices planetXMatrixEmoji smile 'crying face' 'neutral face' heart 'check mark' cross
+version 2 1 
+depends '_Planet X Support' 
+choices planetXNeoColor red orange yellow green blue indigo violet purple white black 
+choices planetXNeoMode 'RGB(GRB order)' RGBW 'RGB(RGB order)' 
+choices planetXMatrixEmoji smile 'crying face' 'neutral face' heart 'check mark' cross 
 description 'Nixie tube
 WIKI (TM1637):
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05026
@@ -20,7 +20,7 @@ https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05016
 dot-matrix display screen
 WIKI (matrix):
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05029'
-variables _planetX_tmClockPin _planetX_tmDataPin _planetX_tmBrightness _planetX_tmDigits _planetX_npPixels _planetX_npPin _planetX_npHasWhite _planetX_npRangeStart _planetX_npRangeLength _planetX_i2cReady _planetX_matrixReady _planetX_matrixBuf _planetX_oledReady _planetX_oledAddr _planetX_oledBusy _planetX_oledLines
+variables _planetX_tmClockPin _planetX_tmDataPin _planetX_tmBrightness _planetX_tmDigits _planetX_npPixels _planetX_npPin _planetX_npHasWhite _planetX_npRangeStart _planetX_npRangeLength _planetX_i2cReady _planetX_matrixReady _planetX_matrixBuf _planetX_oledReady _planetX_oledAddr _planetX_oledBusy _planetX_oledLines 
 
   spec ' ' 'planetX_tm1637Create' 'numeric display set port _' 'menu.planetXPort' 'J1'
   spec ' ' 'planetX_tm1637ShowNumber' 'numeric display show _ (0-9999)' 'num' 1234
@@ -48,8 +48,6 @@ variables _planetX_tmClockPin _planetX_tmDataPin _planetX_tmBrightness _planetX_
   spec ' ' 'planetX_matrixEmoji' '5x5 matrix display emoji _' 'menu.planetXMatrixEmoji' 'smile'
   spec ' ' 'planetX_matrixRefresh' 'refresh matrix display'
   spec ' ' 'planetX_matrixClear' 'clear matrix display'
-
-  // Internal blocks; visible only when implementation blocks are shown.
   spec 'r' '_planetX_colorFromRGB' '_planetX_colorFromRGB _ _ _' 'auto auto auto' 0 0 0
   spec 'r' '_planetX_matrixCmd' '_planetX_matrixCmd _' 'auto' 0
   spec 'r' '_planetX_matrixEnsure' '_planetX_matrixEnsure'
@@ -95,6 +93,29 @@ to '_planetX_colorFromRGB' r g b {
   g = (maximum 0 (minimum g 255))
   b = (maximum 0 (minimum b 255))
   return (((r << 16) | (g << 8)) | b)
+}
+
+to '_planetX_i2cPortExists' addr {
+  if (not ('_planetX_i2cAcquire')) {return false}
+  '[sensors:i2cSetClockSpeed]' 200000
+  local 'present' ('[sensors:i2cExists]' addr)
+  '_planetX_i2cRelease'
+  return present
+}
+
+to '_planetX_i2cPortWrite' addr bytes {
+  if (not ('_planetX_i2cAcquire')) {return false}
+  '[sensors:i2cSetClockSpeed]' 200000
+  local 'present' ('[sensors:i2cExists]' addr)
+  if present {
+    if (and ((size bytes) > 32) ((at 1 bytes) == 64)) {
+      '_planetX_oledWriteDataUnlocked' addr bytes
+    } else {
+      '[sensors:i2cWrite]' addr bytes
+    }
+  }
+  '_planetX_i2cRelease'
+  return present
 }
 
 to '_planetX_matrixCmd' value {
@@ -156,6 +177,22 @@ to '_planetX_matrixShow5x5' row1 row2 row3 row4 row5 {
   '_planetX_matrixShow'
 }
 
+to '_planetX_neopixelRainbow' optionalStartHue optionalEndHue {
+  '_planetX_npEnsure'
+  local 'startHue' (argOrDefault 1 1)
+  local 'endHue' (argOrDefault 2 360)
+  if (_planetX_npRangeLength <= 1) {
+    atPut ('_planetX_npIndex' 1) _planetX_npPixels ('[misc:hsvColor]' startHue 100 100)
+    '_planetX_npUpdate'
+    return
+  }
+  local 'span' (endHue - startHue)
+  for i _planetX_npRangeLength {
+    atPut ('_planetX_npIndex' i) _planetX_npPixels ('[misc:hsvColor]' (startHue + ((span * (i - 1)) / (_planetX_npRangeLength - 1))) 100 100)
+  }
+  '_planetX_npUpdate'
+}
+
 to '_planetX_npEnsure' {
   if (_planetX_npPixels == 0) {planetX_neopixelCreate 'J1' 10 'RGB(GRB)'}
   if (_planetX_npRangeStart == 0) {
@@ -173,102 +210,6 @@ to '_planetX_npUpdate' {
   '[display:neoPixelSetPin]' _planetX_npPin _planetX_npHasWhite
   '[display:neoPixelSend]' _planetX_npPixels
   waitMicros 300
-}
-
-to '_planetX_tmDelay' {
-  waitMicros 10
-}
-
-to '_planetX_tmEnsure' {
-  if (_planetX_tmDigits == 0) {
-    _planetX_tmDigits = (newList 4)
-    atPut 'all' _planetX_tmDigits 0
-  }
-}
-
-to '_planetX_tmRefresh' {
-  '_planetX_tmEnsure'
-  for i 4 {
-    '_planetX_tmShowSegments' (at i _planetX_tmDigits) i
-  }
-}
-
-to '_planetX_tmSegmentsForNum' n {
-  if (or (n < 0) (n > 15)) {return 0}
-  local 'i' ((3 * n) + 1)
-  return (hexToInt ('[data:copyFromTo]' '3f,06,5b,4f,66,6d,7d,07,7f,6f,77,7c,39,5e,79,71' i (i + 1)))
-}
-
-to '_planetX_tmShowSegments' value index {
-  '_planetX_tmStart'
-  '_planetX_tmWriteByte' (hexToInt '44')
-  '_planetX_tmStop'
-  '_planetX_tmStart'
-  '_planetX_tmWriteByte' ((hexToInt 'C0') | (4 - index))
-  '_planetX_tmWriteByte' value
-  '_planetX_tmStop'
-  '_planetX_tmStart'
-  '_planetX_tmWriteByte' ((hexToInt '88') + _planetX_tmBrightness)
-  '_planetX_tmStop'
-}
-
-to '_planetX_tmStart' {
-  digitalWriteOp _planetX_tmClockPin true
-  digitalWriteOp _planetX_tmDataPin true
-  digitalWriteOp _planetX_tmDataPin false
-  digitalWriteOp _planetX_tmClockPin false
-}
-
-to '_planetX_tmStop' {
-  digitalWriteOp _planetX_tmClockPin false
-  digitalWriteOp _planetX_tmDataPin false
-  digitalWriteOp _planetX_tmClockPin true
-  digitalWriteOp _planetX_tmDataPin true
-}
-
-to '_planetX_tmValidDigitIndex' bit {
-  return (and (and (bit >= 1) (bit <= 4)) ((bit % 1) == 0))
-}
-
-to '_planetX_tmWriteByte' byte {
-  repeat 8 {
-    digitalWriteOp _planetX_tmClockPin false
-    if ((byte & 1) == 1) {
-      digitalWriteOp _planetX_tmDataPin true
-    } else {
-      digitalWriteOp _planetX_tmDataPin false
-    }
-    '_planetX_tmDelay'
-    digitalWriteOp _planetX_tmClockPin true
-    byte = (byte >> 1)
-    '_planetX_tmDelay'
-  }
-  digitalWriteOp _planetX_tmClockPin false
-  digitalWriteOp _planetX_tmDataPin false
-  digitalWriteOp _planetX_tmClockPin true
-}
-
-to '_planetX_i2cPortExists' addr {
-  if (not ('_planetX_i2cAcquire')) {return false}
-  '[sensors:i2cSetClockSpeed]' 200000
-  local 'present' ('[sensors:i2cExists]' addr)
-  '_planetX_i2cRelease'
-  return present
-}
-
-to '_planetX_i2cPortWrite' addr bytes {
-  if (not ('_planetX_i2cAcquire')) {return false}
-  '[sensors:i2cSetClockSpeed]' 200000
-  local 'present' ('[sensors:i2cExists]' addr)
-  if present {
-    if (and ((size bytes) > 32) ((at 1 bytes) == 64)) {
-      '_planetX_oledWriteDataUnlocked' addr bytes
-    } else {
-      '[sensors:i2cWrite]' addr bytes
-    }
-  }
-  '_planetX_i2cRelease'
-  return present
 }
 
 to '_planetX_oledClearCore' {
@@ -463,6 +404,79 @@ to '_planetX_oledWriteLineCore' row text {
   return ('_planetX_i2cPortWrite' _planetX_oledAddr ('_planetX_oledLineBuffer' text))
 }
 
+to '_planetX_tmDelay' {
+  waitMicros 10
+}
+
+to '_planetX_tmEnsure' {
+  if (_planetX_tmDigits == 0) {
+    _planetX_tmDigits = (newList 4)
+    atPut 'all' _planetX_tmDigits 0
+  }
+}
+
+to '_planetX_tmRefresh' {
+  '_planetX_tmEnsure'
+  for i 4 {
+    '_planetX_tmShowSegments' (at i _planetX_tmDigits) i
+  }
+}
+
+to '_planetX_tmSegmentsForNum' n {
+  if (or (n < 0) (n > 15)) {return 0}
+  local 'i' ((3 * n) + 1)
+  return (hexToInt ('[data:copyFromTo]' '3f,06,5b,4f,66,6d,7d,07,7f,6f,77,7c,39,5e,79,71' i (i + 1)))
+}
+
+to '_planetX_tmShowSegments' value index {
+  '_planetX_tmStart'
+  '_planetX_tmWriteByte' (hexToInt '44')
+  '_planetX_tmStop'
+  '_planetX_tmStart'
+  '_planetX_tmWriteByte' ((hexToInt 'C0') | (4 - index))
+  '_planetX_tmWriteByte' value
+  '_planetX_tmStop'
+  '_planetX_tmStart'
+  '_planetX_tmWriteByte' ((hexToInt '88') + _planetX_tmBrightness)
+  '_planetX_tmStop'
+}
+
+to '_planetX_tmStart' {
+  digitalWriteOp _planetX_tmClockPin true
+  digitalWriteOp _planetX_tmDataPin true
+  digitalWriteOp _planetX_tmDataPin false
+  digitalWriteOp _planetX_tmClockPin false
+}
+
+to '_planetX_tmStop' {
+  digitalWriteOp _planetX_tmClockPin false
+  digitalWriteOp _planetX_tmDataPin false
+  digitalWriteOp _planetX_tmClockPin true
+  digitalWriteOp _planetX_tmDataPin true
+}
+
+to '_planetX_tmValidDigitIndex' bit {
+  return (and (and (bit >= 1) (bit <= 4)) ((bit % 1) == 0))
+}
+
+to '_planetX_tmWriteByte' byte {
+  repeat 8 {
+    digitalWriteOp _planetX_tmClockPin false
+    if ((byte & 1) == 1) {
+      digitalWriteOp _planetX_tmDataPin true
+    } else {
+      digitalWriteOp _planetX_tmDataPin false
+    }
+    '_planetX_tmDelay'
+    digitalWriteOp _planetX_tmClockPin true
+    byte = (byte >> 1)
+    '_planetX_tmDelay'
+  }
+  digitalWriteOp _planetX_tmClockPin false
+  digitalWriteOp _planetX_tmDataPin false
+  digitalWriteOp _planetX_tmClockPin true
+}
+
 to planetX_matrixClear {
   if (not ('_planetX_matrixEnsure')) {return}
   for i 16 {
@@ -494,14 +508,6 @@ to planetX_matrixEmoji emoji {
 
 to planetX_matrixRefresh {
   '_planetX_matrixShow'
-}
-
-to planetX_oledClear {
-  '_planetX_oledEnsureLines'
-  atPut 'all' _planetX_oledLines ''
-  if (not ('_planetX_oledEnsure')) {
-    return
-  }
 }
 
 to planetX_neopixelAllSetColor color {
@@ -585,24 +591,8 @@ to planetX_neopixelRGB r g b {
   return (((r << 16) | (g << 8)) | b)
 }
 
-to _planetX_neopixelRainbow optionalStartHue optionalEndHue {
-  '_planetX_npEnsure'
-  local 'startHue' (argOrDefault 1 1)
-  local 'endHue' (argOrDefault 2 360)
-  if (_planetX_npRangeLength <= 1) {
-    atPut ('_planetX_npIndex' 1) _planetX_npPixels ('[misc:hsvColor]' startHue 100 100)
-    '_planetX_npUpdate'
-    return
-  }
-  local 'span' (endHue - startHue)
-  for i _planetX_npRangeLength {
-    atPut ('_planetX_npIndex' i) _planetX_npPixels ('[misc:hsvColor]' (startHue + ((span * (i - 1)) / (_planetX_npRangeLength - 1))) 100 100)
-  }
-  '_planetX_npUpdate'
-}
-
 to planetX_neopixelRainbowShow {
-  _planetX_neopixelRainbow 1 360
+  '_planetX_neopixelRainbow' 1 360
 }
 
 to planetX_neopixelRange start length {
@@ -669,7 +659,50 @@ to planetX_neopixelShift offset {
   '_planetX_npUpdate'
 }
 
+to planetX_oledClear {
+  '_planetX_oledEnsureLines'
+  atPut 'all' _planetX_oledLines ''
+  if (not ('_planetX_oledEnsure')) {
+    return
+  }
+}
+
+to planetX_oledShowNumber line n {
+  planetX_oledShowText line ('[data:convertType]' n 'string')
+}
+
+to planetX_oledShowText line text {
+  line = (maximum 1 (minimum line 8))
+  '_planetX_oledEnsureLines'
+  atPut line _planetX_oledLines text
+  if (not ('_planetX_oledEnsure')) {
+    return
+  }
+}
+
 to planetX_tm1637Clear {
+  '_planetX_tmEnsure'
+  atPut 'all' _planetX_tmDigits 0
+  '_planetX_tmRefresh'
+}
+
+to planetX_tm1637Create port {
+  if (port == 'J2') {
+    _planetX_tmClockPin = 6
+    _planetX_tmDataPin = 7
+  } (port == 'J3') {
+    _planetX_tmClockPin = 15
+    _planetX_tmDataPin = 16
+  } (port == 'J4') {
+    _planetX_tmClockPin = 17
+    _planetX_tmDataPin = 18
+  } else {
+    _planetX_tmClockPin = 4
+    _planetX_tmDataPin = 5
+  }
+  _planetX_tmBrightness = 7
+  digitalWriteOp _planetX_tmClockPin false
+  digitalWriteOp _planetX_tmDataPin false
   '_planetX_tmEnsure'
   atPut 'all' _planetX_tmDigits 0
   '_planetX_tmRefresh'
@@ -710,37 +743,3 @@ to planetX_tm1637ShowNumber n {
   '_planetX_tmRefresh'
 }
 
-to planetX_oledShowNumber line n {
-  planetX_oledShowText line ('[data:convertType]' n 'string')
-}
-
-to planetX_oledShowText line text {
-  line = (maximum 1 (minimum line 8))
-  '_planetX_oledEnsureLines'
-  atPut line _planetX_oledLines text
-  if (not ('_planetX_oledEnsure')) {
-    return
-  }
-}
-
-to planetX_tm1637Create port {
-  if (port == 'J2') {
-    _planetX_tmClockPin = 6
-    _planetX_tmDataPin = 7
-  } (port == 'J3') {
-    _planetX_tmClockPin = 15
-    _planetX_tmDataPin = 16
-  } (port == 'J4') {
-    _planetX_tmClockPin = 17
-    _planetX_tmDataPin = 18
-  } else {
-    _planetX_tmClockPin = 4
-    _planetX_tmDataPin = 5
-  }
-  _planetX_tmBrightness = 7
-  digitalWriteOp _planetX_tmClockPin false
-  digitalWriteOp _planetX_tmDataPin false
-  '_planetX_tmEnsure'
-  atPut 'all' _planetX_tmDigits 0
-  '_planetX_tmRefresh'
-}

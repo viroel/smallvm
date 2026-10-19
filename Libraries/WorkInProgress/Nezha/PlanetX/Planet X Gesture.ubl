@@ -1,17 +1,15 @@
 module 'Planet X Gesture' Input
 author 'Elecfreaks Team'
-version 1 0
-depends '_Planet X Support'
-choices planetXGestureName none right left up down forward backward clockwise counterclockwise wave
+version 1 0 
+depends '_Planet X Support' 
+choices planetXGestureName none right left up down forward backward clockwise counterclockwise wave 
 description 'Planet X gesture recognition sensor. Use the detected gesture menu for translatable comparisons.
 WIKI:
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05020'
-variables _planetX_gestureReady
+variables _planetX_gestureReady 
 
   spec ' ' 'planetXGestureInit' 'initialize gesture sensor'
   spec 'r' 'planetXGestureDetected' 'gesture sensor detected _ ?' 'menu.planetXGestureName' 'right'
-
-  // Internal blocks; visible only when implementation blocks are shown.
   spec 'r' '_planetX_gestureEnsure' '_planetX_gestureEnsure'
   spec 'r' '_planetX_gestureExpectedCode' '_planetX_gestureExpectedCode _' 'str' ''
   spec ' ' '_planetX_gestureInitPart1' '_planetX_gestureInitPart1'
@@ -158,10 +156,6 @@ to '_planetX_gestureWriteReg' reg value {
   '_planetX_i2cWrite' 115 ('[data:makeList]' reg value)
 }
 
-to planetXGestureInit {
-  '_planetX_gestureEnsure'
-}
-
 to planetXGestureDetected gesture {
   local 'expected' ('_planetX_gestureExpectedCode' gesture)
   if (expected <= 0) {
@@ -169,3 +163,8 @@ to planetXGestureDetected gesture {
   }
   return (('_planetX_gestureReadCode') == expected)
 }
+
+to planetXGestureInit {
+  '_planetX_gestureEnsure'
+}
+

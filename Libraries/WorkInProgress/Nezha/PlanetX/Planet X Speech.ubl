@@ -1,8 +1,8 @@
 module 'Planet X Speech' Input
 author 'Elecfreaks Team'
-version 1 0
-depends '_Planet X Support'
-choices planetXASRWord none 'hello Xiaoen' 'turn headlights on' 'turn headlights off' 'turn left' 'turn right' 'move forward' 'move backward' 'line-tracking mode' 'obstacle-avoidance mode' park 'start device' 'stop device' 'pause operation' 'resume operation' 'increase level' 'decrease level' 'play music' 'stop music' 'next track' 'run function one' 'run function two' 'learned phrase 1' 'learned phrase 2' 'learned phrase 3' 'learned phrase 4' 'learned phrase 5' 'learned phrase 6' 'learned phrase 7' 'learned phrase 8' 'learned phrase 9' 'learned phrase 10'
+version 1 0 
+depends '_Planet X Support' 
+choices planetXASRWord none 'hello Xiaoen' 'turn headlights on' 'turn headlights off' 'turn left' 'turn right' 'move forward' 'move backward' 'line-tracking mode' 'obstacle-avoidance mode' park 'start device' 'stop device' 'pause operation' 'resume operation' 'increase level' 'decrease level' 'play music' 'stop music' 'next track' 'run function one' 'run function two' 'learned phrase 1' 'learned phrase 2' 'learned phrase 3' 'learned phrase 4' 'learned phrase 5' 'learned phrase 6' 'learned phrase 7' 'learned phrase 8' 'learned phrase 9' 'learned phrase 10' 
 description 'Planet X speech recognition sensor (EF05037, SNR3512M).
 Say 你好，小恩 to wake the module before use.
 Clear learned phrases before recording a new set.
@@ -11,15 +11,13 @@ The WIKI documents I2C commands 0x50 (enter learning) and 0x60 (clear learned ph
 Current code is an advanced diagnostic block; normal programs should use the heard phrase menu.
 WIKI:
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05037'
-variables _planetX_asrReady _planetX_asrData _planetX_asrLastCode _planetX_asrLastReadTime
+variables _planetX_asrReady _planetX_asrData _planetX_asrLastCode _planetX_asrLastReadTime 
 
   spec ' ' 'planetXASRClearLearned' 'speech recognition sensor clear learned phrases'
   spec ' ' 'planetXASREnterLearning' 'speech recognition sensor enter learning mode'
   spec 'r' 'planetXASRHeard' 'speech recognition sensor heard _ ?' 'menu.planetXASRWord' 'hello Xiaoen'
   advanced
   spec 'r' 'planetXASRReadCode' 'speech recognition sensor current code'
-
-  // Internal blocks; visible only when implementation blocks are shown.
   spec ' ' '_planetX_asrClearCache' '_planetX_asrClearCache'
   spec 'r' '_planetX_asrDeviceCode' '_planetX_asrDeviceCode _' 'str' ''
   spec 'r' '_planetX_asrEnsure' '_planetX_asrEnsure'
@@ -143,6 +141,13 @@ to planetXASRClearLearned {
   waitMillis 50
 }
 
+to planetXASREnterLearning {
+  if (not ('_planetX_asrEnsure')) {return}
+  '_planetX_asrClearCache'
+  '_planetX_asrWrite' 80
+  waitMillis 50
+}
+
 to planetXASRHeard word {
   local 'expected' ('_planetX_asrExpectedCode' word)
   local 'code' ('_planetX_asrReadCode')
@@ -153,9 +158,3 @@ to planetXASRReadCode {
   return ('_planetX_asrReadCode')
 }
 
-to planetXASREnterLearning {
-  if (not ('_planetX_asrEnsure')) {return}
-  '_planetX_asrClearCache'
-  '_planetX_asrWrite' 80
-  waitMillis 50
-}
