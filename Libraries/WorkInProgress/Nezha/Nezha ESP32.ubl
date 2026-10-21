@@ -1,7 +1,7 @@
 module 'Nezha ESP32' Data
 author 'Elecfreaks Team'
 version 1 4 
-depends 'Network/SmartIoT Space' 
+depends 'SmartIoT Space' 
 tags nezha esp32 onboard button rgb display sound gyro 
 choices nezha32_portMenu J1 J2 J3 J4 
 choices nezha32_pressReleaseMenu pressed released 
@@ -32,7 +32,9 @@ variables _nezha32_buttonEdges _nezha32_buttonLoopStarted _nezha32_buttonLoopHea
   space
   space
   spec 'r' '[elfreaks_dev_sensor:lightLevel]' 'Nezha light level(unit lux)'
+  spec ' ' '[elfreaks_dev_sensor:enableNoise]' 'enable Nezha loudness'
   spec 'r' '[elfreaks_dev_sensor:noiseDb]' 'Nezha loudness(unit db)'
+  spec ' ' '[elfreaks_dev_sensor:disableNoise]' 'disable Nezha loudness'
   space
   space
   spec 'r' 'nezha32_getColorVal' 'set color to _' 'color'
