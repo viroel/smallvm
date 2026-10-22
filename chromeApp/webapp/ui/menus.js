@@ -302,7 +302,14 @@ Menus.scriptingArea = {
 			label: 'copy all scripts to clipboard as URL',
 			action: () => { GP.apiCall('scripts.copyToClipboardAsURL'); }
 		},
-		{ label: '-' },
+		{
+			label: '-',
+			hidden: () => {
+				readGPClipboard();
+				return GP.clipboardBytes.length == 0 ||
+					!clipboardText().startsWith('GP Scripts');
+			}
+		},
 		{
 			label: 'paste all scripts from clipboard',
 			action: () => { GP.apiCall('scripts.paste'); },
@@ -550,9 +557,10 @@ document.addEventListener('context', (e) => {
 	let descriptor = e.detail.value;
 	if (descriptor.x) { // this comes from GP
 		// we have to offset it by the GP canvas position
-		let canvas = document.querySelector('#canvas.emscripten');
-		e.clientX = descriptor.x + canvas.offsetLeft;
-		e.clientY = descriptor.y + canvas.offsetTop;
+		let canvas = document.querySelector('#canvas');
+		let canvasRect = canvas.getBoundingClientRect();
+		e.clientX = descriptor.x + canvasRect.left;
+		e.clientY = descriptor.y + canvasRect.top;
 	}
 	Menus.popUp(descriptor.selector, null, null, e);
 	e.preventDefault();
@@ -562,9 +570,10 @@ document.addEventListener('menu', (e) => {
 	let descriptor = e.detail.value;
 	if (descriptor.x) { // this comes from GP
 		// we have to offset it by the GP canvas position
-		let canvas = document.querySelector('#canvas.emscripten');
-		e.clientX = descriptor.x + canvas.offsetLeft;
-		e.clientY = descriptor.y + canvas.offsetTop;
+		let canvas = document.querySelector('#canvas');
+		let canvasRect = canvas.getBoundingClientRect();
+		e.clientX = descriptor.x + canvasRect.left;
+		e.clientY = descriptor.y + canvasRect.top;
 	}
 	descriptor.items.forEach(item => {
 		item.action = () => {

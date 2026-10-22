@@ -578,6 +578,18 @@ msgstr ""
 msgid "serial write _"
 msgstr ""
 
+#. Block in Comm category
+msgid "rx pin _ tx pin _"
+msgstr ""
+
+#. Block in Comm category
+msgid "stop _"
+msgstr ""
+
+#. Block in Comm category
+msgid "bit order _"
+msgstr ""
+
 #. Example string. Tells the user this input accepts an integer, a string list or a byte array
 msgid "anIntegerStringListOrByteArray"
 msgstr ""
@@ -1474,7 +1486,6 @@ msgid "display image _"
 msgstr ""
 
 #. 5x5 LED Display library block
-#. Nezha ESP32 Library block
 msgid "clear display"
 msgstr ""
 
@@ -4368,12 +4379,10 @@ msgid "close"
 msgstr ""
 
 #. Keyestudio Smart Farm library block
-#. Nezha ESP32 Library enum
 msgid "on"
 msgstr ""
 
 #. Keyestudio Smart Farm library block
-#. Nezha ESP32 Library enum
 msgid "off"
 msgstr ""
 
@@ -5019,63 +5028,67 @@ msgstr ""
 msgid "NeZha set continuous rotation servo _ speed to _ %"
 msgstr ""
 
-#. Library name
-msgid "Nezha"
+#. NeZha2 robot library label
+msgid "Nezha2"
 msgstr ""
 
-#. Nezha Library block
+#. NeZha2 robot library block
 msgid "Nezha beep _ Hz for _ msecs"
 msgstr ""
 
-#. Nezha Library block
+#. NeZha2 robot library block
 msgid "Nezha set motor _ speed to _ (-100-100)"
 msgstr ""
 
-#. Nezha Library block
+#. NeZha2 robot library block
 msgid "Nezha stop motor _"
 msgstr ""
 
-#. Nezha Library block
+#. NeZha2 robot library block
 msgid "Nezha stop all motors"
 msgstr ""
 
-#. Nezha Library block
+#. NeZha2 robot library block
 msgid "Nezha set _ servo _ angle to _"
 msgstr ""
 
-#. Nezha Library block
+#. NeZha2 robot library block
 msgid "Nezha set continuous servo _ speed to _ (-100 to 100)"
 msgstr ""
 
-#. Nezha Library block
-msgid "Nezha set LED _ to _ : brightness _ %"
+#. NeZha2 robot library block
+msgid "Nezha set LED _ to _"
 msgstr ""
 
-#. Nezha Library block
-msgid "Nezha set all LEDs to _ : brightness _ %"
+#. NeZha2 robot library block
+msgid "brightness _ %"
 msgstr ""
 
-#. Nezha Library block
+#. NeZha2 robot library block
+msgid "Nezha set all LEDs to _"
+msgstr ""
+
+#. NeZha2 robot library block
 msgid "Nezha trim pot _"
 msgstr ""
 
-#. Nezha Library block
+#. NeZha2 robot library block
 msgid "Nezha soil moisture _"
 msgstr ""
 
-#. Nezha Library block
+#. NeZha2 robot library block
 msgid "Nezha read analog _"
 msgstr ""
 
-#. Nezha Library block
+#. NeZha2 robot library block
 msgid "Nezha crash sensor _"
 msgstr ""
 
-#. Nezha Library block
+#. NeZha2 robot library block
 msgid "Nezha line sensor _ sees line on left _ right _"
 msgstr ""
 
-#. Nezha Library block
+#. NeZha2 robot library block
 msgid "Nezha distance _ (cm)"
 msgstr ""
 
@@ -6140,83 +6153,83 @@ msgstr ""
 msgid "bwd"
 msgstr ""
 
-#. Library name
+#. Nezha Pro library label
 msgid "Nezha Pro"
 msgstr ""
 
-#. Nezha Pro Library choice
+#. Nehza Pro library choice
 msgid "M1"
 msgstr ""
 
-#. Nezha Pro Library choice
+#. Nehza Pro library choice
 msgid "M2"
 msgstr ""
 
-#. Nezha Pro Library choice
+#. Nehza Pro library choice
 msgid "M3"
 msgstr ""
 
-#. Nezha Pro Library choice
+#. Nehza Pro library choice
 msgid "M4"
 msgstr ""
 
-#. Nezha Pro Library choice
+#. Nehza Pro library choice
 msgid "nezhaPro;by shortest path"
 msgstr ""
 
-#. Nezha Pro Library block
+#. Nezha Pro library block
 msgid "np angle _"
 msgstr ""
 
-#. Nezha Pro Library block
+#. Nezha Pro library block
 msgid "np move _ for _ mm speed _ %"
 msgstr ""
 
-#. Nezha Pro Library block
+#. Nezha Pro library block
 msgid "np speed _"
 msgstr ""
 
-#. Nezha Pro Library block
+#. Nezha Pro library block
 msgid "np total angle _"
 msgstr ""
 
-#. Nezha Pro Library block
+#. Nezha Pro library block
 msgid "np reset total angle _"
 msgstr ""
 
-#. Nezha Pro Library block
+#. Nezha Pro library block
 msgid "np rotate _ _ by _ degrees speed _ %"
 msgstr ""
 
-#. Nezha Pro Library block
+#. Nezha Pro library block
 msgid "np rotate _ _ to _ degrees speed _ %"
 msgstr ""
 
-#. Nezha Pro Library block
+#. Nezha Pro library block
 msgid "np run motor _ _ speed _ %"
 msgstr ""
 
-#. Nezha Pro Library block
+#. Nezha Pro library block
 msgid "np set _ angle _ to _ degrees"
 msgstr ""
 
-#. Nezha Pro Library block
+#. Nezha Pro library block
 msgid "np set wheels left _ right _ #BR# circumference _ mm axle _ mm"
 msgstr ""
 
-#. Nezha Pro Library block
+#. Nezha Pro library block
 msgid "np stop all motors"
 msgstr ""
 
-#. Nezha Pro Library block
+#. Nezha Pro library block
 msgid "np stop motor _"
 msgstr ""
 
-#. Nezha Pro Library block
+#. Nezha Pro library block
 msgid "np turn _ by _ degrees speed _ %"
 msgstr ""
 
-#. Nezha Pro Library block
+#. Nezha Pro library block
 msgid "np version"
 msgstr ""
 
@@ -7418,6 +7431,14 @@ msgstr ""
 msgid "Using %1 out of %2 bytes"
 msgstr ""
 
+#. Firmware install by URL dialog
+msgid "ESP32 firmware URL?"
+msgstr ""
+
+#. Firmware install download failure
+msgid "Could not download"
+msgstr ""
+
 #. Firmware install board type confirmation. As in "Use board type micro:bit?"
 msgid "Use board type"
 msgstr ""
@@ -7591,6 +7612,10 @@ msgstr ""
 msgid "rename..."
 msgstr ""
 
+#. Variable rename error message
+msgid "That name is already in use."
+msgstr ""
+
 #. Variable right-click context menu
 msgid "find variable accessors"
 msgstr ""
@@ -7681,6 +7706,14 @@ msgstr ""
 
 #. Block right-click context menu
 msgid "extract block"
+msgstr ""
+
+#. Block right-click context menu
+msgid "delete obsolete block..."
+msgstr ""
+
+#. Block right-click context menu
+msgid "add to library"
 msgstr ""
 
 #. Block right-click context menu tooltip
@@ -8133,6 +8166,10 @@ msgstr ""
 msgid "Add Library"
 msgstr ""
 
+#. Add library error message
+msgid "A library with that name is already in the project. Remove it first to make a new one."
+msgstr ""
+
 #. Placeholder text in the block search box (ctrl-space)
 msgid "search blocks and variables..."
 msgstr ""
@@ -8180,7 +8217,6 @@ msgid "[l] change the color, or drop a reporter into it."
 msgstr ""
 
 #. Tip Bar label or text (at the bottom of the IDE, gives info on the currently hovered element)
-#. Library name
 msgid "Input"
 msgstr ""
 
@@ -8738,1377 +8774,4 @@ msgstr ""
 
 #. Tip Bar text for a block (at the bottom of the IDE, gives info on the currently hovered block or input)
 msgid "Report the number of words of memory available. Stop button frees up memory."
-msgstr ""
-
-#. Library folder
-msgid "folder;Nezha"
-msgstr ""
-
-#. Library folder
-msgid "folder;PlanetX"
-msgstr ""
-
-#. Library name
-msgid "Nezha ESP32"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "button _ _ event?"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "Main control reset"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "Obtain the angle of the _ axis of the gyroscope (0-360 degrees)"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "Obtain the acceleration of the _ axis of the gyroscope (unit mg)"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "get light sensor value"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "Obtain the noise value"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "set color to _"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "set RGB _ to _"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "set all RGB LEDs to _"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "turn off _ RGB LED"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "turn off all RGB LEDs"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "_ title bar"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "screen background color _"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "set text _ to line _ color _"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "create text _ x _ y _ color _ and return object ID"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "update ID _ text _ color _"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "delete object ID _"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "set screen pixel x _ y _ to _"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "set volume to _ %"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "play melody _ at tempo _ bpm"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "play sound _"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "play tone _ Hz for _ ms"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "stop all sounds"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "when SmartIoT switch _ send broadcast _"
-msgstr ""
-
-#. Nezha ESP32 Library block
-#. Wireless Library block
-msgid "Connect SmartIoT with userToken _ topic _"
-msgstr ""
-
-#. Nezha ESP32 Library block
-#. Wireless Library block
-msgid "Upload data to SmartIoT"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "SmartIoT connection"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "SmartIoT switch _"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "set SmartIoT server host _ port _"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "SmartIoT last response"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "pin for port _ _"
-msgstr ""
-
-#. Library name
-msgid "Nezha ESP32 Speech Recognition"
-msgstr ""
-
-#. Nezha ESP32 Speech Recognition Library block
-msgid "enable speech recognition _"
-msgstr ""
-
-#. Nezha ESP32 Speech Recognition Library block
-msgid "disable speech recognition"
-msgstr ""
-
-#. Nezha ESP32 Speech Recognition Library block
-msgid "when _ is recognized send broadcast _"
-msgstr ""
-
-#. Library name
-msgid "Nezha ESP32 Motor"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "start motor _ speed _ % direction _"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "stop motor _"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "reset motor _ position"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "turn motor _ speed _ % direction _ for _ _"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "turn motor _ speed _ % direction _ to absolute angle _"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "set robot load _"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "set robot wheel diameter _ mm"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "set robot left wheel _ right wheel _"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "run robot left wheel speed _ % right wheel speed _ %"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "turn robot at _ % speed with _ acceleration by _ degrees"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "drive robot at _ % speed _ with _ acceleration for _ _"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "stop robot"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "read motor _ speed (degrees/sec)"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "read motor _ absolute angle (degrees)"
-msgstr ""
-
-#. Nezha ESP32 Motor Library block
-msgid "read motor _ relative angle (degrees)"
-msgstr ""
-
-#. Library name
-msgid "AILensPro"
-msgstr ""
-
-#. AILensPro Library block
-msgid "initialize AI camera over I2C"
-msgstr ""
-
-#. AILensPro Library block
-msgid "switch function to _"
-msgstr ""
-
-#. AILensPro Library block
-msgid "set RGB _"
-msgstr ""
-
-#. AILensPro Library block
-msgid "refresh recognition result"
-msgstr ""
-
-#. AILensPro Library block
-msgid "current application mode"
-msgstr ""
-
-#. AILensPro Library block
-msgid "face status"
-msgstr ""
-
-#. AILensPro Library block
-msgid "face ID"
-msgstr ""
-
-#. AILensPro Library block
-msgid "face label"
-msgstr ""
-
-#. AILensPro Library block
-msgid "face similarity"
-msgstr ""
-
-#. AILensPro Library block
-msgid "face blink"
-msgstr ""
-
-#. AILensPro Library block
-msgid "face mouth open"
-msgstr ""
-
-#. AILensPro Library block
-msgid "face detected?"
-msgstr ""
-
-#. AILensPro Library block
-msgid "recognized face detected?"
-msgstr ""
-
-#. AILensPro Library block
-msgid "face coordinate _"
-msgstr ""
-
-#. AILensPro Library block
-msgid "self-learning status"
-msgstr ""
-
-#. AILensPro Library block
-msgid "self-learning ID"
-msgstr ""
-
-#. AILensPro Library block
-msgid "self-learning label"
-msgstr ""
-
-#. AILensPro Library block
-msgid "self-learning similarity"
-msgstr ""
-
-#. AILensPro Library block
-msgid "learned object detected?"
-msgstr ""
-
-#. AILensPro Library block
-msgid "gesture status"
-msgstr ""
-
-#. AILensPro Library block
-msgid "gesture ID"
-msgstr ""
-
-#. AILensPro Library block
-msgid "gesture label"
-msgstr ""
-
-#. AILensPro Library block
-msgid "gesture similarity"
-msgstr ""
-
-#. AILensPro Library block
-msgid "gesture pose similarity"
-msgstr ""
-
-#. AILensPro Library block
-msgid "learned gesture detected?"
-msgstr ""
-
-#. AILensPro Library block
-msgid "send sound-touch path _ auto upload _"
-msgstr ""
-
-#. AILensPro Library block
-msgid "sound-touch recording _"
-msgstr ""
-
-#. AILensPro Library block
-msgid "upload sound-touch recording"
-msgstr ""
-
-#. AILensPro Library block
-msgid "sound-touch status"
-msgstr ""
-
-#. AILensPro Library block
-msgid "sound-touch BPM"
-msgstr ""
-
-#. AILensPro Library block
-msgid "sound-touch beat count"
-msgstr ""
-
-#. AILensPro Library block
-msgid "sound-touch duration (seconds)"
-msgstr ""
-
-#. AILensPro Library block
-msgid "sound-touch message"
-msgstr ""
-
-#. AILensPro Library block
-msgid "set I2C address _"
-msgstr ""
-
-#. AILensPro Library block
-msgid "set I/O chunk size _ interval _ ms"
-msgstr ""
-
-#. AILensPro Library block
-msgid "switch to launcher"
-msgstr ""
-
-#. AILensPro Library block
-msgid "refresh face result"
-msgstr ""
-
-#. AILensPro Library block
-msgid "refresh self-learning result"
-msgstr ""
-
-#. AILensPro Library block
-msgid "refresh gesture result"
-msgstr ""
-
-#. AILensPro Library block
-msgid "refresh sound-touch result"
-msgstr ""
-
-#. AILensPro Library block
-msgid "mode name _"
-msgstr ""
-
-#. AILensPro Library block
-msgid "raw register read address _ length _"
-msgstr ""
-
-#. AILensPro Library block
-msgid "raw register write address _ data _"
-msgstr ""
-
-#. AILensPro Library block
-msgid "_aicam CRC8 _ length _"
-msgstr ""
-
-#. AILensPro Library block
-msgid "_aicam read register _ length _"
-msgstr ""
-
-#. AILensPro Library block
-msgid "_aicam write register _ data _"
-msgstr ""
-
-#. Library name
-msgid "AI_Module"
-msgstr ""
-
-#. AI_Module Library block
-msgid "initialize AI camera"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera switch function to _"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera capture image"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera image contains a ball?"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera image contains _ ball?"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera ball count"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera ball _ value"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera image contains a face?"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera face count"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera face _ value"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera image contains number card _ ?"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera image contains letter card _ ?"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera image contains traffic sign card _ ?"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera image contains _ card?"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera card count"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera card _ value"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera image contains _ color card?"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera color-card count"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera black-line _ value"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera image contains black line offset _ ?"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera learn object in view as _"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera clear learned objects"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera image contains object _ ?"
-msgstr ""
-
-#. AI_Module Library block
-msgid "AI camera object _ confidence"
-msgstr ""
-
-#. AI_Module Library block
-msgid "initialize gesture sensor"
-msgstr ""
-
-#. AI_Module Library block
-msgid "gesture sensor current gesture"
-msgstr ""
-
-#. AI_Module Library block
-msgid "gesture sensor detected _ ?"
-msgstr ""
-
-#. AI_Module Library block
-msgid "color sensor hue (0-360)"
-msgstr ""
-
-#. AI_Module Library block
-msgid "color sensor detected _ ?"
-msgstr ""
-
-#. AI_Module Library block
-msgid "speech recognition sensor clear learned phrases"
-msgstr ""
-
-#. AI_Module Library block
-msgid "speech recognition sensor enter learning mode"
-msgstr ""
-
-#. AI_Module Library block
-msgid "speech recognition sensor heard _ ?"
-msgstr ""
-
-#. AI_Module Library block
-msgid "speech recognition sensor current code"
-msgstr ""
-
-#. Library name
-msgid "Display"
-msgstr ""
-
-#. Display Library block
-msgid "numeric display set port _"
-msgstr ""
-
-#. Display Library block
-msgid "numeric display show _ (0-9999)"
-msgstr ""
-
-#. Display Library block
-msgid "numeric display digit _ (1-4) decimal point show _"
-msgstr ""
-
-#. Display Library block
-msgid "clear numeric display"
-msgstr ""
-
-#. Display Library block
-msgid "connect rainbow LED to _ : count _ mode _"
-msgstr ""
-
-#. Display Library block
-msgid "set rainbow LED color _"
-msgstr ""
-
-#. Display Library block
-msgid "set rainbow LED pixel _ to _"
-msgstr ""
-
-#. Display Library block
-msgid "rainbow LED brightness _"
-msgstr ""
-
-#. Display Library block
-msgid "rainbow LED show gradient color"
-msgstr ""
-
-#. Display Library block
-msgid "shift rainbow LED _"
-msgstr ""
-
-#. Display Library block
-msgid "rotate rainbow LED _"
-msgstr ""
-
-#. Display Library block
-msgid "clear rainbow LED"
-msgstr ""
-
-#. Display Library block
-msgid "generate RGB color _ _ _"
-msgstr ""
-
-#. Display Library block
-msgid "generate HSV color _ _ _"
-msgstr ""
-
-#. Display Library block
-msgid "rainbow LED color _"
-msgstr ""
-
-#. Display Library block
-msgid "rainbow LED range start _ length _"
-msgstr ""
-
-#. Display Library block
-msgid "OLED line _ show text _"
-msgstr ""
-
-#. Display Library block
-msgid "OLED line _ show number _"
-msgstr ""
-
-#. Display Library block
-msgid "clear OLED"
-msgstr ""
-
-#. Display Library block
-msgid "matrix display coordinate X _ Y _"
-msgstr ""
-
-#. Display Library block
-msgid "5x5 matrix display emoji _"
-msgstr ""
-
-#. Display Library block
-msgid "refresh matrix display"
-msgstr ""
-
-#. Display Library block
-msgid "clear matrix display"
-msgstr ""
-
-#. Library name
-msgid "Execute"
-msgstr ""
-
-#. Execute Library block
-msgid "laser module _ turn _"
-msgstr ""
-
-#. Execute Library block
-msgid "fan _ turn _"
-msgstr ""
-
-#. Execute Library block
-msgid "LED _ turn _"
-msgstr ""
-
-#. Execute Library block
-msgid "MP3 set port _"
-msgstr ""
-
-#. Execute Library block
-msgid "MP3 set volume _ (0-25)"
-msgstr ""
-
-#. Execute Library block
-msgid "MP3 play folder _ file _ : repeat _"
-msgstr ""
-
-#. Execute Library block
-msgid "MP3 play track _ : repeat _"
-msgstr ""
-
-#. Execute Library block
-msgid "MP3 loop folder _"
-msgstr ""
-
-#. Execute Library block
-msgid "MP3 execute _"
-msgstr ""
-
-#. Input Library block
-msgid "when button _ key _ is pressed send broadcast _"
-msgstr ""
-
-#. Input Library block
-msgid "button _ key _ is pressed"
-msgstr ""
-
-#. Input Library block
-msgid "crash sensor _ pressed?"
-msgstr ""
-
-#. Input Library block
-msgid "ultrasonic sensor _ distance, unit _"
-msgstr ""
-
-#. Input Library block
-msgid "PIR sensor _ detects motion?"
-msgstr ""
-
-#. Input Library block
-msgid "temperature and humidity sensor _ _ value"
-msgstr ""
-
-#. Input Library block
-msgid "temperature sensor _ temperature, unit _"
-msgstr ""
-
-#. Input Library block
-msgid "line-tracking sensor _ detects _"
-msgstr ""
-
-#. Input Library block
-msgid "noise sensor _ level (dB)"
-msgstr ""
-
-#. Input Library block
-msgid "light sensor _ level (lux)"
-msgstr ""
-
-#. Input Library block
-msgid "soil moisture sensor _ value (0-100)"
-msgstr ""
-
-#. Input Library block
-msgid "water level sensor _ speed _ value (0-100)"
-msgstr ""
-
-#. Input Library block
-msgid "UV sensor _ level (0-15)"
-msgstr ""
-
-#. Input Library block
-msgid "gas sensor _ _ concentration"
-msgstr ""
-
-#. Input Library block
-msgid "PM2.5 sensor _ concentration"
-msgstr ""
-
-#. Input Library block
-msgid "dust sensor _ value"
-msgstr ""
-
-#. Input Library block
-msgid "trimpot _ analog value"
-msgstr ""
-
-#. Input Library block
-msgid "RFID sensor write data _ to card"
-msgstr ""
-
-#. Input Library block
-msgid "RFID sensor detects card?"
-msgstr ""
-
-#. Input Library block
-msgid "RFID sensor read data from card"
-msgstr ""
-
-#. Input Library block
-msgid "BME280 sensor _ value"
-msgstr ""
-
-#. Input Library block
-msgid "real-time clock set to _ _"
-msgstr ""
-
-#. Input Library block
-msgid "real-time clock get _"
-msgstr ""
-
-#. Input Library block
-msgid "return four-channel grayscale line sensor state value"
-msgstr ""
-
-#. Input Library block
-msgid "four-channel grayscale line sensor channel _ detects _"
-msgstr ""
-
-#. Input Library block
-msgid "four-channel grayscale line sensor detects state _"
-msgstr ""
-
-#. Input Library block
-msgid "four-channel grayscale line sensor channel _ gray value"
-msgstr ""
-
-#. Library name
-msgid "Wireless"
-msgstr ""
-
-#. Wireless Library block
-msgid "WiFi module set port _ baud rate _"
-msgstr ""
-
-#. Wireless Library block
-msgid "WiFi connect SSID _ password _"
-msgstr ""
-
-#. Wireless Library block
-msgid "WiFi send AT _ wait _ ms"
-msgstr ""
-
-#. Wireless Library block
-msgid "WiFi read response"
-msgstr ""
-
-#. Wireless Library block
-msgid "wifi connected"
-msgstr ""
-
-#. Wireless Library block
-msgid "set data to send SmartIoT Data 1 _"
-msgstr ""
-
-#. Wireless Library block
-msgid "smartiot connected"
-msgstr ""
-
-#. Wireless Library block
-msgid "when SmartIoT switch is _"
-msgstr ""
-
-#. Wireless Library block
-msgid "SmartIoT switch is _"
-msgstr ""
-
-#. Wireless Library block
-msgid "joystick button _ is pressed"
-msgstr ""
-
-#. Wireless Library block
-msgid "joystick _ analog value"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "Chinese style"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "country"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "symphony"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "lyrical"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "Japanese"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "punk"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "pop"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "jazz music"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "blues"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "door opening"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "birthday song"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "wind"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "rain"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "thunder"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "pressed"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "released"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "show"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "hide"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "CN"
-msgstr ""
-
-#. Nezha ESP32 Library enum
-msgid "EN"
-msgstr ""
-
-#. Nezha ESP32 Motor Library enum
-msgid "low"
-msgstr ""
-
-#. Nezha ESP32 Motor Library enum
-#. Input Library enum
-msgid "medium"
-msgstr ""
-
-#. Nezha ESP32 Motor Library enum
-msgid "high"
-msgstr ""
-
-#. Nezha ESP32 Motor Library enum
-#. Input Library enum
-msgid "mm"
-msgstr ""
-
-#. Nezha ESP32 Motor Library enum
-#. AI_Module Library enum
-msgid "counterclockwise"
-msgstr ""
-
-#. Nezha ESP32 Motor Library enum
-msgid "shortest path"
-msgstr ""
-
-#. Nezha ESP32 Motor Library enum
-msgid "no wait"
-msgstr ""
-
-#. Nezha ESP32 Motor Library enum
-msgid "wait until done"
-msgstr ""
-
-#. Nezha ESP32 Motor Library enum
-msgid "heavy"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "reset gyro"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "Nezha light level"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "Nezha loudness"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "angle of _ axis of the gyroscope (0-360 degrees)"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "acceleration of _ axis of the gyroscope (unit g)"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "Obtain the acceleration of the _ axis of the gyroscope (unit g)"
-msgstr ""
-
-#. Nezha ESP32 Library block
-msgid "Data 2 _ Data 3 _ Data 4 _ Data 5 _ Data 6 _ Data 7 _ Data 8 _"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "x coordinate"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "y coordinate"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "size"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "confidence"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "ball ID"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "color ID"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "width"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "height"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "card recognition"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "face recognition"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "ball recognition"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "line tracking"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "color recognition"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "feature learning"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "ID1"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "ID2"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "ID3"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "ID4"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "ID5"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "offset angle"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "offset distance"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "line length"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "mouse"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "micro:bit"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "ruler"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "pear"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "boat"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "apple"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "car"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "pen"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "airplane"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "clock"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "grapes"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "cup"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "turn around"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "hello Xiaoen"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "turn headlights on"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "turn headlights off"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "move forward"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "move backward"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "line-tracking mode"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "obstacle-avoidance mode"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "park"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "start device"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "stop device"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "pause operation"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "resume operation"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "increase level"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "decrease level"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "play music"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "stop music"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "next track"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "run function one"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "run function two"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "learned phrase 1"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "learned phrase 2"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "learned phrase 3"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "learned phrase 4"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "learned phrase 5"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "learned phrase 6"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "learned phrase 7"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "learned phrase 8"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "learned phrase 9"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "learned phrase 10"
-msgstr ""
-
-#. AI_Module Library enum
-#. Input Library enum
-msgid "humidity (0-100%)"
-msgstr ""
-
-#. AI_Module Library enum
-#. Input Library enum
-msgid "pressure (hPa)"
-msgstr ""
-
-#. AI_Module Library enum
-#. Input Library enum
-msgid "altitude (m)"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "cyan"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "magenta"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "up"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "down"
-msgstr ""
-
-#. AI_Module Library enum
-msgid "wave"
-msgstr ""
-
-#. AI_Module Library enum
-#. Input Library enum
-msgid "weekday"
-msgstr ""
-
-#. Input Library enum
-msgid "temperature (C)"
-msgstr ""
-
-#. Input Library enum
-msgid "humidity (0-100)"
-msgstr ""
-
-#. Input Library enum
-msgid "cm"
-msgstr ""
-
-#. Input Library enum
-msgid "inch"
-msgstr ""
-
-#. Input Library enum
-msgid "carbon monoxide"
-msgstr ""
-
-#. Input Library enum
-msgid "carbon dioxide"
-msgstr ""
-
-#. Input Library enum
-msgid "smoke"
-msgstr ""
-
-#. Input Library enum
-msgid "alcohol"
-msgstr ""
-
-#. Input Library enum
-msgid "Celsius"
-msgstr ""
-
-#. Input Library enum
-msgid "Fahrenheit"
-msgstr ""
-
-#. Input Library enum
-msgid "slow"
-msgstr ""
-
-#. Input Library enum
-msgid "fast"
-msgstr ""
-
-#. SmartIoT Space Library block
-msgid "connect SmartIoT with usertoken _ topic _"
-msgstr ""
-
-#. SmartIoT Space Library block
-msgid "set data to send SmartIoT field 1 _"
-msgstr ""
-
-#. SmartIoT Space Library block
-msgid "field 2 _"
-msgstr ""
-
-#. SmartIoT Space Library block
-msgid "field 3 _"
-msgstr ""
-
-#. SmartIoT Space Library block
-msgid "field 4 _"
-msgstr ""
-
-#. SmartIoT Space Library block
-msgid "field 5 _"
-msgstr ""
-
-#. SmartIoT Space Library block
-msgid "field 6 _"
-msgstr ""
-
-#. SmartIoT Space Library block
-msgid "field 7 _"
-msgstr ""
-
-#. SmartIoT Space Library block
-msgid "field 8 _"
-msgstr ""
-
-#. SmartIoT Space Library block
-msgid "upload data to SmartIoT"
-msgstr ""
-
-#. SmartIoT Space Library block
-msgid "set data to send SmartIoT field 1 _ : field 2 _ : field 3 _ : field 4 _ : field 5 _ : field 6 _ : field 7 _ : field 8 _"
-msgstr ""
-
-#. Library name
-msgid "SmartIoT Space"
 msgstr ""

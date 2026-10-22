@@ -86,7 +86,8 @@ MB_Specs.projectSpecArrayForSelector = function (selector) {
 	let spec = MB_editor.project.blockSpecs.get(selector);
 	if (!spec) return undefined;
 	let result = [spec.blockType || ' ', selector, spec.specString || selector];
-	if (spec.slotTypes) result.push(spec.slotTypes, ...(spec.defaults || []));
+	const defaults = spec.defaults || [];
+	if (spec.slotTypes || (defaults.length > 0)) result.push(spec.slotTypes || '', ...defaults); // '' types keep their defaults
 	return result;
 }
 
@@ -122,7 +123,8 @@ MB_Specs.specFor = function (selector, args, isReporter) {
 				if (i > 0) spec += ' ';
 				let p = specParts[i];
 				if (p == '_') {
-					spec += this.snapTypeForMBType(mbTypes[typeIndex++]);
+					spec += this.snapTypeForMBType(mbTypes[typeIndex], specArray[4 + typeIndex]);
+					typeIndex++;
 				} else if (p.startsWith('#')) {
 					spec += p;
 				} else {
@@ -210,6 +212,8 @@ MB_Specs.blockForSpec = function (spec, category) {
 	let b = new MB_Parser('').blockWithArgs(spec[1], spec.slice(4), ('r' == type), false, false, type,
 		this.snapSpecForSpecArray(spec));
 	b.setCategory(category);
+	// A slot with no type shows its default only as a hint: a copy is called with nil there.
+	b.inputs().forEach((slot) => { if (slot.isHint) slot.mbValue = null; });
 	// A template is copied when it is dragged; a draggable one would be taken
 	// out of the palette instead (HandMorph.processMouseMove).
 	b.isDraggable = false;
@@ -236,7 +240,8 @@ MB_Specs.snapSpecForSpecArray = function (specArray) {
 	for (let i = 0; i < parts.length; i++) {
 		let p = parts[i];
 		if (p == '_') {
-			parts[i] = this.snapTypeForMBType(mbArgTypes[argIndex++]);
+			parts[i] = this.snapTypeForMBType(mbArgTypes[argIndex], specArray[4 + argIndex]);
+			argIndex++;
 		} else if (this.isSlotSpec(p)) {
 			// Label text in a MicroBlocks spec, but a slot spec to Snap's parseSpec,
 			// and labelPart throws on one it does not know. A zero-width space in
@@ -247,16 +252,20 @@ MB_Specs.snapSpecForSpecArray = function (specArray) {
 	return parts.join(' ');
 }
 
-MB_Specs.snapTypeForMBType = function (mbType) {
-	// Return the Snap! slot type for the given MicroBlocks slot type or '%auto' if mbType is null.
+MB_Specs.snapTypeForMBType = function (mbType, defaultValue) {
+	// Return the Snap! slot type for the given MicroBlocks slot type.
 	// The Snap! types are the MicroBlocks types prefixed by '%'.
-	// MicroBlocks types: 'num' 'str' 'auto' 'bool' 'color' 'cmd' 'var' 'menu' 'microbitDisplay'
+	// MicroBlocks types: 'num' 'str' 'auto' 'bool' 'color' 'cmd' 'var' 'menu' 'microbitDisplay' 'cmt'
+	// An input with no type takes a number if its default is one, and is otherwise '%any'.
 
-	if (mbType == null) return '%auto'; // default
+	if ((mbType == null) || ('' == mbType)) return ('number' == typeof defaultValue) ? '%num' : '%any';
 
 	let typeParts = mbType.split('.');
 	if (typeParts.length > 1) { // this is a menu (e.g. menu.buttonMenu)
-		return ('%menu.' + typeParts[0] + '.' + typeParts[1]);
+		// A colon would start a new section of the block spec, so an integer
+		// range such as 'range:1-8' is written 'range1-8'.
+		let menuName = typeParts[1].replace(/^range:/, 'range');
+		return ('%menu.' + typeParts[0] + '.' + menuName);
 	}
 
 	return ('%' + mbType)
@@ -423,7 +432,7 @@ MB_Specs.mbBlockSpecs = function () {
 			["h", "whenBroadcastReceived", "when _ received", "str.broadcastMenu", "go!"],
 			[" ", "sendBroadcast", "broadcast _", "str.broadcastMenu", "go!", ""],
 		"-",
-			[" ", "comment", "comment _", "str", "How this works..."],
+			[" ", "comment", "comment _", "cmt", "How this works..."],
 			["r", "[data:range]", "range _ to _ : by _", "num num num", 1, 10, 2],
 			[" ", "for", "for _ in _ _", "var num cmd", "i", 10],
 			[" ", "repeatUntil", "repeat until _ _", "bool cmd", false],
@@ -495,7 +504,7 @@ MB_Specs.mbBlockSpecs = function () {
 			["r", "[data:makeList]", "list : _ : ...", "auto auto auto", "cat", "dog", "bird"],
 			[" ", "[data:addLast]", "add _ to list _", "auto auto", "fish"],
 		"-",
-			[" ", "atPut", "replace item _ of list _ with _", "auto.replaceItemMenu str auto", 1, "aList", 10],
+			[" ", "atPut", "replace item _ of list _ with _", "auto.replaceItemMenu str auto", 1, "", 10],
 			[" ", "[data:delete]", "delete item _ of list _", "auto.replaceItemMenu str", 1],
 		"-",
 			["r", "[data:find]", "find _ in _ : starting at _", "auto str num", "a", "cat", 1],
@@ -543,10 +552,10 @@ MB_Specs.mbBlockSpecs = function () {
 			["r", "[vars:varExists]", "variable named _ exists?", "str", "var"],
 			["r", "[vars:varNamed]", "value of variable named _", "str", "var"],
 			[" ", "[vars:setVarNamed]", "set variable named _ to _", "str auto", "var", 0],
-		"Data" // deprecated; not in built-in palette
+		"Data", // deprecated; not in built-in palette
 			["r", "newArray", "new list length _", "num", 10],
-			[" ", "fillArray", "fill list _ with _", "str auto", "aList", 0],
-			[" ", "fillList", "fill list _ with _", "str auto", "aList", 0],
+			[" ", "fillArray", "fill list _ with _", "str auto", "", 0],
+			[" ", "fillList", "fill list _ with _", "str auto", "", 0],
 		"Prims-JSON (not in palette)",
 			["r", "[misc:jsonGet]", "json _ . _", "str str", "{ \"x\": 1, \"y\": [41, 42, 43] }", "y.2"],
 			["r", "[misc:jsonCount]", "json count _ . _", "str str", "[1, [4, 5, 6, 7], 3]", ""],
