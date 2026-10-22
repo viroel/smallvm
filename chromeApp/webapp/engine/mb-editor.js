@@ -6,7 +6,7 @@
 
 // mb-editor.js - MicroBlocks top-level editor.
 
-/* global MB_BlockSearchBox, MB_Files, MB_FilePicker, MB_LibraryImportDialog, MB_LibraryInfoDialog, MB_Parser, MB_Specs, MB_Project, Color, Point, BlockMorph, ReporterBlockMorph, ScriptsMorph, ScrollFrameMorph, StringMorph, world */
+/* global MB_BlockSearchBox, MB_Files, MB_FilePicker, MB_LibraryImportDialog, MB_LibraryInfoDialog, MB_Module, MB_Parser, MB_Specs, MB_Project, Color, Point, BlockMorph, ReporterBlockMorph, ScriptsMorph, ScrollFrameMorph, StringMorph, HatBlockMorph, SpeechBubbleMorph, TextMorph, ZOOM, world */
 
 class MB_Editor {
 	constructor() {
@@ -39,11 +39,11 @@ class MB_Editor {
 		this.undoStack = [];
 		this.redoStack = [];
 		this.watchProjectVariables();
-		this.blockSize = 100;
+		this.blockSize = 125; // a fresh profile draws at GP's default block size
 	}
 
 	open(world) {
-		this.paletteWidth = 208;
+		this.paletteWidth = 260; // screen px, whatever the block size
 
 		this.palette = new ScrollFrameMorph();
 		this.palette.contents.acceptsDrops = true;
@@ -53,6 +53,8 @@ class MB_Editor {
 				this.scriptChanged(); // its chunk is deleted at the next step
 			}
 		};
+		this.trashcan = this.newTrashcan();
+		this.palette.add(this.trashcan);
 
 		// The scripting pane scrolls, so a script taller than the window can
 		// be reached without dragging it off the pane.
@@ -64,6 +66,12 @@ class MB_Editor {
 		// The scripting pane scrolls itself while a block is dragged near its edge; the palette does not.
 		this.scriptsFrame.enableAutoScrolling = false;
 		this.palette.enableAutoScrolling = false;
+		// The scripting pane's scroll bars show only while it scrolls and while the
+		// pointer is over one. The palette's always show.
+		this.scriptsFrame.stepFrame = () => {
+			ScrollFrameMorph.prototype.stepFrame.call(this.scriptsFrame);
+			this.hideIdleScrollBars();
+		};
 
 		// The panes exist now, so they can take their colours. This is the only
 		// place that gives them one, here and on every later change.
@@ -88,6 +96,19 @@ class MB_Editor {
 			if (!((typeof GP === 'object') && GP.delegateKeyboardEvents)) HTMLTextAreaElement.prototype.focus.call(this);
 		};
 
+		// morphic takes a Cmd-click as a right click; the click event after it must not close its menu.
+		world.worldCanvas.addEventListener('click', (event) => {
+			if (event.metaKey) event.ignoreGlobalListener = true;
+		});
+
+		// Text copied or cut while editing is what the text menu's paste offers.
+		if (world.keyboardHandler) for (const type of ['copy', 'cut']) {
+			world.keyboardHandler.addEventListener(type, () => {
+				const area = world.keyboardHandler;
+				setClipboardBuffer(area.value.slice(area.selectionStart, area.selectionEnd));
+			});
+		}
+
 		// Escape with nothing being edited goes to the chrome, as GP's Page sends it. Until
 		// morphic refocuses its keyboard textarea after a click, the key goes to the body.
 		// The IDE's keys act unless a chrome dialog has them. Morphic handles a key before
@@ -102,6 +123,10 @@ class MB_Editor {
 			event.stopPropagation();
 			event.preventDefault();
 		}, true);
+		// Whether Shift is down now: a result shown while it is gets copied, and it arrives after the click.
+		const noteShift = (event) => { this.shiftDown = event.shiftKey; };
+		['keydown', 'keyup', 'pointerdown'].forEach((type) => document.addEventListener(type, noteShift, true));
+		window.addEventListener('blur', () => { this.shiftDown = false; });
 		let morphicHadKeys = false;
 		document.addEventListener('keydown', () => { morphicHadKeys = !!(world.keyboardFocus || world.activeMenu); }, true);
 		if (world.keyboardHandler) document.addEventListener('keydown', (event) => {
@@ -151,29 +176,53 @@ class MB_Editor {
 		let height = world.height();
 		if (typeof MB_Tips !== 'undefined') height -= MB_Tips.height;
 		this.palette.setPosition(world.position());
-		this.palette.setExtent(new Point(this.paletteWidth, height));
+		const paletteWidth = this.paletteWidth / ZOOM; // paletteWidth is screen px, the world is in scene units
+		this.palette.setExtent(new Point(paletteWidth, height));
 		this.scriptsFrame.setPosition(
-			world.position().add(new Point(this.paletteWidth, 0)));
+			world.position().add(new Point(paletteWidth, 0)));
 		this.scriptsFrame.setExtent(
-			new Point(world.width() - this.paletteWidth,
+			new Point(world.width() - paletteWidth,
 			this.palette.height()
 		));
 		if (this.paletteResizer) {
 			this.paletteResizer.setPosition(this.palette.topRight());
-			this.paletteResizer.setExtent(new Point(15, this.palette.height()));
+			// 15 screen px wide, whatever the block size.
+			this.paletteResizer.setExtent(new Point(15 / ZOOM, this.palette.height()));
 		}
+		this.placeTrashcan();
+	}
+
+	newTrashcan() {
+		// A picture at the palette's bottom right saying that a block dropped on the
+		// palette is deleted. Clicks, drops and the wheel go to the palette under it.
+		const trashcan = new Morph();
+		trashcan.image = null;
+		trashcan.topMorphAt = () => null;
+		trashcan.render = (ctx) => {
+			if (trashcan.image && trashcan.image.naturalWidth) ctx.drawImage(trashcan.image, 0, 0, trashcan.width(), trashcan.height());
+		};
+		return trashcan;
+	}
+
+	placeTrashcan() {
+		// 32 screen px square, 8 in from the right and bottom edges or from a scrollbar there.
+		const palette = this.palette, size = 32 / ZOOM, inset = 8 / ZOOM;
+		let right = palette.right() - inset, bottom = palette.bottom() - inset;
+		if (palette.vBar.isVisible) right -= palette.vBar.width();
+		if (palette.hBar.isVisible) bottom -= palette.hBar.height();
+		this.trashcan.setExtent(new Point(size, size));
+		this.trashcan.setPosition(new Point(right - size, bottom - size));
 	}
 
 	newPaneResizer() {
 		// A strip over the left edge of the scripting area. Dragging it sets the
-		// palette's width, from 90 to 600 and no closer than 25 to the world's right edge.
+		// palette's width, from 90 to 600 screen px and no closer than 25 scene units to the world's right edge.
 		const resizer = new Morph();
 		resizer.color = new Color(180, 180, 255);
 		resizer.alpha = 0; // drawn only while the pointer is over it
 		let offset = 0;
 		const highlight = (on) => {
 			resizer.alpha = on ? 0.6 : 0;
-			world.worldCanvas.style.cursor = on ? 'ew-resize' : '';
 			resizer.changed();
 		};
 		// A block being carried passes through to the scripting area below.
@@ -186,8 +235,8 @@ class MB_Editor {
 		};
 		resizer.mouseMove = (pos, button) => {
 			if (button !== 'left') return;
-			const right = pos.x - offset - this.palette.left();
-			this.paletteWidth = Math.max(90, Math.min(right, 600, world.width() - 25));
+			const right = (pos.x - offset - this.palette.left()) * ZOOM;
+			this.paletteWidth = Math.max(90, Math.min(right, 600, (world.width() - 25) * ZOOM));
 			this.fixLayout();
 		};
 		return resizer;
@@ -208,17 +257,11 @@ class MB_Editor {
 
 		let scriptsPane = this.scriptsPane();
 		b.setPosition(scriptsPane.position().add(new Point(x, y)));
-		b.category = MB_Specs.categoryForSelector(b.selector);
+		if (!b.isFunctionDefinition()) b.category = MB_Specs.categoryForSelector(b.selector);
 		b.setColor(b.colorFor(b.category));
 		scriptsPane.add(b);
 		scriptsPane.adjustBounds();
 		scriptsPane.changed();
-	}
-
-	randomBetween(min, max) {
-		min = Math.ceil(min);
-		max = Math.floor(max);
-		return Math.floor(Math.random() * (max - min + 1)) + min;
 	}
 
 	// ***** Copy and paste *****
@@ -432,10 +475,12 @@ class MB_Editor {
 		return this.pasteScriptText(event.data);
 	}
 
-	pasteScriptText(text) {
+	pasteScriptText(text, atHand = false) {
 		// Both a browser paste event and the chrome's paste menu item arrive here.
+		// The menu item pastes at the hand, moved up and left by about a menu's offset.
 		if (!text.startsWith('GP Script')) return; // ignore non-script paste
-		return this.pasteScripts(text.slice(text.indexOf('\n') + 1));
+		const dst = atHand ? world.hand.position().subtract(new Point(40, 90)).subtract(this.scriptsPane().position()) : null;
+		return this.pasteScripts(text.slice(text.indexOf('\n') + 1), dst);
 	}
 
 	async pasteScripts(scriptString, dst) {
@@ -487,7 +532,10 @@ class MB_Editor {
 		// One definition hat per function, and never a second for the same one.
 		if (func == null) return;
 		if (this.definitionShown(func.functionName)) return;
-		this.addToBottom(scriptForFunction(func));
+		const hat = scriptForFunction(func);
+		// A hidden definition keeps its body at the block size it was made at.
+		this.relayoutScript(hat);
+		this.addToBottom(hat);
 	}
 
 	definitionShown(funcName) {
@@ -555,20 +603,36 @@ class MB_Editor {
 	applyUserPreferences() {
 		// Resize, recolour and refill for a preference that changes the canvas,
 		// and leave the user on the library or category they were showing. Only
-		// a selection that is no longer there falls back.
+		// a selection that is no longer offered falls back.
 
-		const percent = this.readUserPreferences().blockSizePercent;
+		const prefs = this.readUserPreferences();
+		if (typeof prefs.locale !== 'string') {
+			// The chrome starts in the saved language, read after this runs.
+			this.saveToUserPreferences('locale', this.isChineseWebapp() ? 'zh_chs' : 'en');
+		}
+		const percent = prefs.blockSizePercent;
 		if (typeof percent === 'number' && Number.isFinite(percent)) {
 			this.applyBlockSize(Math.max(25, Math.min(500, percent)));
+		} else {
+			this.applyBlockSize(this.blockSize);
 		}
 		this.applyDarkMode();
-		this.tellIDE('libraryList', this.libraryList());
-		const showing = this.library ? this.project.libraryNamed(this.library) : this.category;
-		if (showing) {
+		const libs = this.libraryList();
+		this.tellIDE('libraryList', libs);
+		const offered = this.library
+			? libs.some((lib) => lib.label === this.library)
+			: this.category && (this.devMode() || ('cat;Comm' !== this.category));
+		if (offered) {
 			this.updatePalette();
 		} else {
 			this.selectCategory('cat;Control');
 		}
+	}
+
+	isChineseWebapp() {
+		// A Chinese mirror of the IDE, or a browser that asks for Chinese.
+		return ['microblocksfun.cn', 'blocks.aimaker.space'].some((host) => location.href.includes(host))
+			|| Array.from(navigator.languages || []).some((lang) => lang.includes('zh'));
 	}
 
 	libraryList() {
@@ -605,7 +669,8 @@ class MB_Editor {
 		let contents = this.palette.contents;
 		contents.children.slice().forEach((m) => { m.destroy(); });
 		contents.setPosition(this.palette.position()); // scroll back to the top
-		this.paletteY = contents.top() + 10;
+		// the insets and the gap between blocks are screen pixels, the same at every block size
+		this.paletteY = contents.top() + (16 / ZOOM);
 		if (this.library) {
 			this.addBlocksForLibrary(this.library);
 		} else if ('cat;Variables' == this.category) {
@@ -617,6 +682,7 @@ class MB_Editor {
 			this.addBlocksForCategory(this.category);
 		}
 		contents.adjustBounds();
+		this.placeTrashcan(); // the scrollbars may have come or gone
 		this.palette.changed();
 	}
 
@@ -649,13 +715,17 @@ class MB_Editor {
 				palette: new Color(62, 66, 89),
 				scripts: new Color(55, 59, 79),
 				slider: new Color(144, 149, 174),
+				paletteSlider: new Color(158, 163, 188),
+				paletteTrack: new Color(74, 79, 105),
 				label: new Color(144, 149, 174),
 			}
 			: {
-				palette: new Color(180, 180, 180),
-				scripts: new Color(150, 150, 150),
-				slider: new Color(200, 200, 200),
-				label: new Color(0, 0, 0),
+				palette: new Color(235, 237, 241),
+				scripts: new Color(244, 244, 247),
+				slider: new Color(176, 179, 197),
+				paletteSlider: new Color(120, 125, 152),
+				paletteTrack: new Color(222, 224, 231),
+				label: new Color(84, 90, 122),
 			};
 	}
 
@@ -674,9 +744,19 @@ class MB_Editor {
 		this.palette.setColor(colors.palette);
 		this.scripts.setColor(colors.scripts);
 		this.scriptsFrame.setColor(colors.scripts);
-		for (const frame of [this.palette, this.scriptsFrame]) {
-			frame.hBar.button.setColor(colors.slider);
-			frame.vBar.button.setColor(colors.slider);
+
+		// The palette's bars are opaque on a track, so they show whenever its blocks overflow.
+		for (const bar of [this.palette.hBar, this.palette.vBar]) {
+			bar.alpha = 1;
+			bar.setColor(colors.paletteTrack);
+			bar.button.alpha = 1;
+			bar.button.setColor(colors.paletteSlider);
+		}
+		if (typeof Image !== 'undefined') { // no page to load it from otherwise
+			const image = new Image();
+			image.onload = () => this.trashcan.rerender();
+			image.src = 'img/trashcan-' + (this.darkMode() ? 'dark' : 'light') + '.svg';
+			this.trashcan.image = image;
 		}
 	}
 
@@ -688,10 +768,10 @@ class MB_Editor {
 	}
 
 	addPaletteBlock(b) {
-		b.setPosition(new Point(this.palette.contents.left() + 15, this.paletteY));
+		b.setPosition(new Point(this.palette.contents.left() + (16 / ZOOM), this.paletteY));
 		b.isTemplate = true;
 		this.palette.contents.add(b);
-		this.paletteY += b.height() + 10;
+		this.paletteY += b.height() + (8 / ZOOM);
 	}
 
 	addPaletteLabel(text) {
@@ -704,17 +784,40 @@ class MB_Editor {
 	}
 
 	addPaletteButton(label, action) {
-		// A push button in the palette, in the file picker's button style. The
-		// action is a function or the name of a method on the editor.
+		// A push button in the palette: a pill 26 screen px high with a bold 14 px
+		// Arial label and a one device pixel border, yellow under the pointer, the
+		// same size at every block size.
 
-		const button = new TriggerMorph(this, action, label, 14, null, null, null,
-			new Color(20, 20, 20));
-		button.color = new Color(220, 220, 220);
-		button.highlightColor = new Color(240, 240, 240);
-		button.setExtent(new Point(Math.max(30, button.label.width() + 20), 26));
-		button.setPosition(new Point(this.palette.contents.left() + 15, this.paletteY));
+		const dark = this.darkMode();
+		const ink = new Color(38, 41, 56); // blueGray 900
+		const labelColor = dark ? new Color(176, 179, 197) : ink; // blueGray 200
+		const borderColor = dark ? 'rgb(69, 74, 100)' : 'rgb(176, 179, 197)'; // blueGray 700, 200
+		const button = new TriggerMorph(this, action, label, 14 / ZOOM, 'sans-serif', null, null, labelColor, true);
+		button.label.fontName = 'Arial';
+		button.label.fixLayout();
+		button.setExtent(new Point(Math.max(30 / ZOOM, button.label.width() + (25 / ZOOM)), 26 / ZOOM));
+		button.render = (ctx) => {
+			const w = button.width(), h = button.height();
+			ctx.beginPath();
+			if (button.userState !== 'normal') {
+				ctx.roundRect(0, 0, w, h, h / 2);
+				ctx.fillStyle = 'rgb(254, 215, 34)'; // yellow
+				ctx.fill();
+				return;
+			}
+			const line = 1 / (ZOOM * (window.devicePixelRatio || 1));
+			ctx.roundRect(line / 2, line / 2, w - line, h - line, (h - line) / 2);
+			ctx.lineWidth = line;
+			ctx.strokeStyle = borderColor;
+			ctx.stroke();
+		};
+		button.rerender = () => { // the label turns dark on yellow
+			button.label.setColor((button.userState === 'normal') ? labelColor : ink);
+			button.changed();
+		};
+		button.setPosition(new Point(this.palette.contents.left() + (16 / ZOOM), this.paletteY));
 		this.palette.contents.add(button);
-		this.paletteY += button.height() + 7;
+		this.paletteY += button.height() + (7 / ZOOM);
 	}
 
 	addPaletteBlockForSpec(spec, category) {
@@ -727,7 +830,7 @@ class MB_Editor {
 	addBlocksForSpecs(specs, category) {
 		for (const spec of specs) {
 			if ('-' == spec) { // separator
-				this.paletteY += 15;
+				this.paletteY += 20;
 			} else {
 				this.addPaletteBlockForSpec(spec, category);
 			}
@@ -759,8 +862,8 @@ class MB_Editor {
 		let lib = this.project.libraryNamed(libName);
 		if (!lib) return;
 		for (const op of lib.blockList) {
-			if ('-' == op) { // separator
-				this.paletteY += 15;
+			if ('-' == op) { // a library's separator stays the same on screen
+				this.paletteY += 20 / ZOOM;
 			} else if ('advanced' == op) {
 				if (!this.devMode()) return; // the rest is for developer mode
 				this.paletteY += 15;
@@ -853,6 +956,10 @@ class MB_Editor {
 		if ((typeof Menus !== 'undefined') && Menus.current()) return false;
 		const frame = world.hand.morphAtPointer().parentThatIsA(ScrollFrameMorph);
 		if (!frame) return false;
+		if (frame.arrowKey && (event.key in steps)) { // a list moves its marked row instead
+			frame.arrowKey(Math.sign(steps[event.key][0]), Math.sign(steps[event.key][1]));
+			return true;
+		}
 		const page = Math.round(frame.height() / 3);
 		const [dx, dy] = steps[event.key] || { PageUp: [0, page], PageDown: [0, -page], Home: [0, 1e6], End: [0, -1e6] }[event.key];
 		if (dx) frame.scrollX(dx);
@@ -1072,12 +1179,39 @@ console.log('unknown');
 		this.saveTextAsFile(lib.codeString(this.project), lib.moduleName + '.ubl');
 	}
 
-	showLibraryInfo(libName) {
-		// A read-only window with a library's description, version, author and dependencies.
+	showLibraryInfo(libName, forEditing = this.devMode()) {
+		// A window with a library's description, version, author and dependencies,
+		// which can change them when forEditing.
 
 		const lib = this.project.libraryNamed(libName);
 		if (!lib) return;
-		new MB_LibraryInfoDialog(lib).open(world);
+		(new LibraryInfoWindow(lib)).popUp();
+	}
+
+	newLibrary(libName) {
+		// Add an empty library of the given name and show its blocks. Answers it, or
+		// null for a blank name or one already in the project, which is left as it is.
+
+		if (!libName) return null;
+		if (this.project.libraryNamed(libName)) {
+			this.inform(localized('A library with that name is already in the project. Remove it first to make a new one.'));
+			return null;
+		}
+		const lib = new MB_Module(libName);
+		this.project.addLibrary(lib);
+		this.updateLibraryList();
+		this.selectLibrary(libName);
+		return lib;
+	}
+
+	libraryCategories() {
+		// The categories a library can be given; 'Library' is shown as Generic.
+
+		const result = ['cat;Output', 'cat;Input', 'cat;Pins', 'cat;Comm', 'cat;Control',
+			'cat;Operators', 'cat;Variables', 'cat;Data', 'cat;My Blocks'];
+		if (!this.devMode()) result.splice(result.indexOf('cat;Comm'), 1);
+		result.push('Library');
+		return result;
 	}
 
 	async reloadLibrary(libName) {
@@ -1209,18 +1343,36 @@ console.log('unknown');
 		this.librariesChanged();
 		this.updateLibraryList();
 		this.selectLibrary(moduleName); // last, so a dependency's own select does not win
-		this.reportReplacedLibraries(this.project.libraryNamed(moduleName), oldLibs);
+		await this.reportReplacedLibraries(this.project.libraryNamed(moduleName), oldLibs);
 		return moduleName;
 	}
 
-	reportReplacedLibraries(lib, oldLibs) {
-		// Tell the user which of oldLibs, no longer in the project, lib replaced.
+	async reportReplacedLibraries(lib, oldLibs) {
+		// Tell the user which of oldLibs, no longer in the project, lib replaced. For the author of lib,
+		// also list the functions of each shipped library it implements that it lacks or defines with a
+		// different block.
 
 		if (!lib) return;
 		const msg = [];
 		for (const old of oldLibs) {
 			if ((old.moduleName !== lib.moduleName) && !this.project.libraryNamed(old.moduleName) && lib.replaces(old)) {
 				msg.push(localized('%1 replaces %2').replace('%1', lib.moduleName).replace('%2', old.moduleName) + '.');
+			}
+		}
+		for (const libName of lib.implementedLibs) {
+			const cmds = await lib.embeddedLibraryCmds(libName);
+			if (!cmds) continue;
+			const shipped = new MB_Module(libName);
+			shipped.loadFromCmds(cmds);
+			const missing = lib.missingFunctionsOf(shipped);
+			if (missing.length > 0) {
+				msg.push(localized('Blocks and functions of %1 that this library does not define:').replace('%1', libName) +
+					' ' + missing.join(', ') + '.');
+			}
+			const mismatched = lib.mismatchedFunctionsOf(shipped);
+			if (mismatched.length > 0) {
+				msg.push(localized('Blocks and functions of %1 that differ in this library:').replace('%1', libName) +
+					' ' + mismatched.join(', ') + '.');
 			}
 		}
 		if (msg.length > 0) this.inform(msg.join('\n'));
@@ -1259,12 +1411,46 @@ console.log('unknown');
 	uniqueFunctionName(baseSpec) {
 		// Make the first word of baseSpec unlike any block op, built in or the
 		// project's. A spec that starts with an input gets the word 'f' first.
-		MB_Specs.initialize();
-		const taken = [...MB_Specs.selectorToSpec.keys(), ...this.project.blockSpecs.keys()];
+		const taken = this.takenOpNames();
 		let words = String(baseSpec).split(/\s+/).filter((w) => w.length > 0);
 		if ('_' === words[0]) words.unshift('f');
 		words[0] = uniqueNameNotIn(taken, words[0]);
 		return words.join(' ');
+	}
+
+	takenOpNames() {
+		// Every block op, built in or with a spec in the project.
+		MB_Specs.initialize();
+		return [...MB_Specs.selectorToSpec.keys(), ...this.project.blockSpecs.keys()];
+	}
+
+	prototypeFromName(name) {
+		// Answer the op, spec and input names for a block name in which each
+		// %name word is an input, or null if it has none. The op is the label
+		// words joined by underscores, or the first free of function1,
+		// function2... if that is empty or taken.
+		const isInput = (w) => /^%[\p{L}_][\p{L}\p{M}\p{Nd}_]*$/u.test(w);
+		const words = name.split(/\s+/);
+		if (!words.some(isInput)) return null;
+		const labels = [], argNames = [], spec = [];
+		for (const w of words) {
+			if (isInput(w)) {
+				argNames.push(uniqueNameNotIn(argNames, w.slice(1)));
+				spec.push('_');
+			} else {
+				const label = w.replaceAll(':', ''); // a colon starts a section, a lone '_' is an input
+				if (('' === label) || ('_' === label)) continue;
+				labels.push(label);
+				spec.push(label);
+			}
+		}
+		const taken = this.takenOpNames(); // and a function with no spec, in any module
+		for (const m of [this.project.main, ...this.project.libraries.values()]) {
+			for (const f of m.functions) taken.push(f.functionName);
+		}
+		let opName = labels.join('_');
+		for (let i = 1; ('' === opName) || taken.includes(opName); i++) opName = 'function' + i;
+		return { opName, argNames, specString: spec.join(' ') };
 	}
 
 	uniqueVarName(varName, forScriptVar = false) {
@@ -1336,16 +1522,20 @@ console.log('unknown');
 	}
 
 	createFunction(name, isReporter) {
-		// Define a function with no inputs under a unique form of name and park
-		// its definition below the scripts. Answers the definition hat.
+		// Define a function under a unique form of name and park its definition
+		// below the scripts. Each %name word in name is an input. Answers the
+		// definition hat.
 		name = String(name).trim();
 		if ('' === name) return null;
 		this.updateProject();
-		const opName = this.uniqueFunctionName(name);
-		const func = this.project.main.defineFunction(opName, [], null);
+		const proto = this.prototypeFromName(name);
+		const opName = proto ? proto.opName : this.uniqueFunctionName(name);
+		const argNames = proto ? proto.argNames : [];
+		const func = this.project.main.defineFunction(opName, argNames, null);
 		if (this.hasCallsTo(opName)) recompileNeeded(); // a caller of a deleted function of this name
 		this.project.recordBlockSpec(opName, { blockType: isReporter ? 'r' : ' ',
-			opName, specString: opName, slotTypes: '', defaults: [] });
+			opName, specString: proto ? proto.specString : opName,
+			slotTypes: argNames.map(() => 'auto').join(' '), defaults: argNames.map(() => '10') });
 		const hat = scriptForFunction(func);
 		if (isReporter) hat.nextBlock(MB_Parser.blockForDecompiled(
 			{ selector: 'return', args: [0], isReporter: false, next: null }));
@@ -1376,6 +1566,53 @@ console.log('unknown');
 		this.updatePalette();
 		this.scriptChanged();
 		this.updateProjectProperties();
+	}
+
+	addToLibrary(name, lib) {
+		// Move the function to lib, a library or the main module, with its palette
+		// entry and spec, and show lib. The globals it uses go to lib as well, and
+		// leave main only when the function comes from main.
+		this.updateProject();
+		const func = this.project.functionNamed(name);
+		if (func == null) return;
+		const main = this.project.main, spec = this.project.blockSpecs.get(name);
+		const take = (m) => {
+			m.removeFunction(func);
+			m.blockList = m.blockList.filter((op) => op !== name);
+			m.blockSpecs.delete(name);
+		};
+		for (const other of this.project.libraries.values()) {
+			if (other.functions.includes(func)) take(other);
+		}
+		if (!lib.functions.includes(func)) {
+			const globals = func.globalVars();
+			if (main.functions.includes(func)) {
+				take(main);
+				for (const v of globals) main.deleteVariable(v);
+			}
+			lib.addFunction(func);
+			lib.blockList.push(name);
+			if (spec) lib.blockSpecs.set(name, spec);
+			for (const v of globals) lib.addVariable(v);
+		}
+		this.recolourCallsOf(name);
+		if (lib === main) this.selectCategory('cat;My Blocks');
+		else this.selectLibrary(lib.moduleName);
+		this.scriptChanged();
+		this.updateProjectProperties();
+	}
+
+	recolourCallsOf(op) {
+		// Give every call to op in the pane the colour of the category op is in now.
+		const category = MB_Specs.categoryForSelector(op);
+		for (const script of this.scriptsPane().children) {
+			if (!(script instanceof BlockMorph)) continue;
+			for (const m of script.allChildren()) {
+				if (!(m instanceof BlockMorph) || (m.selector !== op)) continue;
+				m.category = category;
+				m.fixBlockColor(null, true);
+			}
+		}
 	}
 
 	usersOf(op) {
@@ -1512,6 +1749,25 @@ console.log('unknown');
 		frame.adjustScrollBars();
 	}
 
+	hideIdleScrollBars() {
+		// Each frame: hide the scripting pane's scroll bars 200 ms after it last
+		// scrolled, unless a block is being dragged. Any move of its contents counts
+		// as a scroll, whatever made it. The pointer over where a bar would be shows it.
+		const frame = this.scriptsFrame, world = frame.world();
+		if (!world) return;
+		const hand = world.hand, now = Date.now(), pos = frame.contents.position();
+		if (frame.lastContentsPosition && !pos.eq(frame.lastContentsPosition)) frame.lastScrollTime = now;
+		frame.lastContentsPosition = pos;
+		const bars = [frame.hBar, frame.vBar];
+		const overflows = (frame.contents.width() > frame.width()) || (frame.contents.height() > frame.height());
+		if (overflows && bars.some(bar => bar.bounds.containsPoint(hand.position()))) {
+			frame.lastScrollTime = now;
+			if (!bars.some(bar => bar.isVisible)) frame.adjustScrollBars();
+		}
+		if (hand.children.length || (now - (frame.lastScrollTime || 0) <= 200)) return;
+		for (const bar of bars) if (bar.isVisible) bar.hide();
+	}
+
 	async deleteFunctionWithConfirm(name) {
 		// Ask before removing a block definition, saying how much of the project
 		// still calls the block.
@@ -1524,6 +1780,23 @@ console.log('unknown');
 		}
 		if (!(await this.confirm(question))) return;
 		this.deleteFunction(name);
+	}
+
+	async deleteObsoleteWithConfirm(op) {
+		// Remove the spec of an obsolete block, one a library update dropped,
+		// asking first while the project still calls it. The calls stay.
+		this.updateProject();
+		const users = this.usersOf(op);
+		if (users > 0) {
+			const question = localized('This block is still being used in') + ' ' + users + ' ' +
+				localized('scripts or functions.') + '\n\n' +
+				localized('Are you sure you want to remove this obsolete block definition?');
+			if (!(await this.confirm(question))) return;
+		}
+		this.project.deleteBlockSpecFor(op);
+		this.updatePalette();
+		this.scriptChanged();
+		this.updateProjectProperties();
 	}
 
 	copyToClipboard(text) {
@@ -1549,6 +1822,7 @@ console.log('unknown');
 		// Give the function op the prototype the user edited, then fix every
 		// call to it in main to match.
 		this.updateProject();
+		this.scriptsPane().cancelSelection(); // the rebuild replaces selected blocks
 		const func = this.project.functionNamed(op);
 		if (func) {
 			func.argNames = argNames.slice();
@@ -1564,8 +1838,26 @@ console.log('unknown');
 		// a call that changed shape has to leave the place it was standing in.
 		if (oldSpec && (oldSpec.blockType !== blockType)) this.ejectCallsOf(op, 'r' === blockType);
 		this.updateCallsOf(op, colourSlots);
+		if (func) this.rebuildDefinitionsOf(func);
+		this.updatePalette();
 		// Its own, because updateCallsOf answers early when the spec is missing.
 		this.scriptChanged();
+	}
+
+	rebuildDefinitionsOf(func) {
+		// Replace each definition of func in the pane with one showing its
+		// current prototype, keeping its place, its script id and its body.
+		const pane = this.scriptsPane();
+		for (const old of pane.children.slice()) {
+			if (!(old instanceof BlockMorph) || (old.functionDefinition !== func)) continue;
+			const body = old.nextBlock();
+			if (body) old.removeChild(body);
+			const hat = scriptForFunction(func, body);
+			hat.mbScriptId = old.mbScriptId;
+			hat.setPosition(old.position());
+			old.destroy();
+			pane.add(hat);
+		}
 	}
 
 	ejectCallsOf(op, becomesReporter) {
@@ -1640,6 +1932,7 @@ console.log('unknown');
 		// Pad or cut every call to op in main's functions and scripts to the
 		// inputs its spec declares, and replace a literal of the wrong type with
 		// the slot's default. colourSlots says which inputs were colour slots.
+		// Everything that calls op is rebuilt, so its calls show the new labels.
 		const spec = this.project.blockSpecs.get(op);
 		if (spec == null) return;
 		const { sections, repeatLast } = specSections(spec);
@@ -1650,7 +1943,10 @@ console.log('unknown');
 			slots: specSlotInfo(spec).map(([type, value]) => {
 				type = type.split('.')[0];
 				if (('color' === type) && (value == null)) {
-					value = { selector: 'colorSwatch', args: [35, 190, 30, 255], isReporter: true, next: null };
+					// Marked as filled in here, so a later type change replaces it;
+					// a swatch the user wrote stays.
+					value = { selector: 'colorSwatch', args: [35, 190, 30, 255], isReporter: true, next: null,
+						isDefaultColour: true };
 				}
 				if (('auto' === type) && (typeof value === 'string') && /^-?\d+$/.test(value)) {
 					value = Number(value);
@@ -1659,11 +1955,14 @@ console.log('unknown');
 			}),
 		};
 		const fixCalls = (node) => {
-			let changed = false;
+			let calls = false;
 			forEachExpression(node, (n) => {
-				if (n.selector === op) changed = fixedCallArgs(n, rule) || changed;
+				if (n.selector === op) {
+					fixedCallArgs(n, rule);
+					calls = true;
+				}
 			});
-			return changed;
+			return calls;
 		};
 
 		for (const func of this.project.main.functions) {
@@ -1673,24 +1972,53 @@ console.log('unknown');
 			func.cmdList = MB_Parser.blockForDecompiled(node);
 			this.rehangDefinitionsOf(func);
 		}
-		// A rebuilt script keeps its id, so its chunk is replaced, not deleted.
 		for (const old of this.scriptsPane().children.slice()) {
 			if (!(old instanceof BlockMorph) || old.isFunctionDefinition()) continue;
 			const node = old.expression();
 			if (!fixCalls(node)) continue;
-			const fresh = MB_Parser.blockForDecompiled(node);
-			fresh.mbScriptId = old.mbScriptId;
-			fresh.setPosition(old.position());
-			old.destroy();
-			this.scriptsPane().add(fresh);
-			if (this.runningChunks.has(old)) {
-				this.runningChunks.set(fresh, this.runningChunks.get(old));
-				this.runningChunks.delete(old);
-				fresh.addHighlight();
-			}
+			this.replaceScript(old, MB_Parser.blockForDecompiled(node));
 		}
 		this.updateProject();
 		this.scriptChanged(); // every rebuilt call is a chunk the board has not got
+	}
+
+	replaceScript(old, fresh) {
+		// Put fresh where old was. It keeps old's id, so its chunk is replaced, not deleted.
+		fresh.mbScriptId = old.mbScriptId;
+		fresh.setPosition(old.position());
+		old.destroy();
+		this.scriptsPane().add(fresh);
+		if (this.runningChunks.has(old)) {
+			this.runningChunks.set(fresh, this.runningChunks.get(old));
+			this.runningChunks.delete(old);
+			fresh.addHighlight();
+		}
+	}
+
+	changeOperator(aBlock, newOp) {
+		// Make aBlock call newOp with the inputs it has, and rebuild its script to match.
+		aBlock.selector = newOp;
+		this.rebuildScriptOf(aBlock);
+	}
+
+	changeVar(aBlock, varName) {
+		// Make the variable reporter aBlock read varName, and rebuild its script to match.
+		aBlock.blockSpec = varName;
+		this.rebuildScriptOf(aBlock);
+	}
+
+	rebuildScriptOf(aBlock) {
+		// Rebuild the script aBlock is in from its expression, after aBlock changed in place.
+		const top = aBlock.topBlock();
+		if (top.isFunctionDefinition()) {
+			const func = top.functionDefinition;
+			func.cmdList = MB_Parser.blockForDecompiled(top.nextBlock().expression());
+			this.rehangDefinitionsOf(func);
+		} else {
+			this.replaceScript(top, MB_Parser.blockForDecompiled(top.expression()));
+		}
+		this.updateProject();
+		this.scriptChanged();
 	}
 
 	rehangDefinitionsOf(func) {
@@ -1813,25 +2141,87 @@ console.log('unknown');
 	resizeBlock(block, fontFactor, scale = SyntaxElementMorph.prototype.scale) {
 		// TextMorph includes multi-line input text, which is separate from StringMorph.
 		const parts = block.allChildren();
-		for (const part of parts) {
-			if (part instanceof SyntaxElementMorph) part.setScale(scale);
-			if (part instanceof BlockExpanderMorph) part.setExtent(part.extent().multiplyBy(fontFactor));
-			if (part instanceof StringMorph || part instanceof TextMorph) {
-				part.setFontSize(part.fontSize * fontFactor);
-				part.fixLayout();
-				part.rerender();
+		// Laid out from the bottom up, as in relayoutScript.
+		SyntaxElementMorph.prototype.fixesParentLayout = false;
+		try {
+			for (const part of parts) {
+				part.pixelsPerUnit = 2; // a picture is not drawn at the world's zoom
+				if (part instanceof SyntaxElementMorph) part.setScale(scale);
+				if (part instanceof BlockExpanderMorph) part.setExtent(part.extent().multiplyBy(fontFactor));
+				if (part instanceof StringMorph || part instanceof TextMorph) {
+					part.setFontSize(part.fontSize * fontFactor);
+					part.fixLayout();
+					part.rerender();
+				}
 			}
+			for (const part of parts.reverse()) {
+				if (part instanceof SyntaxElementMorph) part.fixLayout();
+			}
+		} finally {
+			SyntaxElementMorph.prototype.fixesParentLayout = true;
 		}
-		for (const part of parts.reverse()) {
-			if (part instanceof SyntaxElementMorph) part.fixLayout();
+	}
+
+	relayoutBlocks() {
+		for (const block of this.scripts.children) {
+			if (block instanceof BlockMorph) this.relayoutScript(block);
 		}
+		this.updatePalette();
+	}
+
+	relayoutScript(block) {
+		// Block text height is rounded to half a CSS pixel at the world's zoom, so it
+		// changes with the zoom. A definition whose details are hidden holds its
+		// inputs' declarations off the tree, and a prototype's row is laid out only
+		// from below, so both are collected and laid out here as well.
+		const partsOf = (m, out = []) => {
+			out.push(m);
+			m.children.forEach((child) => partsOf(child, out));
+			if (m.declaration && !m.children.includes(m.declaration)) partsOf(m.declaration, out);
+			return out;
+		};
+		const parts = partsOf(block);
+		// Each part is laid out after the parts inside it, so no part needs to lay out
+		// its parent; with that on, each would lay out every block above it.
+		SyntaxElementMorph.prototype.fixesParentLayout = false;
+		try {
+			for (const part of parts) {
+				if (part instanceof StringMorph || part instanceof TextMorph) {
+					part.fixLayout(true);
+					part.rerender();
+				}
+			}
+			for (const part of parts.reverse()) {
+				if ((part instanceof SyntaxElementMorph) || (part instanceof InputDeclarationMorph) ||
+						(part instanceof BlockSectionDefinitionMorph)) {
+					part.fixLayout();
+				}
+			}
+		} finally {
+			SyntaxElementMorph.prototype.fixesParentLayout = true;
+		}
+		block.fullChanged();
 	}
 
 	applyBlockSize(percent) {
 		// Keep script positions in project file units while changing the rendered scale.
 		this.blockSize = percent;
+		const oldZoom = ZOOM;
+		const scrolled = this.palette ? this.palette.topLeft().subtract(this.palette.contents.topLeft()) : null;
 		world.zoom(Math.max(Math.min(percent, 250), 50) / 100);
+		if ((ZOOM !== oldZoom) && this.scripts) this.relayoutBlocks();
+		// A wheel notch scrolls 120 screen pixels, as in GP; morphic scrolls in scene units.
+		// Both settings objects: the first touch event swaps MorphicPreferences to the second.
+		standardSettings.mouseScrollAmount = touchScreenSettings.mouseScrollAmount = 120 / ZOOM;
 		IDE.resize();
+		if (scrolled && (ZOOM !== oldZoom)) {
+			// The palette, rebuilt at the new size, keeps where it was scrolled to as
+			// far as its new contents allow.
+			this.palette.contents.setPosition(this.palette.position());
+			this.palette.scrollX(-scrolled.x);
+			this.palette.scrollY(-scrolled.y);
+			this.palette.adjustScrollBars();
+		}
 	}
 
 	async setBlockScalePercent(percent) {
@@ -1912,12 +2302,13 @@ console.log('unknown');
 			{ title: title || null, text: String(msg) }, resolve));
 	}
 
-	prompt(question, defaultValue, editRule) {
+	prompt(question, defaultValue, editRule, details) {
 		// Answer a promise of the text entered, or null, from the chrome's dialog, as GP's
 		// Page prompt does, or from the browser's own on a page without the chrome.
+		// details is shown under the question.
 		if (typeof FloatingWindow === 'undefined') return Promise.resolve(prompt(question, defaultValue));
 		return new Promise((resolve) => askChrome('window.prompt',
-			{ title: question, text: null, default: defaultValue, editRule: editRule }, resolve));
+			{ title: question, text: details || null, default: defaultValue, editRule: editRule }, resolve));
 	}
 
 	async newProject() {
@@ -1980,7 +2371,7 @@ console.log('unknown');
 		// Write the project to a file the browser downloads.
 
 		this.updateProject();
-		let name = this.projectName || 'untitled.ubp';
+		let name = this.projectName || 'Untitled';
 		if (!name.endsWith('.ubp')) name += '.ubp';
 		this.saveTextAsFile(this.project.codeString(), name);
 		this.unsavedEdits = false; // the file holds what the pane holds
@@ -2201,8 +2592,7 @@ console.log('unknown');
 
 	openVMFolder() {
 		// The server's folder of VM builds, the pilot one when the IDE is a pilot.
-		const pilot = ['run-pilot', ':8000'].some((s) => location.href.includes(s));
-		window.open('https://microblocks.fun/downloads/' + (pilot ? 'pilot' : 'latest') + '/vm/', '_blank');
+		window.open('https://microblocks.fun/downloads/' + (MB_Firmware.isPilot() ? 'pilot' : 'latest') + '/vm/', '_blank');
 	}
 
 	async toggleBLE() {
@@ -2230,7 +2620,7 @@ console.log('unknown');
 		if (!MB_Project.isProjectText(contents)) {
 			// Opening it would replace the project, and the board's code, with
 			// whatever part of it could be read.
-			alert(localized('Could not read: ') + name);
+			this.inform(localized('Could not read: ') + name);
 			return;
 		}
 		if (!(await MB_editor.canReplaceCurrentProject())) return;
@@ -2273,6 +2663,15 @@ console.log('unknown');
 		// Last, for the same reason as in clearProject: loading the project
 		// destroys and builds blocks, and each of those is an edit.
 		MB_editor.unsavedEdits = false;
+		MB_editor.reportFunctionsInSeveralLibraries();
+	}
+
+	reportFunctionsInSeveralLibraries() {
+		const duplicates = this.project.functionsInSeveralLibraries();
+		if (duplicates.length > 0) {
+			this.inform(localized('These functions are defined in more than one library, so only one of each is used:') +
+				' ' + duplicates.join('; ') + '.');
+		}
 	}
 
 	async importFromURL(url) {
@@ -2291,14 +2690,14 @@ console.log('unknown');
 				text = await response.text();
 			} catch (error) {
 				console.error('Could not read:', link.url, error);
-				alert(localized('Could not read: ') + link.url);
+				this.inform(localized('Could not read: ') + link.url);
 				return;
 			}
 			return this.openProjectFromString(text, link.name);
 		}
 		if (!MB_ScriptExchange.isCompleteProject(link.text)) {
 			// Half a link loads half a project over the one the user had.
-			alert(localized('This link is incomplete and was not opened.'));
+			this.inform(localized('This link is incomplete and was not opened.'));
 			return;
 		}
 		return this.openProjectFromString(link.text, link.name);
@@ -2310,7 +2709,7 @@ console.log('unknown');
 		this.lastProjectFolder = location.slice(0, location.lastIndexOf('/') + 1);
 		const data = await MB_Files.readFile(location);
 		if (data === undefined) {
-			alert(localized('Could not read: ') + location);
+			this.inform(localized('Could not read: ') + location);
 			return;
 		}
 		await this.openProjectFromString(data, location.slice(location.lastIndexOf('/') + 1));
@@ -2335,9 +2734,9 @@ console.log('unknown');
 	}
 
 	async processDroppedFile(fileName, data) {
-		// Act on a file by its extension: a project, a library, graph data or a
-		// picture. Any other file is written to the board, unless it is one the IDE
-		// should open. data is the file's text for the first three, and its bytes otherwise.
+		// Act on a file by its extension: a project, a library, graph data, a picture,
+		// ESP firmware or a translation. Any other file is written to the board.
+		// data is the file's text for a project, library, graph data or translation, else its bytes.
 
 		const name = fileName.toLowerCase();
 		if (name.endsWith('.ubp') || name.endsWith('.ubp.txt')) await this.openProjectFromString(data, fileName, false);
@@ -2348,8 +2747,46 @@ console.log('unknown');
 		}
 		else if (name.endsWith('.csv')) this.importLoggedData(data);
 		else if (MB_Editor.isScriptPicture(name)) await this.importFromPNG(data);
+		else if (name.endsWith('.bin')) await MB_Firmware.installFirmwareFile(fileName, data);
 		else if (name.endsWith('.po')) await this.installTranslation(data, MB_Editor.droppedTranslationName(fileName));
-		else if (!MB_Editor.isUnsupportedIDEFile(name)) await this.writeFileToBoard(fileName, data);
+		else await this.writeFileToBoard(fileName, data);
+	}
+
+	async processDroppedText(text) {
+		// A link dragged from another page opens what it points at, if that is
+		// something the IDE opens. Any other text becomes a comment at the hand.
+		if (!text.startsWith('http')) return this.addCommentAtHand(text);
+		const url = text.split(/\r\n|\r|\n/)[0];
+		if (url.includes('scripts=') || url.includes('project=')) return this.importFromURL(url);
+		if (!['.ubp', '.ubl', '.png'].some((ext) => url.toLowerCase().endsWith(ext))) return;
+		let fileName = url.slice(url.lastIndexOf('/') + 1);
+		try { fileName = decodeURIComponent(fileName); } catch (e) { /* not encoded: keep it as it is */ }
+		let data;
+		try {
+			const response = await fetch(url);
+			if (!response.ok) throw new Error(response.status + ' ' + response.statusText);
+			data = MB_Editor.isTextFile(fileName)
+				? await response.text() : new Uint8Array(await response.arrayBuffer());
+		} catch (error) {
+			console.error('Could not read:', url, error);
+			this.inform(localized('Could not read: ') + url);
+			return;
+		}
+		if (fileName.toLowerCase().endsWith('.ubl')) {
+			// Given the address, the library keeps it as the source the reload verb reads.
+			if (await this.importLibraryFromString(data, url)) await this.codeManager.saveAllChunksAfterLoad();
+			return;
+		}
+		await this.processDroppedFile(fileName, data);
+	}
+
+	addCommentAtHand(text) {
+		const comment = MB_Parser.blockForDecompiled(
+			{ selector: 'comment', args: [text], isReporter: false, next: null });
+		const pane = this.scriptsPane();
+		const hand = world.hand.position();
+		this.addBlockToScriptsAt(comment, hand.x - pane.left(), hand.y - pane.top());
+		this.scriptChanged();
 	}
 
 	importLoggedData(text) {
@@ -2373,12 +2810,6 @@ console.log('unknown');
 		// A project, a library, graph data or a translation. Every other file is read as bytes.
 		const name = fileName.toLowerCase();
 		return ['.ubp', '.ubp.txt', '.ubl', '.csv', '.po'].some((ext) => name.endsWith(ext));
-	}
-
-	static isUnsupportedIDEFile(fileName) {
-		// Firmware: the IDE's to install, not the board's, though it does not
-		// install it yet.
-		return fileName.toLowerCase().endsWith('.bin');
 	}
 
 	static isScriptPicture(fileName) {
@@ -2464,7 +2895,7 @@ console.log('unknown');
 		this.clearProject();
 		this.updateLibraryList(); // no libraries left, so cat;Control
 		this.readFromBoard = true;
-		alert(localized('Connect board to proceed.'));
+		this.inform('Connect board to proceed.');
 	}
 
 	async openProjectFromBoard() {
@@ -2513,11 +2944,11 @@ console.log('unknown');
 
 	// Placeholder functions for UI actopms
 
-	inform(msg) {
+	inform(msg, title) {
 		// Shown by the chrome's window.inform dialog, which answers into GP.apiResponses[id].
 		console.log(msg);
 		this.informCount = (this.informCount || 0) + 1;
-		fireIDEEvent('window.inform', { title: null, text: String(msg), id: 'inform' + this.informCount });
+		fireIDEEvent('window.inform', { title: title || null, text: String(msg), id: 'inform' + this.informCount });
 	}
 
 	showResult(chunkID, value, isError) {
@@ -2536,12 +2967,11 @@ console.log('unknown');
 	showResultOn(block, value, isError) {
 		this.removeResultBubble(block);
 		if ((value == null) || ('' === value)) return;
+		if (this.shiftDown) this.copyToClipboard(String(value));
 
 		const world = block.world();
 		if (!world) return;
-		const bubble = new SpeechBubbleMorph(
-			String(value),
-			isError ? new Color(255, 190, 190) : null);
+		const bubble = new MB_ResultBubbleMorph(String(value), isError);
 		world.add(bubble);
 		bubble.step = () => this.followBlock(bubble, block);
 		this.placeResultBubble(bubble, block);
@@ -2561,9 +2991,20 @@ console.log('unknown');
 	}
 
 	placeResultBubble(bubble, block) {
-		// Bottom left of the bubble at the block's right edge, where GP puts it.
-		bubble.setPosition(block.rightCenter().add(new Point(2, -bubble.height())));
-		bubble.keepWithin(block.world());
+		// Tail over the block's top right corner, or its top left when the bubble
+		// does not fit on the right. A hat's bubble comes down to its middle.
+		const world = block.world();
+		const overlap = 5;
+		const bottom = (block instanceof HatBlockMorph) ? block.center().y : block.top() + overlap;
+		const right = (world.right() - block.right()) > bubble.width();
+		if (right !== bubble.isPointingRight) {
+			bubble.isPointingRight = right;
+			bubble.rerender();
+		}
+		const left = right ? block.right() - overlap : block.left() + overlap - bubble.width();
+		bubble.setPosition(new Point(left, bottom - bubble.height()));
+		// Keep 3 screen pixels clear of the world's edges.
+		bubble.keepWithin(world.bounds.insetBy(3 / ZOOM));
 		bubble.blockBounds = block.bounds;
 	}
 
@@ -2663,6 +3104,99 @@ console.log('unknown');
 	}
 }
 
+// MB_ResultBubbleMorph: the bubble showing a value or an error from the board on its block
+
+function MB_ResultBubbleMorph(value, isError) {
+	this.init(value, isError);
+}
+
+MB_ResultBubbleMorph.prototype = Object.create(SpeechBubbleMorph.prototype);
+MB_ResultBubbleMorph.prototype.constructor = MB_ResultBubbleMorph;
+MB_ResultBubbleMorph.uber = SpeechBubbleMorph.prototype;
+
+MB_ResultBubbleMorph.prototype.init = function (value, isError) {
+	const fill = isError ? new Color(255, 242, 242) : new Color(250, 250, 250);
+	const border = isError ? new Color(178, 0, 0) : new Color(140, 140, 140);
+	MB_ResultBubbleMorph.uber.init.call(this, value, fill, 5, 2, border, 0, false, true);
+};
+
+MB_ResultBubbleMorph.prototype.fixLayout = function () {
+	// Wrap at 175 screen pixels whatever the block size, and show at most 30 lines.
+	if (this.contentsMorph) this.contentsMorph.destroy();
+	const textMorph = (s, width) => new TextMorph(s, 18, null, false, false, 'center', width, 'Arial');
+	let lines = [];
+	for (const paragraph of String(this.contents).split('\n')) {
+		// A wrapping TextMorph ends each line with a space, and adds an empty
+		// first line when the first word is wider than the bubble.
+		const wrapped = textMorph(paragraph, 175 / ZOOM).lines.map((s) => s.trimEnd());
+		if ((wrapped.length > 1) && ('' === wrapped[0])) wrapped.shift();
+		lines = lines.concat(wrapped);
+	}
+	if (lines.length > 30) lines = lines.slice(0, 30).concat(['...']);
+	const text = textMorph(lines.join('\n'), 0);
+	text.color = new Color(0, 0, 0);
+	text.render = renderResultText;
+	text.bounds.setHeight(text.lines.length * resultTextMetrics(text.fontSize).lineHeight);
+	this.contentsMorph = text;
+	this.add(text);
+	// A TextMorph is one space wider than its widest line; the glyphs fill its left part.
+	text.measureCtx.font = text.font();
+	const width = Math.max(...text.lines.map((s) => text.measureCtx.measureText(s.trimEnd()).width));
+	this.bounds.setExtent(new Point(width + 22, text.height() + 21)); // 7 of the height is the tail
+	text.setPosition(this.position().add(new Point(11, 7)));
+};
+
+// GP's line height and baseline at the world's zoom: 0.95 and 0.3 of the font
+// size in device pixels, each rounded down, and the font size less a tenth of it.
+// Morphic's lines are 1.2 font sizes, with the glyphs on the bottom of each.
+function resultTextMetrics(fontSize) {
+	const ppu = 2 * ZOOM, px = Math.round(fontSize * ppu);
+	return {
+		lineHeight: (Math.floor(0.95 * px) + Math.floor(0.3 * px)) / ppu,
+		baseline: (px - Math.floor(px / 10)) / ppu
+	};
+}
+
+// TextMorph's centred lines, drawn on GP's metrics above.
+function renderResultText(ctx) {
+	const { lineHeight, baseline } = resultTextMetrics(this.fontSize);
+	ctx.font = this.font();
+	ctx.textAlign = 'left';
+	ctx.textBaseline = 'alphabetic';
+	ctx.fillStyle = this.getRenderColor().toString();
+	this.lines.forEach((line, i) => {
+		ctx.fillText(line, (this.width() - ctx.measureText(line).width) / 2, (i * lineHeight) + baseline);
+	});
+}
+
+MB_ResultBubbleMorph.prototype.render = function (ctx) {
+	// A rounded box inset 4 from the bounds, with an 8 high tail under one end.
+	const l = 4, t = 4, r = this.width() - 4, b = this.height() - 4;
+	const radius = 5, tailH = 8, tailW = 4, indent = 8;
+	const base = b - tailH;
+	ctx.beginPath();
+	ctx.moveTo(l, base - radius);
+	ctx.arcTo(l, t, l + radius, t, radius);
+	ctx.arcTo(r, t, r, t + radius, radius);
+	ctx.arcTo(r, base, r - radius, base, radius);
+	if (this.isPointingRight) {
+		ctx.lineTo(l + radius + indent + tailW, base);
+		ctx.lineTo(l, b);
+		ctx.lineTo(l + indent, base);
+	} else {
+		ctx.lineTo(r - indent, base);
+		ctx.lineTo(r, b);
+		ctx.lineTo(r - (indent + tailW + radius), base);
+	}
+	ctx.arcTo(l, base, l, base - radius, radius);
+	ctx.closePath();
+	ctx.fillStyle = this.color.toString();
+	ctx.fill();
+	ctx.lineWidth = this.border;
+	ctx.strokeStyle = this.borderColor.toString();
+	ctx.stroke();
+};
+
 // Announce something to whatever chrome is listening. Sent on the document
 // rather than through IDE.fireEvent, which is the same dispatch, so that the
 // port does not require the chrome to be loaded.
@@ -2678,11 +3212,11 @@ function fireIDEEvent(name, value) {
 }
 
 // The hand's position as the chrome expects GP's: menus.js adds the offset of
-// #canvas.emscripten, while the hand is in world units on the world's own canvas,
+// #canvas, while the hand is in world units on the world's own canvas,
 // which morphic draws ZOOM times larger.
 function chromePoint(aWorld) {
 	const page = aWorld.worldCanvas.getBoundingClientRect();
-	const canvas = document.querySelector('#canvas.emscripten');
+	const canvas = document.querySelector('#canvas');
 	const hand = aWorld.hand.position();
 	return {
 		x: (hand.x * ZOOM) + page.left - canvas.offsetLeft,
@@ -2729,22 +3263,61 @@ function checkChromeAnswers() {
 	}
 }
 
-function chromeMenuFor(aWorld, items) {
-	// Show items, each '-' or [label, action, tip, image, class], in the chrome's menu.
+function chromeMenuFor(aWorld, items, menuClass = null) {
+	// Show items, each '-' or [label, action, tip, image, class, checked], in the chrome's menu.
 	// An item with an image, a PNG data URL, shows the picture in place of its label.
 	const p = chromePoint(aWorld);
 	const descriptors = items.map((item) => {
 		if ('-' === item) return { label: '-' };
 		const d = { label: item[0], tip: item[2] };
 		if (item[3]) Object.assign(d, { image: item[3], class: item[4] });
+		if (item.length > 5) d.checked = !!item[5];
 		return d;
 	});
-	askChrome('menu', { x: p.x, y: p.y, class: null, items: descriptors }, (label) => {
+	askChrome('menu', { x: p.x, y: p.y, class: menuClass, items: descriptors }, (label) => {
 		const chosen = items.find((item) => item[0] === label);
 		if (chosen) chosen[1]();
 	});
 	return chromeDrawnMenu;
 }
+
+// Text being edited answers a right-click with its own menu, and editing goes on.
+for (const textClass of [StringMorph, TextMorph]) {
+	const notEditingMenu = textClass.prototype.contextMenu;
+	textClass.prototype.contextMenu = function () {
+		const cursor = this.world() && this.world().cursor;
+		return (cursor && (cursor.target === this)) ? cursor.textMenu() : notEditingMenu.call(this);
+	};
+}
+
+CursorMorph.prototype.textMenu = function () {
+	const area = this.textarea,
+		selected = () => area.value.slice(area.selectionStart, area.selectionEnd),
+		insert = (s) => {
+			area.focus(); // the chrome's menu took the keys
+			area.setRangeText(s, area.selectionStart, area.selectionEnd, 'end');
+			area.dispatchEvent(new Event('input'));
+		},
+		items = [];
+	if (selected() !== '') {
+		items.push(['cut', () => { setClipboard(selected()); insert(''); }]);
+		items.push(['copy', () => { setClipboard(selected()); area.focus(); }]);
+	}
+	if (clipboardText() !== '') items.push(['paste', () => insert(clipboardText())]);
+	if (items.length > 0) items.push('-');
+	if (area.value !== this.originalContents) {
+		items.push(['accept', () => this.accept()]);
+		items.push(['revert', () => this.cancel()]);
+	} else {
+		items.push(['stop editing', () => this.target.world().stopEditing()]);
+	}
+	items.push(['select all', () => {
+		area.focus();
+		area.select();
+		this.processKeyUp({});
+	}]);
+	return chromeMenuFor(this.target.world(), items);
+};
 
 // Global singleton instance
 const MB_editor = new MB_Editor();
@@ -2856,18 +3429,33 @@ function fixedCallArgs(call, rule) {
 	const checked = Math.min(rule.minArgs, args.length, rule.slots.length);
 	for (let i = 0; i < checked; i++) {
 		const arg = args[i];
-		if ((arg != null) && arg.isReporter) continue;
+		if ((arg != null) && arg.isReporter && !arg.isDefaultColour) continue;
 		const [type, value] = rule.slots[i];
+		// A colour slot can hold its colour as a packed number, as the bytes
+		// carry it, and a number from any other slot is not a colour.
+		const isColour = (('number' === typeof arg) && rule.colourSlots[i]) ||
+			((arg != null) && ((true === arg.isColor) || (true === arg.isDefaultColour)));
+		// Only the green a colour input filled in is retyped; any other colour
+		// stays, as a swatch once its slot no longer takes a colour.
+		if (isColour && !arg.isDefaultColour) {
+			if ('color' !== type) args[i] = colourSwatchNode(arg);
+			continue;
+		}
 		const fits = ('auto' === type) ? ['number', 'string'].includes(typeof arg)
 			: ('bool' === type) ? ('boolean' === typeof arg)
-			// A rebuilt colour slot holds its colour as a packed number, and a
-			// number from any other slot is not a colour.
-			: ('color' === type) ? ((('number' === typeof arg) && rule.colourSlots[i]) ||
-				((arg != null) && (true === arg.isColor)))
+			: ('color' === type) ? isColour
 			: true;
 		if (!fits) args[i] = value;
 	}
 	return JSON.stringify(args) !== before;
+}
+
+function colourSwatchNode(colour) {
+	// A colorSwatch reporter node for a packed or spelled colour. Only a spelled
+	// one can carry an alpha.
+	const c = ('number' === typeof colour) ?
+		{ r: (colour >> 16) & 255, g: (colour >> 8) & 255, b: colour & 255 } : colour;
+	return { selector: 'colorSwatch', args: [c.r, c.g, c.b, c.alpha ?? 255], isReporter: true, next: null };
 }
 
 function varMustBeQuoted(varName) {
@@ -2898,8 +3486,7 @@ document.body.appendChild(MB.clipboard);
 function setGPClipboard(s) {
 	// Called by GP's setClipboard primitive
 
-	GP.clipboardBytes = toUTF8Array(s);
-	MB.clipboard.value = s;
+	setClipboardBuffer(s);
 
 	if ((typeof navigator.clipboard !== 'undefined') && (navigator.clipboard.writeText)) {
 		navigator.clipboard.writeText(s).catch(() => {});
@@ -2912,6 +3499,12 @@ function setGPClipboard(s) {
 			console.error('setGPClipboard failed', err);
 		}
 	}
+}
+
+function setClipboardBuffer(s) {
+	// The IDE's own copy of the clipboard text, which clipboardText() reads.
+	GP.clipboardBytes = toUTF8Array(s);
+	MB.clipboard.value = s;
 }
 
 async function readGPClipboard(s) {

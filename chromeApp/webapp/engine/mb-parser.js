@@ -6,7 +6,7 @@
 
 // mb-parser.js - Parser for the MicroBlocks language textual representation.
 
-/* global MB_editor, MB_Parser, MB_Specs, CommandBlockMorph, CommandSlotMorph, ReporterBlockMorph, HatBlockMorph */
+/* global MB_editor, MB_Parser, MB_Specs, CommandBlockMorph, CommandSlotMorph, ReporterBlockMorph, HatBlockMorph, ColorSlotMorph, Color */
 
 class MB_Parser {
 	constructor(srcString, fileName = '<string>') {
@@ -238,6 +238,10 @@ class MB_Parser {
 			if ((typeof arg) == 'string') {
 				return this.argOrVarRef(selector, arg, (i == 0));
 			} else if (Array.isArray(arg)) {
+				if (this.isColorLiteral(arg)) {
+					let alpha = (arg.length > 4) ? arg[4] : 255;
+					return new Color(arg[1], arg[2], arg[3], alpha / 255);
+				}
 				return Array.isArray(arg[0]) ? this.makeBlockList(arg) : this.makeBlock(arg, true);
 			}
 			return arg;
@@ -295,6 +299,8 @@ class MB_Parser {
 		if (fromSource) {
 			while ((inputs.length < args.length) && b.canExpand()) {
 				b.expand();
+				// a translated label with no slot in its sections never grows
+				if (b.inputs().length == inputs.length) break;
 				inputs = b.inputs();
 			}
 		} else if (b.blockSpec.endsWith('...') && (0 == b.minInputCount())) {
@@ -326,11 +332,26 @@ class MB_Parser {
 			if (arg instanceof CommandBlockMorph) {
 				inputs[i].nestedBlock(arg);
 			}
+		} else if (arg instanceof Color) {
+			// A colour fills a colour slot; anywhere else it stays a colorSwatch block.
+			if (inputs[i] instanceof ColorSlotMorph) {
+				inputs[i].setContents(arg);
+			} else {
+				b.replaceInput(inputs[i], this.makeBlock(['colorSwatch', arg.r, arg.g, arg.b, Math.round(arg.a * 255)], true));
+			}
 		} else if (arg instanceof ReporterBlockMorph) {
 			b.replaceInput(inputs[i], arg);
 		} else {
 			inputs[i].setContents(arg);
 		}
+	}
+
+	isColorLiteral(node) {
+		// A colorSwatch whose red, green, blue and optional alpha are all numbers.
+
+		let channels = node.slice(1);
+		return ('colorSwatch' == node[0]) && [3, 4].includes(channels.length)
+			&& channels.every((n) => (typeof n) == 'number');
 	}
 
 	makeBlockChain(node) {
@@ -357,16 +378,20 @@ class MB_Parser {
 			// An empty body, which is not an absent argument: a body slot has to
 			// be built for it either way, and specForArg reads the same name.
 			if (true == arg.isEmptyCommandList) return MB_Specs.emptyCommandList;
-			// A colour the decompiler split into {r, g, b} (fixBooleanAndColorArgs).
-			// The colour slot holds the packed 0xRRGGBB integer the bytes carry.
+			// A colour from a block's expression carries its alpha and stays a Color.
+			// One the decompiler split into {r, g, b} (fixBooleanAndColorArgs) has
+			// none, and the colour slot holds the packed 0xRRGGBB integer the bytes carry.
 			if (true == arg.isColor) {
+				if (arg.alpha != null) return new Color(arg.r, arg.g, arg.b, arg.alpha / 255);
 				return ((arg.r & 255) << 16) | ((arg.g & 255) << 8) | (arg.b & 255);
 			}
 			// A reporter is one node; a command in an argument position is the
 			// first block of a body, so take its whole chain.
 			return arg.isReporter ? this.blockFromDecompiled(arg) : this.makeBlockChain(arg);
 		});
-		return this.blockWithArgs(node.selector, args, node.isReporter);
+		const block = this.blockWithArgs(node.selector, args, node.isReporter);
+		if (node.isDefaultColour) block.isDefaultColour = true; // see updateCallsOf
+		return block;
 	}
 
 	makeBlockList(bufList) {

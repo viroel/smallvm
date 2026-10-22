@@ -2883,6 +2883,31 @@ static int readDigitalMicrophone() {
 	return micBuffer[micNextSample++];
 }
 
+#elif defined(NEZHA_ESP32)
+
+#define USE_DIGITAL_MICROPHONE 1
+
+int mostRecentMicSample = 0;
+
+static int readDigitalMicrophone() {
+	int16_t sample;
+	// read the most recent sound sample
+	while (true) {
+		int sampleCount = nezhaMB_ReadMicrophone(&sample, 1);
+		if (sampleCount) {
+			mostRecentMicSample = sample;
+		} else {
+			break;
+		}
+	}
+	// scale down the range by a few bits but retain good sensitivity
+	int result = mostRecentMicSample >> 3;
+	// limit result to signed 10-bit value range to match 10-bit analog microphone
+	if (result < -512) result = -512;
+	if (result > 511) result = 511;
+	return result;
+}
+
 #elif defined(ARDUINO_BBC_MICROBIT_V2) || defined(CALLIOPE_V3)
 
 int readAnalogMicrophone() {
