@@ -342,8 +342,8 @@ to '_planetX_bmeWriteReg' reg value {
 to '_planetX_buttonNow' port button {
   local 'pinC' ('_planetX_pinForPort' port 'A')
   local 'pinD' ('_planetX_pinForPort' port 'B')
-  digitalReadOp pinC 'up'
-  digitalReadOp pinD 'up'
+  local 'cPressed' (not (digitalReadOp pinC 'up'))
+  local 'dPressed' (not (digitalReadOp pinD 'up'))
   waitMillis 1
   local 'cPressed' (not (digitalReadOp pinC 'up'))
   local 'dPressed' (not (digitalReadOp pinD 'up'))
