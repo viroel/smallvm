@@ -29,7 +29,7 @@ variables _nezha32_buttonEdges _nezha32_buttonLoopStarted _nezha32_buttonLoopHea
   space
   spec 'r' 'nezha32_getAttitudeAngle' 'attitude _ angle (degrees)' 'menu.nezha32_attitudeMenu' 'pitch'
   spec 'r' 'nezha32_getGaryAcc' 'acceleration of _ axis of the gyroscope (unit g)' 'menu.nezha32_axisMenu' 'X'
-  spec ' ' '[elfreaks_dev_sensor:calibration]' 'Static calibration of the gyroscope'
+  spec ' ' 'nezha32_calibration' 'Static calibration of the gyroscope'
   spec ' ' '[elfreaks_dev_sensor:yawReset]' 'Reset the yaw angle posture'
   space
   space
@@ -599,3 +599,12 @@ to nezha32_sound_stop_all_sounds {
   '_nezha32_stop_melody'
 }
 
+
+
+to nezha32_calibration {
+  if ('[elfreaks_dev_sensor:startCalibration]') {
+    repeatUntil ('[elfreaks_dev_sensor:calibrationComplete]') {
+      waitMillis 10
+    }
+  }
+}

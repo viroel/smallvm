@@ -4,7 +4,6 @@ version 1 1
 implements 'Nezha ESP32 Sport' 
 choices nezhaMotor_TurnMode seconds degrees turns 
 choices nezhaMotor_DriveMode seconds mm 
-choices nezhaMotor_Weight light medium heavy 
 choices nezhaMotor_TurnDirection clockwise counterclockwise 
 choices nezhaMotor_Port M1 M2 M3 M4 
 choices nezhaMotor_TurnDirectionEx clockwise counterclockwise 'shortest path' 
@@ -24,7 +23,6 @@ Vehicle motion control'
   spec ' ' 'nezhaMotor_MoveAbsoluteV2' 'turn motor _ speed _ % direction _ to absolute angle _ : _' 'menu.nezhaMotor_Port num menu.nezhaMotor_TurnDirectionEx num menu.nezhaMotor_WaitMode' 'M1' 50 'shortest path' 0 'wait until done'
   space
   space
-  spec ' ' 'nezhaMotor_RobotSetWeight' 'set robot load _' 'menu.nezhaMotor_Weight' 'medium'
   spec ' ' 'nezhaMotor_RobotSetWheelDiameter' 'set robot wheel diameter _ mm' 'num' 0
   spec ' ' 'nezhaMotor_RobotSetMotors' 'set robot left wheel _ right wheel _' 'menu.nezhaMotor_Port menu.nezhaMotor_Port' 'M1' 'M2'
   spec ' ' 'nezhaMotor_RobotMove' 'run robot left wheel speed _ % right wheel speed _ %' 'num num' 0 0
@@ -108,17 +106,6 @@ to '_nezhaMotor_ParseWaitMode' mode {
     return 1
   }
   return 1
-}
-
-to '_nezhaMotor_ParseWeight' mode {
-  if (mode == 'light') {
-    return 0
-  } (mode == 'medium') {
-    return 1
-  } (mode == 'heavy') {
-    return 2
-  }
-  return 0
 }
 
 to '_nezhaMotor_RoundDiv10' value {
@@ -271,10 +258,6 @@ to nezhaMotor_RobotMove left_speed right_speed {
 
 to nezhaMotor_RobotSetMotors left right {
   '[elfreaks:RobotSetMotors]' ('_nezhaMotor_ParsePort' left) ('_nezhaMotor_ParsePort' right)
-}
-
-to nezhaMotor_RobotSetWeight weight {
-  '[elfreaks:RobotSetWeight]' ('_nezhaMotor_ParseWeight' weight)
 }
 
 to nezhaMotor_RobotSetWheelDiameter diameter {
