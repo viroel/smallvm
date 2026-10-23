@@ -10,6 +10,7 @@ choices nezha32_titleBarState show hide
 choices nezha32_melodyMenu 'C D E F G A B C5' 'C5 B A G F E D C' 'C E G C5' 'C F A C5' 'C D E C C D E C' 'G G A G C5 B' 
 choices nezha32_soundName 'Chinese style' country symphony lyrical Japanese punk pop 'jazz music' blues 'door opening' 'birthday song' wind rain thunder 
 choices nezha32_axisMenu X Y Z 
+choices nezha32_attitudeMenu pitch yaw roll
 description 'Onboard buttons
 
 RGB LED
@@ -26,9 +27,10 @@ variables _nezha32_buttonEdges _nezha32_buttonLoopStarted _nezha32_buttonLoopHea
   spec 'r' 'nezha32_buttonEvent' 'button _ _ event?' 'menu.nezha32_buttonMenu menu.nezha32_pressReleaseMenu' 'A' 'pressed'
   space
   space
-  spec ' ' '[elfreaks_dev_sensor:gyroReset]' 'reset gyro'
-  spec 'r' 'nezha32_getGaryAngle' 'angle of _ axis of the gyroscope (0-360 degrees)' 'menu.nezha32_axisMenu' 'X'
+  spec 'r' 'nezha32_getAttitudeAngle' 'attitude _ angle (degrees)' 'menu.nezha32_attitudeMenu' 'pitch'
   spec 'r' 'nezha32_getGaryAcc' 'acceleration of _ axis of the gyroscope (unit g)' 'menu.nezha32_axisMenu' 'X'
+  spec ' ' '[elfreaks_dev_sensor:calibration]' 'Static calibration of the gyroscope'
+  spec ' ' '[elfreaks_dev_sensor:yawReset]' 'Reset the yaw angle posture'
   space
   space
   spec 'r' '[elfreaks_dev_sensor:lightLevel]' 'Nezha light level(unit lux)'
@@ -489,14 +491,14 @@ to nezha32_getGaryAcc axis {
   return ('[elfreaks_dev_sensor:getGaryAcc]' ax)
 }
 
-to nezha32_getGaryAngle axis {
-  local 'ax' 0
-  if (axis == 'Y') {
-    ax = 1
-  } (axis == 'Z') {
-    ax = 2
+to nezha32_getAttitudeAngle attitude {
+  local 'index' 0
+  if (attitude == 'yaw') {
+    index = 1
+  } (attitude == 'roll') {
+    index = 2
   }
-  return ('[elfreaks_dev_sensor:getGaryAngle]' ax)
+  return ('[elfreaks_dev_sensor:getAttitudeAngle]' index)
 }
 
 to nezha32_getIoNum port ioNum {
