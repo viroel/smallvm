@@ -479,19 +479,17 @@ class MB_Parser {
 	}
 
 	readNumber() {
-		// Read and return the next integer or floating point number.
+		// Read and return the next integer or floating point number. A float is
+		// kept, not rounded; the compiler refuses it.
 
 		let numBuf = '';
-		let isFloat = false;
 		while (true) {
 			let c = this.peek();
 			if (this.isDigit(c) || ('-' == c)) {
 				numBuf += this.next();
 			} else if ('.' == c) {
-				isFloat = true;
 				numBuf += this.next();
 			} else if (('e' == c) || ('E' == c)) {
-				isFloat = true;
 				numBuf += this.next();
 				c = this.peek();
 				if (('+' == c) || ('-' == c)) {
@@ -501,10 +499,7 @@ class MB_Parser {
 				break;
 			}
 		}
-		if (isFloat) console.log(
-			'MicroBlocks does not support floating point numbers; rounding.' +
-			(' (' + this.fileName + ':' + this.lineNumber) + ')');
-		return Math.round(Number(numBuf));
+		return Number(numBuf);
 	}
 
 	isDigit(c) {

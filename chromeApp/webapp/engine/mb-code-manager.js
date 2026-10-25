@@ -18,6 +18,7 @@ class MB_CodeManager {
 		this.compiler = null;
 		this.oldVarNames = null;
 		this.crcDict = null;
+		this.refused = new Map(); // chunk key -> source of a script or function refused for a decimal
 		this.lastCRC = null;
 		this.lastRcvMSecs = null;
 		this.crc32Table = null;
@@ -40,6 +41,10 @@ class MB_CodeManager {
 		if (!(aBlock.parent instanceof ScriptsMorph)) {
 			// running a block from the palette
 			await this.saveAllChunks(true, aBlock);
+		}
+		if (this.refused.has(this.chunkKeyFor(aBlock))) {
+			await this.forceSaveChunk(aBlock); // refused again, and shown on its block
+			return;
 		}
 		const chunkID = this.lookupChunkID(aBlock);
 		if (chunkID != null) this.runChunk(chunkID); // null: nothing has been stored for it yet
@@ -569,7 +574,15 @@ class MB_CodeManager {
 
 		// save the binary code for the chunk
 		const chunkType = this.chunkTypeFor(aBlockOrFunction);
-		const chunkBytes = this.chunkBytesFor(aBlockOrFunction);
+		let chunkBytes;
+		try {
+			chunkBytes = this.chunkBytesFor(aBlockOrFunction);
+		} catch (e) {
+			if (e.message !== 'Floats are not supported') throw e;
+			await this.refuseDecimal(aBlockOrFunction, chunkID, entry, currentSrc);
+			return false;
+		}
+		this.refused.delete((aBlockOrFunction instanceof MB_Function) ? aBlockOrFunction.functionName : this.chunkKeyFor(aBlockOrFunction));
 
 		while ((chunkBytes.length % 4) !== 0) {
 			// pad with zeros to make chunk byte count be an even multiple of four
@@ -619,6 +632,33 @@ class MB_CodeManager {
 			await MB_connection.waitForResponse();
 		}
 		return true;
+	}
+
+	async refuseDecimal(aBlockOrFunction, chunkID, entry, src) {
+		// The board has no decimals. Take any earlier version off the board so it is not
+		// run instead, and say so on the block holding the number, or else its script.
+		entry[3] = ''; // so the next download refuses it again rather than skipping it
+		if ((entry[1] != null) || (this.crcDict && this.crcDict.has(chunkID))) {
+			await MB_connection.sendMsgSync('deleteChunkMsg', chunkID);
+			entry[1] = null;
+		}
+		const isFunction = aBlockOrFunction instanceof MB_Function;
+		const key = isFunction ? aBlockOrFunction.functionName : this.chunkKeyFor(aBlockOrFunction);
+		const unchanged = (this.refused.get(key) === src);
+		this.refused.set(key, src);
+		const top = isFunction ? MB_editor.definitionHatFor(aBlockOrFunction.functionName) : aBlockOrFunction;
+		const body = isFunction ? aBlockOrFunction.cmdList : aBlockOrFunction;
+		const slot = (body == null) ? null : body.allChildren().find((m) => (m instanceof InputSlotMorph) &&
+			(typeof m.evaluate() === 'number') && !Number.isInteger(m.evaluate()));
+		const msg = localized('Decimals aren\'t supported') + ((slot == null) ? '' : ': ' + slot.evaluate());
+		const holder = (slot == null) ? null : slot.parentThatIsA(BlockMorph);
+		if (holder && holder.world()) {
+			MB_editor.showError(holder, msg);
+		} else if (top instanceof BlockMorph) {
+			MB_editor.showError(top, msg);
+		} else if (!unchanged) { // a dialog once per version, not at every download
+			MB_editor.inform(aBlockOrFunction.functionName + ': ' + msg);
+		}
 	}
 
 	async storeChunkOnBoard(chunkID, data, chunkCRC) {
