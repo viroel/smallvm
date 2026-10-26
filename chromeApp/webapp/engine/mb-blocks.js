@@ -2291,7 +2291,8 @@ BlockMorph.prototype.addCodeStringForArg = function (arg, indent, result) {
 		// = or += name only when it must (printCmd, PrettyPrinter.gp:325 and :362;
 		// varName :436; varMustBeQuoted, String.gp:613), so do the same.
 		let name = arg.contents();
-		result.push(('local' == this.selector) ? ('\'' + fixEmbeddedQuotes(name) + '\'') : quoteIfNeeded(name));
+		const quote = ('to' == this.selector) ? quoteFunctionNameIfNeeded : quoteIfNeeded; // a `to` names a function
+		result.push(('local' == this.selector) ? ('\'' + fixEmbeddedQuotes(name) + '\'') : quote(name));
 	} else if (arg instanceof MicroBitDisplaySlotMorph) {
 		this.addCodeStringForValue(arg.evaluate(), result);
 	} else if (arg instanceof ColorSlotMorph) {
@@ -2415,7 +2416,7 @@ BlockMorph.prototype.codeString = function (indent = 0, result = [], early = tru
 		result.push(' ' + this.selector + ' ');
 		this.addCodeStringForArg(args[1], indent, result);
 	} else {
-		result.push(quoteIfNeeded(this.selector));
+		result.push(quoteFunctionNameIfNeeded(this.selector));
 		for (let i = 0; i < args.length; i++) {
 			result.push(' '); // no space after the last argument, as GP's printer
 			if (this.isElseSlot(args, i)) {
@@ -3726,7 +3727,7 @@ HatBlockMorph.prototype.codeString = function (indent = 0, result = []) {
 	if (!this.isFunctionDefinition()) {
 		return HatBlockMorph.uber.codeString.call(this, indent, result);
 	}
-	result.push('\t'.repeat(indent) + 'to ' + quoteIfNeeded(this.definedFunctionName()) + ' {}\n');
+	result.push('\t'.repeat(indent) + 'to ' + quoteFunctionNameIfNeeded(this.definedFunctionName()) + ' {}\n');
 	return result.join('');
 };
 

@@ -145,7 +145,7 @@ class MB_Function {
 	}
 
 	codeString() {
-		let result = 'to ' + quoteIfNeeded(this.functionName) + ' ';
+		let result = 'to ' + quoteFunctionNameIfNeeded(this.functionName) + ' ';
 		for (const arg of this.argNames) {
 			result += quoteIfNeeded(arg) + ' ';
 		}

@@ -1434,7 +1434,7 @@ class MB_LibraryEditor {
 // here: a morph by selector/argList on export, an array by [0] and slice(1) on
 // import. See misc/tests/js/regression/script-exchange.test.mjs.
 
-/* global varMustBeQuoted, fixEmbeddedQuotes, quoteIfNeeded */
+/* global varMustBeQuoted, fixEmbeddedQuotes, quoteIfNeeded, quoteFunctionNameIfNeeded */
 
 class MB_ScriptExchange {
 	constructor(mbProject) {
@@ -1499,7 +1499,7 @@ class MB_ScriptExchange {
 		const funcName = block.argList()[0];
 		const func = this.mbProject.functionNamed(funcName);
 		const params = func ? func.argNames : [];
-		return 'to ' + quoteIfNeeded(String(funcName)) +
+		return 'to ' + quoteFunctionNameIfNeeded(String(funcName)) +
 			params.map(p => ' ' + quoteIfNeeded(String(p))).join('') + ' {}\n';
 	}
 

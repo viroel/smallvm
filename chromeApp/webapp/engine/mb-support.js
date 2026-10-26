@@ -68,6 +68,12 @@ function quoteIfNeeded(s) {
 	return mustQuote ? ('\'' + fixEmbeddedQuotes(s) + '\'') : s;
 }
 
+function quoteFunctionNameIfNeeded(s) {
+	// Like quoteIfNeeded, but a function name must start with a letter to be unquoted.
+	// Variable and parameter names use quoteIfNeeded, so they may start with an underscore.
+	return /^[a-zA-Z]/.test(s) ? quoteIfNeeded(s) : ('\'' + fixEmbeddedQuotes(s) + '\'');
+}
+
 function fixEmbeddedQuotes(s) {
 	// If the given string includes any single quote characters, double them so that the
 	// the MicroBlocks parser will treat them as embedded quotes.
