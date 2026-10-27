@@ -24,7 +24,7 @@ Vehicle motion control'
   spec ' ' 'nezhaMotor_MoveAbsolute' 'turn motor _ speed _ % direction _ to absolute angle _ : _' 'menu.nezhaMotor_PortEx num menu.nezhaMotor_TurnDirectionEx num menu.nezhaMotor_WaitMode' 'M1' 50 'shortest path' 0 'wait until done'
   space
   space
-  spec ' ' 'nezhaMotor_RobotSetWheelDiameter' 'set robot wheel diameter _ mm' 'num' 0
+  spec ' ' 'nezhaMotor_RobotSetWheelDiameter' 'set robot wheel diameter _ mm' 'num' 62
   spec ' ' 'nezhaMotor_RobotSetMotors' 'set robot left wheel _ right wheel _' 'menu.nezhaMotor_Port menu.nezhaMotor_Port' 'M1' 'M2'
   spec ' ' 'nezhaMotor_RobotMove' 'run robot left wheel speed _ % right wheel speed _ %' 'num num' 0 0
   spec ' ' 'nezhaMotor_RobotTurnTo' 'turn robot at _ % speed with _ acceleration by _ degrees : _' 'num menu.nezhaMotor_AccelLevel num menu.nezhaMotor_WaitMode' 50 'medium' 0 'wait until done'
