@@ -338,9 +338,14 @@ let div = newDiv('panel__container');
 
 		title.appendChild(newLabel('Shortcuts'));
 
-		[ 'Computer', 'Cloud' ].forEach(label => {
+		[
+			this.forLibraries ? 'Libraries' : 'Examples', 'Computer', 'Cloud'
+		].forEach(label => {
 			let item = document.createElement('li'),
-				a = document.createElement('button');
+				a = document.createElement('button'),
+				icon = newElement('img');
+			icon.src = MB_FilePicker.icons[label];
+			a.appendChild(icon);
 			a.appendChild(newLabel(label));
 			a.onclick = () => this.selectSource(label);
 			item.appendChild(a);
@@ -363,6 +368,10 @@ let div = newDiv('panel__container');
 				break;
 			case 'Cloud':
 				this.promptURL();
+				break;
+			case 'Examples':
+			case 'Libraries':
+				this.showFolder(source, true);
 				break;
 			default:
 				console.log('not yet implemented', source);
