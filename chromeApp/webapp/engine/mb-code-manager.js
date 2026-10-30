@@ -28,6 +28,7 @@ class MB_CodeManager {
 	// --- run/stop ---
 
 	async evalOnBoard(aBlock, showBytes) {
+		if (!(await MB_editor.saveBeforeRun())) return; // starting now could be stopped by that download
 		if ('not connected' == MB_connection.updateConnection()) {
 			MB_editor.showError(aBlock, localized('Board not connected'));
 			return;
@@ -40,7 +41,8 @@ class MB_CodeManager {
 			// running a block from the palette
 			await this.saveAllChunks(true, aBlock);
 		}
-		this.runChunk(this.lookupChunkID(aBlock));
+		const chunkID = this.lookupChunkID(aBlock);
+		if (chunkID != null) this.runChunk(chunkID); // null: nothing has been stored for it yet
 	}
 
 	isRunning(aBlock) {
@@ -59,8 +61,8 @@ class MB_CodeManager {
 
 	async syncAndStartAll() {
 		if (MB_connection.vmTooOld()) return;
-		// Refuse before sending anything, as GP's startAll does (MicroBlocksRuntime.gp).
-		if (!MB_connection.isConnected()) {
+		// Refuse before sending anything, until the board has answered as well as the port opened.
+		if ('not connected' == MB_connection.updateConnection()) {
 			MB_editor.inform(localized('Board not connected'));
 			return;
 		}
@@ -68,6 +70,7 @@ class MB_CodeManager {
 			MB_editor.inform(localized('Program is too large to store on board.'));
 			return;
 		}
+		if (!(await MB_editor.saveBeforeRun())) return; // a store still running could stop or restart a script after the start
 		await this.syncScripts();
 		MB_connection.sendMsg('startAllMsg', 1); // chunk type 1 means 16-bit instructions
 	}
@@ -76,6 +79,9 @@ class MB_CodeManager {
 		// Stop, then a soft reset, then sync, as GP's stopAndSyncScripts does. The VM
 		// clears its memory and variables on the reset, which stopAllMsg alone does not.
 		if (MB_connection.isConnected() && (alreadyStopped !== true)) {
+			// A store in progress restarts its script if it was running, which would undo
+			// the stop, so let it finish first. Stop goes out even if that wait gives up.
+			await MB_editor.saveBeforeRun();
 			MB_connection.sendMsg('stopAllMsg');
 			MB_connection.sendMsg('systemResetMsg');
 		}
@@ -621,7 +627,7 @@ class MB_CodeManager {
 		// This can take several seconds if the board does a Flash compaction.
 
 		this.lastCRC = null;
-		MB_connection.sendMsg('chunkCode16Msg', chunkID, data);
+		await MB_connection.sendMsg('chunkCode16Msg', chunkID, data); // start the clock once it is sent
 
 		// wait for CRC to be reported
 		const timeout = 3000; // must be less than ping timeout
@@ -874,6 +880,7 @@ class MB_CodeManager {
 		// Return true if variables have changed, false otherwise.
 		const newVarNames = this.project.allVariableNames();
 		if (this.arraysEqual(this.oldVarNames, newVarNames)) return false;
+		if (await this.saveAddedVariableNames(newVarNames)) return true;
 
 		const varCount = newVarNames.length;
 		const progressInterval = Math.max(1, Math.floor(varCount / 20));
@@ -900,6 +907,26 @@ class MB_CodeManager {
 			}
 		}
 		this.oldVarNames = newVarNames.slice();
+		this.oldVarIndices = this.project.varIndices;
+		return true;
+	}
+
+	async saveAddedVariableNames(newVarNames) {
+		// Send only the names of added variables: clearVarsMsg also clears the board's
+		// memory under the scripts still running. Answer false when all must be resent:
+		// a variable was removed, or the indices were or would be renumbered (undo, redo, 128).
+		if (!this.oldVarNames || (this.project.varIndices !== this.oldVarIndices)) return false;
+		const added = newVarNames.filter((v) => !this.oldVarNames.includes(v));
+		if (added.length !== (newVarNames.length - this.oldVarNames.length)) return false; // one was removed
+		if ((this.project.nextVarIndex + added.length) >= 128) return false;
+		for (const varName of added) {
+			const varID = this.project.indexForVar(varName);
+			if (MB_connection.isConnected()) {
+				await MB_connection.sendMsgSync('varNameMsg', varID, Array.from(new TextEncoder().encode(varName)));
+			}
+		}
+		this.oldVarNames = newVarNames.slice();
+		this.oldVarIndices = this.project.varIndices;
 		return true;
 	}
 

@@ -9,12 +9,13 @@
 // Bernat Romagosa, 2026
 
 class LibraryInfoWindow extends FloatingWindow {
-	constructor(library) {
-		const contents = document.createElement('div');
-		const buttons = [{ label: 'Cancel', action: ()=>{}, closesWindow: true }];
-		if (IDE.isDevMode()) {
-			buttons.unshift({ label: 'Save', action: onSave, closesWindow: true });
-		}
+	constructor(library, forEditing = IDE.isDevMode()) {
+		const contents = newDiv();
+		// a read-only window is closed from its title bar
+		const buttons = forEditing ? [
+			{ label: 'Save', action: onSave, closesWindow: true },
+			{ label: 'Cancel', action: ()=>{}, closesWindow: true }
+		] : null;
 		super({
 			title: library.moduleName,
 			body: contents,
@@ -26,6 +27,7 @@ class LibraryInfoWindow extends FloatingWindow {
 		});
 		this.cachedLibraryName = library.moduleName;
 		this.library = library;
+		this.forEditing = forEditing;
 		this.fields = {};
 		contents.replaceWith(this.bodyDiv());
 
@@ -37,41 +39,44 @@ class LibraryInfoWindow extends FloatingWindow {
 			this.library[fieldName] =
 				this.extractInputValue(fieldName, this.fields[fieldName]);
 		});
+		// library may have changed, we should update the library map in the project
+		let map = MB_editor.project.libraries;
+		map.set(this.library.moduleName, map.get(this.cachedLibraryName));
 		if (this.cachedLibraryName !== this.library.moduleName) {
-			// library name changed, we need to update the library map in the project
-			let map = MB_editor.project.libraries;
-			map.set(this.library.moduleName, map.get(this.cachedLibraryName));
+			// if lib name has changed, we need to remove the old library from the map
 			map.delete(this.cachedLibraryName);
-			MB_editor.updateLibraryList();
 		}
+		MB_editor.updateLibraryList();
 	}
 
 	extractInputValue(selector, input) {
 		if (['moduleName', 'author', 'description'].includes(selector)) {
 			return input.value;
 		} else if (selector == 'version') {
-			return input.value.split('.');
+			return input.value.split('.').map(part => parseInt(part));
 		} else if (selector == 'dependencies') {
-			return Array.from(input).map(div => div.getAttribute('data-value'));
+			return (
+				Array.from(input.children)
+					.filter(element => element.hasAttribute('data-value'))
+					.map(element => element.getAttribute('data-value'))
+			);
 		} else if (selector == 'moduleCategory') {
 			return input.getAttribute('data-value');
 		}
 	}
 
 	bodyDiv() {
-		let div = document.createElement('div');
+		let div = newDiv();
 
 		div.appendChild(this.fieldFor('moduleName'));
 		div.appendChild(this.fieldFor('description'));
 
-		let fieldGroup = document.createElement('div');
-		fieldGroup.classList.add('window__field_group');
+		let fieldGroup = newDiv('window__field_group');
 		fieldGroup.appendChild(this.fieldFor('author'));
 		fieldGroup.appendChild(this.fieldFor('version'));
 		div.appendChild(fieldGroup);
 
-		fieldGroup = document.createElement('div');
-		fieldGroup.classList.add('window__field_group');
+		fieldGroup = newDiv('window__field_group');
 		fieldGroup.appendChild(this.fieldFor('dependencies'));
 		fieldGroup.appendChild(this.fieldFor('moduleCategory'));
 		div.appendChild(fieldGroup);
@@ -79,14 +84,12 @@ class LibraryInfoWindow extends FloatingWindow {
 	}
 
 	fieldFor(selector) {
-		let field = document.createElement('div');
-		let label = document.createElement('l-');
-		label.innerText = this.labelFor(selector);
+		let field = newDiv('window__field');
+		let label = newLabel(this.labelFor(selector));
 		let input =
 			['moduleName', 'author'].includes(selector) ?
 				this.textInput(selector) :
 				this[selector + 'Input']();
-		field.classList.add('window__field');
 		field.classList.add(selector);
 		field.appendChild(label);
 		field.appendChild(input);
@@ -96,17 +99,19 @@ class LibraryInfoWindow extends FloatingWindow {
 
 	textInput(selector, value) {
 		let input = document.createElement('input');
+		input.setAttribute('data-undraggable', true);
 		input.classList.add('window__input');
 		input.type = 'text';
 		input.value = value ?? this.library[selector];
-		input.readOnly = !IDE.isDevMode();
+		input.readOnly = !this.forEditing;
 		return input;
 	}
 
 	descriptionInput() {
 		let textarea = document.createElement('textarea');
+		textarea.setAttribute('data-undraggable', true);
 		textarea.textContent = this.library.description;
-		textarea.readOnly = !IDE.isDevMode();
+		textarea.readOnly = !this.forEditing;
 		return textarea;
 	}
 
@@ -115,21 +120,19 @@ class LibraryInfoWindow extends FloatingWindow {
 	}
 
 	dependenciesInput() {
-		let div = document.createElement('div');
-		div.classList.add('dependency__list');
+		let div = newDiv('dependency__list');
 		if (this.library.dependencies.length) {
 			this.library.dependencies.forEach(dep => {
 				let span = document.createElement('span');
-				span.innerText = dep[0] == '_' ? dep.substr(1) : dep;
+				span.innerText = this.parseLibName(dep);
 				span.setAttribute('data-value', dep);
 				div.appendChild(span);
 			});
 		} else {
-			let text = document.createElement('l-');
-			text.innerText = 'None';
+			let text = newLabel('None');
 			div.appendChild(text);
 		}
-		if (IDE.isDevMode()) {
+		if (this.forEditing) {
 			let addButton = document.createElement('button');
 			let removeButton = document.createElement('button');
 			addButton.classList.add('button-rounded');
@@ -146,20 +149,26 @@ class LibraryInfoWindow extends FloatingWindow {
 		return div;
 	}
 
+	parseLibName(libPath) {
+		if (libPath[0] == '_') {
+			// if it's an implementation library, remove the underscore first
+			return libPath.substr(1);
+		} else if (libPath.match(/http.*\/.*.ubl/)) {
+			// if it's a URL, keep only the file name without extension
+			return unescape(libPath.replace(/http.*\/(.*)\.ubl/, '$1'));
+		} else {
+			// otherwise it must be a built-in library
+			return libPath;
+		}
+	}
+
 	addDependency(event) {
-		console.log(event);
 		FloatingWindow.prompt(
 			'Dependency name or URL?',
 			localized(`If you are adding a library that\'s built into MicroBlocks, you
 				can just enter its name.`) +
 				localized(`If the library is hosted online, please input its full URL`),
 			(depName) => {
-				if (depName.startsWith('http')) {
-					FloatingWindow.inform(
-						'Not implemented',
-						'Online dependencies not yet implemented sorry! Come back tomorrow.'
-					);
-				}
 				if (!this.library.dependencies.includes(depName)) {
 					this.library.dependencies.push(depName);
 					this.rebuildDependencyInput();
@@ -203,15 +212,45 @@ class LibraryInfoWindow extends FloatingWindow {
 	}
 
 	moduleCategoryInput() {
-		let button = document.createElement('button');
+		let button = newElement('button');
 		button.style.backgroundColor =
 			Categories.colorFor(this.library.moduleCategory);
 		button.setAttribute('data-value', this.library.moduleCategory);
-		button.onclick = () => {
-			// TODO click action when in devmode to open category picker
-			console.log('Opening category picker');
+		button.onclick = (event) => {
+			Menus.popUpFromDescriptor(
+				{
+					selector: 'categoryColor',
+					type: 'context',
+					items: Categories.categoryNames().map(catName => {
+						let item = newDiv('category--color-item'),
+							color = newDiv('color--rectangle'),
+							label = newElement('span');
+						color.style.backgroundColor = Categories.colorFor(catName);
+						label.innerText = catName;
+						item.appendChild(color);
+						item.appendChild(label);
+						return {
+							label: item,
+							action: () => {
+								this.library.moduleCategory = catName;
+								this.rebuildModuleCategoryInput();
+							}
+						}
+					})
+				},
+				button,
+				null, // target
+				event
+			);
 		};
 		return button;
+	}
+
+	rebuildModuleCategoryInput() {
+		// see rebuildDependencyInput
+		let newModuleInput = this.moduleCategoryInput();
+		this.fields.moduleCategory.replaceWith(newModuleInput);
+		this.fields.moduleCategory = newModuleInput;
 	}
 
 	labelFor(selector) {

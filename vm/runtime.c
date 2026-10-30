@@ -1271,7 +1271,6 @@ static void processShortMessage() {
 	case clearVarsMsg:
 		if (1 != chunkIndex) break; // ignore msg from 32-bit IDE
 		clearAllVariables();
-		memClear();
 		break;
 	case getChunkCRCMsg:
 		sendChunkCRC(chunkIndex);
@@ -1429,4 +1428,5 @@ void processMessage() {
 	} else {
 		skipToStartByteAfter(1); // bad message, probably due to dropped bytes
 	}
+	sendData(); // try to send the reply now, before the VM can nap
 }

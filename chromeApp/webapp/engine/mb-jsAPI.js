@@ -49,7 +49,10 @@ GP.apiCall = function (endPoint, params, callback) {
 			} else if (MB_connection.isConnected()) {
 				// A disconnect the user asked for leaves the board running the
 				// IDE's program, as it will after its next power-up.
-				MB_editor.stopSyncAndStartAll().finally(() => MB_connection.disconnect());
+				const port = MB_connection.port;
+				MB_editor.stopSyncAndStartAll().finally(() => {
+					if (MB_connection.port === port) MB_connection.disconnect(); // not a connection made since
+				});
 			} else {
 				MB_connection.disconnect();
 			}
@@ -64,8 +67,8 @@ GP.apiCall = function (endPoint, params, callback) {
 			callback(0);
 			break;
 		case 'ide.stopAll':
-			// params[0] is shift, from the button's own click event. Anything
-			// that is not true, a missing argument included, is not shift.
+			// params[0] is shift, from the button's own click event; stopAll also
+			// forces the recompile while Shift is down on the page.
 			MB_editor.stopAll(true === params[0]);
 			callback(0);
 			break;
@@ -81,7 +84,7 @@ GP.apiCall = function (endPoint, params, callback) {
 			callback(0);
 			break;
 		case 'project.save':
-			// As saveProjectToFile (MicroBlocksEditor.gp): no prompt, the file is a download.
+			// The browser's save dialog where there is one, otherwise a download.
 			MB_editor.saveProject();
 			callback(0);
 			break;
@@ -188,10 +191,11 @@ GP.apiCall = function (endPoint, params, callback) {
 		case 'ide.spinnerCancelled':
 			// Reply first, then act. The chrome sends this for every Escape key
 			// whether a spinner is up or not. What a spinner here stands over that can
-			// be stopped is a file transfer or a firmware download: a project read
-			// shows one and runs to its end either way.
+			// be stopped is a file transfer, a firmware download or an ESP install: a
+			// project read shows one and runs to its end either way.
 			callback(0);
 			if (MB_editor.spinnerShowing && MB_connection.busy()) MB_connection.abortFileTransfer();
+			if (MB_editor.spinnerShowing && MB_Firmware.espTool) MB_Firmware.espTool.cancel();
 			if (MB_Firmware.downloadAborter) MB_Firmware.downloadAborter.abort();
 			MB_editor.spinnerShowing = false; // cancelled or not, the overlay is gone
 			break;
@@ -263,6 +267,10 @@ GP.apiCall = function (endPoint, params, callback) {
 			callback(0);
 			MB_editor.openProjectMenu();
 			break;
+		case 'project.openFromURL':
+			callback(0);
+			MB_editor.openFromURL();
+			break;
 		case 'scripts.copyToClipboard':
 			// Answer, then act, as the endpoints below do.
 			callback(0);
@@ -311,7 +319,7 @@ GP.apiCall = function (endPoint, params, callback) {
 };
 
 // menus.js shows its paste items from GP.clipboardBytes and clipboardText().
-// mb-editor.js fills that buffer and defines clipboardText().
+// mb-support.js fills that buffer and defines clipboardText().
 GP.clipboardBytes = [];
 
 function setClipboard(text) { setGPClipboard(text); }

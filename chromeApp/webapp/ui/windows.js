@@ -43,15 +43,15 @@ class FloatingWindow extends HTMLElement {
 
 		// Window Top
 		if (typeof descriptor.title == 'string') {
-			let windowTop = document.createElement('div');
+			let windowTop = newDiv('window__top');
 			let windowTitle = document.createElement('h2');
 			let windowClose = document.createElement('button');
 
-			windowTop.classList.add('window__top');
 			windowTitle.classList.add('window__title');
 			windowClose.classList.add('window__close');
+			windowClose.setAttribute('data-undraggable', true);
 
-			windowTitle.innerHTML = `<l->${descriptor.title}</l->`;
+			windowTitle.appendChild(newLabel(descriptor.title));
 			fetch('img/icon-close--16x16.svg')
 				.then(res => res.text())
 				.then(text => windowClose.innerHTML = text);
@@ -63,9 +63,7 @@ class FloatingWindow extends HTMLElement {
 
 
 		// Window Body
-		let windowBody = document.createElement('div');
-		windowBody.classList.add('window__body');
-		windowBody.setAttribute('data-undraggable', true);
+		let windowBody = newDiv('window__body');
 
 		if (descriptor.body) {
 			if (typeof descriptor.body == 'string') {
@@ -95,25 +93,23 @@ class FloatingWindow extends HTMLElement {
 
 		// Buttons
 		if (descriptor.buttons) {
-			let windowButtons = document.createElement('div');
-			windowButtons.classList.add('window__buttons');
-			windowButtons.setAttribute('data-undraggable', true);
+			let windowButtons = newDiv('window__buttons');
 
 			descriptor.buttons.forEach(buttonDescriptor => {
-				let button = document.createElement('button');
-				button.innerHTML = `<l->${buttonDescriptor.label}</l->`;
-				button.classList.add('button-rounded');
-				windowButtons.append(button);
-
-				button.onclick = () => {
-					let value;
-					if (descriptor.input) {
-						value = windowBody.querySelector('.window__input').value;
-					}
-					buttonDescriptor.action.call(this, value);
-					if (buttonDescriptor.closesWindow) { this.remove(); }
-					GP.delegateKeyboardEvents = false;
-				};
+				windowButtons.append(
+					newButton(
+						buttonDescriptor.label,
+						() => {
+							let value;
+							if (descriptor.input) {
+								value = windowBody.querySelector('.window__input').value;
+							}
+							buttonDescriptor.action.call(this, value);
+							if (buttonDescriptor.closesWindow) { this.remove(); }
+							GP.delegateKeyboardEvents = false;
+						}
+					)
+				);
 			});
 
 			windowButtons.children[0].classList.add('--default');
@@ -189,6 +185,7 @@ class FloatingWindow extends HTMLElement {
 		this.onkeydown = (e) => {
 			if (e.key == 'Enter' && defaultButton) {
 				defaultButton.click();
+				e.preventDefault();
 			} else if (e.key == 'Escape') {
 				this.remove();
 			}
@@ -369,8 +366,12 @@ FloatingWindow.workspace = function(title, text) {
 		className: 'workspace'
 	});
 	win.popUp();
-	// we can't know the scroll height until the window has popped up
-	win.setSize(win.width, textarea.scrollHeight + 56, true);
+	// we can't know the scroll height until the window has popped up.
+	// A text taller than the page scrolls inside a window that fits on it.
+	let height = Math.min(textarea.scrollHeight + 56, window.innerHeight - 20);
+	win.setSize(win.width, height, true);
+	win.y = Math.min(win.y, window.innerHeight - height - 10);
+	win.style.top = win.y + 'px';
 	return win;
 };
 
