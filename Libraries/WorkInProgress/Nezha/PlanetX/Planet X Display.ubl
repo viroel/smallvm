@@ -20,7 +20,7 @@ https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05016
 dot-matrix display screen
 WIKI (matrix):
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05029'
-variables _planetX_tmClockPin _planetX_tmDataPin _planetX_tmBrightness _planetX_tmDigits _planetX_npPixels _planetX_npPin _planetX_npHasWhite _planetX_npRangeStart _planetX_npRangeLength _planetX_i2cReady _planetX_matrixReady _planetX_matrixBuf _planetX_oledReady _planetX_oledAddr _planetX_oledBusy _planetX_oledLines 
+variables _planetX_tmClockPin _planetX_tmDataPin _planetX_tmBrightness _planetX_tmDigits _planetX_npPixels _planetX_npPin _planetX_npHasWhite _planetX_npRangeStart _planetX_npRangeLength _planetX_matrixReady _planetX_matrixBuf _planetX_oledReady _planetX_oledAddr _planetX_oledBusy _planetX_oledLines
 
   spec ' ' 'planetX_tm1637Create' 'numeric display set port _' 'menu.planetXPort' 'J1'
   spec ' ' 'planetX_tm1637ShowNumber' 'numeric display show _ (0-9999)' 'num' 1234
@@ -97,7 +97,7 @@ to '_planetX_colorFromRGB' r g b {
 
 to '_planetX_i2cPortExists' addr {
   if (not ('_planetX_i2cAcquire')) {return false}
-  '[sensors:i2cSetClockSpeed]' 200000
+  '_planetX_i2cSetClock'
   local 'present' ('[sensors:i2cExists]' addr)
   '_planetX_i2cRelease'
   return present
@@ -105,7 +105,7 @@ to '_planetX_i2cPortExists' addr {
 
 to '_planetX_i2cPortWrite' addr bytes {
   if (not ('_planetX_i2cAcquire')) {return false}
-  '[sensors:i2cSetClockSpeed]' 200000
+  '_planetX_i2cSetClock'
   local 'present' ('[sensors:i2cExists]' addr)
   if present {
     if (and ((size bytes) > 32) ((at 1 bytes) == 64)) {
@@ -123,8 +123,6 @@ to '_planetX_matrixCmd' value {
 }
 
 to '_planetX_matrixEnsure' {
-  if (not _planetX_i2cReady) {_planetX_i2cReady = ('_planetX_extI2CInit')}
-  if (not _planetX_i2cReady) {return false}
   if (not _planetX_matrixReady) {
     _planetX_matrixBuf = ('[data:newByteArray]' 17 0)
     atPut 1 _planetX_matrixBuf 0
@@ -232,7 +230,6 @@ to '_planetX_oledData' value {
 }
 
 to '_planetX_oledEnsure' {
-  if (not ('_planetX_extI2CInit')) {return false}
   '_planetX_oledLock'
   if _planetX_oledReady {
     if ('_planetX_oledWakeCore') {
@@ -689,7 +686,6 @@ to planetX_tm1637Clear {
 to planetX_tm1637Create port {
   _planetX_tmClockPin = ('_planetX_jPortPin' port 'A')
   _planetX_tmDataPin = ('_planetX_jPortPin' port 'B')
-  sayIt _planetX_tmClockPin _planetX_tmDataPin
   _planetX_tmBrightness = 7
   digitalWriteOp _planetX_tmClockPin false
   digitalWriteOp _planetX_tmDataPin false

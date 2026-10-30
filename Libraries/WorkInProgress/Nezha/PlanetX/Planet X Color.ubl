@@ -10,6 +10,7 @@ variables _planetX_colorReady _planetX_colorHue _planetX_colorClear _planetX_col
 
   spec 'r' 'planetXColorHue' 'color sensor hue (0-360)'
   spec 'r' 'planetXColorDetected' 'color sensor detected _ ?' 'menu.planetXColorName' 'red'
+  space
   spec 'r' '_planetX_colorCeilDivide' '_planetX_colorCeilDivide _ _' 'auto auto' 0 1
   spec 'r' '_planetX_colorEnsure' '_planetX_colorEnsure'
   spec 'r' '_planetX_colorHueFromRGB' '_planetX_colorHueFromRGB _ _ _' 'auto auto auto' 0 0 0
@@ -27,7 +28,6 @@ to '_planetX_colorCeilDivide' numerator denominator {
 }
 
 to '_planetX_colorEnsure' {
-  '_planetX_extI2CInit'
   if _planetX_colorReady {
     return true
   }

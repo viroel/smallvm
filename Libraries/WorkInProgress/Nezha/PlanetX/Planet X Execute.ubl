@@ -25,9 +25,9 @@ variables _planetX_mp3Pin
 
   spec ' ' 'planetX_laserSwitch' 'laser module _ turn _' 'menu.planetXPort bool' 'J1' true
   space
-  spec ' ' 'planetX_motorFanSwitch' 'fan _ turn _' 'menu.planetXPort bool' 'J1' false
+  spec ' ' 'planetX_motorFanSwitch' 'fan _ turn _ : speed _ %' 'menu.planetXPort bool num' 'J1' false 100
   space
-  spec ' ' 'planetX_ledSwitch' 'LED _ turn _' 'menu.planetXPort bool' 'J1' true
+  spec ' ' 'planetX_ledSwitch' 'LED _ turn _ : brightness _ %' 'menu.planetXPort bool num' 'J1' true 100
   space
   spec ' ' 'planetX_mp3SetPort' 'MP3 set port _' 'menu.planetXPort' 'J1'
   spec ' ' 'planetX_mp3SetVolume' 'MP3 set volume _ (0-25)' 'num' 25
@@ -118,12 +118,12 @@ to planetX_laserSwitch port on {
   digitalWriteOp pin on
 }
 
-to planetX_ledSwitch port on {
-  '_planetX_ledBrightness' port on 100
+to planetX_ledSwitch port on optionalBrightness {
+  '_planetX_ledBrightness' port on (argOrDefault 3 100)
 }
 
-to planetX_motorFanSwitch port on {
-  '_planetX_motorFan' port on 100
+to planetX_motorFanSwitch port on optionalSpeed {
+  '_planetX_motorFan' port on (argOrDefault 3 100)
 }
 
 to planetX_mp3Execute action {

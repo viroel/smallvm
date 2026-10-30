@@ -355,7 +355,7 @@ to '_planetX_aiLensPro_device_read' command params readLen {
   if (not ('_planetX_i2cAcquire')) {
     return ('[data:newByteArray]' 0)
   }
-  '[sensors:i2cSetClockSpeed]' 200000
+  '_planetX_i2cSetClock'
   local 'raw' ('[data:newByteArray]' (readLen + 1) 0)
   local 'read' false
   if ('[sensors:i2cExists]' _planetX_aiLensPro_addr) {
@@ -380,7 +380,7 @@ to '_planetX_aiLensPro_device_write' command params {
   if (not ('_planetX_i2cAcquire')) {
     return false
   }
-  '[sensors:i2cSetClockSpeed]' 200000
+  '_planetX_i2cSetClock'
   local 'present' ('[sensors:i2cExists]' _planetX_aiLensPro_addr)
   if present {
     '[sensors:i2cWrite]' _planetX_aiLensPro_addr packet

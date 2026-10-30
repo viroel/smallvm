@@ -8,8 +8,8 @@ WIKI:
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05020'
 variables _planetX_gestureReady 
 
-  spec ' ' 'planetXGestureInit' 'initialize gesture sensor'
   spec 'r' 'planetXGestureDetected' 'gesture sensor detected _ ?' 'menu.planetXGestureName' 'right'
+  space
   spec 'r' '_planetX_gestureEnsure' '_planetX_gestureEnsure'
   spec 'r' '_planetX_gestureExpectedCode' '_planetX_gestureExpectedCode _' 'str' ''
   spec ' ' '_planetX_gestureInitPart1' '_planetX_gestureInitPart1'
@@ -116,7 +116,6 @@ to '_planetX_gestureSelectBank' bank {
 }
 
 to '_planetX_gestureTryInit' {
-  '_planetX_extI2CInit'
   if _planetX_gestureReady {
     return true
   }
@@ -162,9 +161,5 @@ to planetXGestureDetected gesture {
     return false
   }
   return (('_planetX_gestureReadCode') == expected)
-}
-
-to planetXGestureInit {
-  '_planetX_gestureEnsure'
 }
 

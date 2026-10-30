@@ -7,12 +7,12 @@ choices planetXLetterCard A B C D E
 choices planetXPort J1 J2 J3 J4 
 choices planetXNumberCard '0' '1' '2' '3' '4' '5' '6' '7' '8' '9' 
 choices planetXObjectValue 'x coordinate' 'y coordinate' width height 'confidence (%)' id 
-description 'Shared Planet X menus, J-port pin mapping, I2C initialization, FIFO transaction lock and sensor communication.
+description 'Shared Planet X menus, J-port pin mapping, I2C clock selection, FIFO transaction lock and sensor communication.
 Import this as an implementation dependency.'
-variables _planetX_extI2CReady _planetX_i2cRequestBusy _planetX_i2cQueue 
+variables _planetX_i2cRequestBusy _planetX_i2cQueue
 
-  spec 'r' '_planetX_extI2CInit' '_planetX_extI2CInit'
   spec 'r' '_planetX_jPortPin' '_planetX_jPortPin _ _' 'auto auto' 'J1' 'A'
+  space
   spec ' ' '_planetX_i2cSetClock' '_planetX_i2cSetClock'
   spec 'r' '_planetX_i2cAcquire' '_planetX_i2cAcquire'
   spec ' ' '_planetX_i2cRelease' '_planetX_i2cRelease'
@@ -22,11 +22,6 @@ variables _planetX_extI2CReady _planetX_i2cRequestBusy _planetX_i2cQueue
   spec 'r' '_planetX_i2cReadUInt16LE' '_planetX_i2cReadUInt16LE _ _' 'auto auto' 0 0
   spec 'r' '_planetX_i2cWrite' '_planetX_i2cWrite _ _' 'auto auto' 0 0
 
-to '_planetX_extI2CInit' {
-  _planetX_extI2CReady = true
-  return true
-}
-
 to '_planetX_jPortPin' port signal {
   local 'board' (boardType)
   local 'pins' 0
@@ -35,13 +30,11 @@ to '_planetX_jPortPin' port signal {
   } (board == 'Nezha for ESP32') {
     pins = ('[data:makeList]' 4 5 6 7 15 16 17 18)
   } else {
-    sayIt 'Planet X J ports: unsupported board' board
     stopTask
     return -1
   }
   local 'index' ('[data:find]' port ('[data:makeList]' 'J1' 'J2' 'J3' 'J4'))
   if (or (index < 1) (not (or (signal == 'A') (signal == 'B')))) {
-    sayIt 'Planet X J ports: invalid port or signal' port signal
     stopTask
     return -1
   }

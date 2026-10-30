@@ -18,6 +18,7 @@ variables _planetX_asrReady _planetX_asrData _planetX_asrLastCode _planetX_asrLa
   spec 'r' 'planetXASRHeard' 'speech recognition sensor heard _ ?' 'menu.planetXASRWord' 'hello Xiaoen'
   advanced
   spec 'r' 'planetXASRReadCode' 'speech recognition sensor current code'
+  space
   spec ' ' '_planetX_asrClearCache' '_planetX_asrClearCache'
   spec 'r' '_planetX_asrDeviceCode' '_planetX_asrDeviceCode _' 'str' ''
   spec 'r' '_planetX_asrEnsure' '_planetX_asrEnsure'
@@ -40,10 +41,6 @@ to '_planetX_asrDeviceCode' word {
 }
 
 to '_planetX_asrEnsure' {
-  if (not ('_planetX_extI2CInit')) {
-    _planetX_asrReady = false
-    return false
-  }
   if (_planetX_asrData == 0) {
     _planetX_asrData = ('[data:newByteArray]' 1 0)
   }

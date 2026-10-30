@@ -1,9 +1,8 @@
 module 'Nezha ESP32 Speech Recognition' Input
 author 'Elecfreaks Team'
 version 1 1 
-implements 'Nezha ESP32 SR' 
 choices nezha_SR_Language CN EN 
-description 'Speech recognition'
+description 'Speech recognition (previously named Nezha ESP32 SR)'
 
   spec ' ' 'nezha_SR_Enable' 'enable speech recognition _' 'menu.nezha_SR_Language' 'CN'
   spec ' ' '[elfreaks:SR_Disable]' 'disable speech recognition'

@@ -1,7 +1,6 @@
 module 'Nezha ESP32 Motor' Output
 author 'Elecfreaks Team'
 version 1 1 
-implements 'Nezha ESP32 Sport' 
 choices nezhaMotor_TurnMode seconds degrees turns 
 choices nezhaMotor_DriveMode seconds mm 
 choices nezhaMotor_TurnDirection clockwise counterclockwise 
@@ -13,7 +12,9 @@ choices nezhaMotor_PortEx M1 M2 M3 M4 All
 choices nezhaMotor_WaitMode 'no wait' 'wait until done' 
 description 'Intelligent motor
 
-Vehicle motion control'
+Vehicle motion control
+
+Previously named Nezha ESP32 Sport'
 
   spec ' ' 'nezhaMotor_Start' 'start motor _ speed _ % direction _' 'menu.nezhaMotor_PortEx num menu.nezhaMotor_TurnDirection' 'M1' 50 'clockwise'
   spec ' ' 'nezhaMotor_Stop' 'stop motor _' 'menu.nezhaMotor_PortEx' 'M1'

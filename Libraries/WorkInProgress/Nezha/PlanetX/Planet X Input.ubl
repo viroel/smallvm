@@ -274,7 +274,6 @@ to '_planetX_pollButtonEvents' {
 }
 
 to '_planetX_bmeEnsure' {
-  '_planetX_extI2CInit'
   if _planetX_bmeReady {
     return true
   }
@@ -319,7 +318,6 @@ to '_planetX_bmeToInt8' value {
 }
 
 to '_planetX_bmeTryInit' addr {
-  '_planetX_extI2CInit'
   _planetX_bmeAddr = addr
   if (or (addr < 1) (not ('_planetX_i2cExists' addr))) {
     return false
@@ -902,7 +900,6 @@ to '_planetX_rtcDecToHex' value {
 }
 
 to '_planetX_rtcEnsure' {
-  '_planetX_extI2CInit'
   if _planetX_rtcReady {
     return true
   }
@@ -947,7 +944,6 @@ to '_planetX_trackBitChannelIndex' channel {
 }
 
 to '_planetX_trackBitEnsure' {
-  '_planetX_extI2CInit'
   if _planetX_trackBitReady {
     return true
   }
@@ -1297,7 +1293,6 @@ to planetX_buttonCD port button {
 
 to planetX_buttonEventBroadcast port button message {
   if (not (or (button == 'C') (button == 'D'))) {
-    sayIt 'Planet X button must be C or D.' button
     stopTask
     return
   }

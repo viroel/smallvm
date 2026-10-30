@@ -1,6 +1,6 @@
 module 'Planet X AI Lens' Input
 author 'Elecfreaks Team'
-version 2 2
+version 2 4
 depends '_Planet X Support' 
 choices planetXAILensLearnID ID1 ID2 ID3 ID4 ID5 
 choices planetXAILensCardStatus 'x coordinate' 'y coordinate' size confidence 'card ID' 
@@ -51,6 +51,7 @@ variables _planetX_aiLensReady _planetX_aiLensData _planetX_aiLensCmd
   spec ' ' 'planetXAILensClearLearnObject' 'AI camera clear learned objects'
   spec 'r' 'planetXAILensObjectCheck' 'AI camera image contains object _ ?' 'menu.planetXAILensLearnID' 'ID1'
   spec 'r' 'planetXAILensObjectConfidence' 'AI camera object _ confidence' 'menu.planetXAILensLearnID' 'ID1'
+  space
   spec 'r' '_planetX_aiLensBallColorCode' '_planetX_aiLensBallColorCode _' 'str' ''
   spec 'r' '_planetX_aiLensColorCardCode' '_planetX_aiLensColorCardCode _' 'str' ''
   spec 'r' '_planetX_aiLensEnsure' '_planetX_aiLensEnsure'
@@ -76,7 +77,6 @@ to '_planetX_aiLensColorCardCode' color {
 }
 
 to '_planetX_aiLensEnsure' {
-  '_planetX_extI2CInit'
   if (_planetX_aiLensData == 0) {
     _planetX_aiLensData = ('[data:newByteArray]' 9 0)
   }
@@ -335,7 +335,10 @@ to planetXAILensOtherCard status {
 }
 
 to planetXAILensSwitchFunc fun {
+  local 'firstSwitch' (not _planetX_aiLensReady)
   if (not ('_planetX_aiLensEnsure')) {return}
+  comment 'On first use, follow the same capture-then-switch sequence as the former initialization block.'
+  if firstSwitch {planetXAILensCameraImage}
   atPut 'all' _planetX_aiLensCmd 0
   local 'funcCode' ('_planetX_aiLensFuncCode' fun)
   atPut 1 _planetX_aiLensCmd 32

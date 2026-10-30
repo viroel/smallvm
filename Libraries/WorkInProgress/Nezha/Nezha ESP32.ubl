@@ -27,17 +27,15 @@ variables _nezha32_buttonEdges _nezha32_buttonLoopStarted _nezha32_buttonLoopHea
   spec 'r' 'nezha32_buttonEvent' 'button _ _ ?' 'menu.nezha32_buttonMenu menu.nezha32_pressReleaseMenu' 'A' 'pressed'
   space
   space
-  spec 'r' 'nezha32_getAttitudeAngle' 'attitude _ angle (degrees)' 'menu.nezha32_attitudeMenu' 'pitch'
+  spec 'r' 'nezha32_getAttitudeAngle' 'gyroscope _ angle (degrees)' 'menu.nezha32_attitudeMenu' 'yaw'
   spec 'r' 'nezha32_getGaryAcc' 'acceleration of _ axis of the gyroscope (unit g)' 'menu.nezha32_axisMenu' 'X'
-  spec 'r' 'nezha32_calibration' 'Static calibration of the gyroscope'
-  spec ' ' '[elfreaks_dev_sensor:yawReset]' 'Reset the yaw angle posture'
+  spec 'r' 'nezha32_calibration' 'calibrate gyroscope'
+  spec ' ' '[elfreaks_dev_sensor:yawReset]' 'reset gyroscope yaw'
   space
   space
   spec 'r' '[elfreaks_dev_sensor:lightLevel]' 'Nezha light level (unit lux)'
   spec 'r' '[elfreaks_dev_sensor:noiseDb]' 'Nezha loudness (dB)'
   space
-  space
-  spec 'r' 'nezha32_getColorVal' '_' 'color'
   space
   spec ' ' 'nezha32_board_rgb' 'set _ to _' 'menu.range:1-3 color' 1
   spec ' ' 'nezha32_board_rgb_all' 'set all RGB LEDs to _' 'color'
@@ -458,10 +456,6 @@ to nezha32_buttonEvent button event {
     }
   }
   return false
-}
-
-to nezha32_getColorVal color {
-  return color
 }
 
 to nezha32_getGaryAcc axis {

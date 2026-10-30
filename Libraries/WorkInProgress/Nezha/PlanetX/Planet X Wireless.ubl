@@ -1,6 +1,6 @@
 module 'Planet X Wireless' Control
 author 'Elecfreaks Team'
-version 2 2
+version 2 3
 depends '_Planet X Support' 
 tags wifi smartiot network http joystick i2c 
 choices planetXJoystickAxis RX RY LX LY 
@@ -19,6 +19,7 @@ WIKI (joystick):
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05068/'
 variables _planetX_wifiConnected _planetX_wifiLastResponse _planetX_smartiot_connected _planetX_smartiot_sendMsg _planetX_smartiot_lastSendTime _planetX_smartiot_switchListenFlag _planetX_smartiot_switchStatus _planetX_smartiot_switchKnown _planetX_smartiot_requestBusy _planetX_smartiot_switchOnEvent _planetX_smartiot_switchOffEvent _planetX_smartiot_host _planetX_smartiot_port _planetX_smartiot_token _planetX_smartiot_topic _planetX_smartiot_lastResponse 
 variables _planetX_wifiReady
+variables _planetX_joystickHasRequest _planetX_joystickLastRequest
 
   spec ' ' 'planetX_wifiInit' 'WiFi module set port _ baud rate _' 'menu.planetXPort num' 'J1' 115200
   spec ' ' 'planetX_wifiConnect' 'WiFi connect SSID _ password _' 'str str' 'your_ssid' 'your_password'
@@ -35,6 +36,7 @@ variables _planetX_wifiReady
   space
   spec 'r' 'planetX_joystickButton' 'joystick button _ is pressed' 'menu.planetXJoystickButton' '⬆'
   spec 'r' 'planetX_joystickAnalog' 'joystick _ analog value' 'menu.planetXJoystickAxis' 'LX'
+  space
   spec 'r' '_planetX_wifiAppendRead' '_planetX_wifiAppendRead'
   spec 'r' '_planetX_wifiRequest' '_planetX_wifiRequest _ _ _' 'auto auto auto' 0 0 0
   spec 'r' '_planetX_wifiWaitFor' '_planetX_wifiWaitFor _ _' 'auto auto' 0 0
@@ -82,11 +84,22 @@ to '_planetX_attentionReadByte' {
 
 to '_planetX_attentionRequest' command {
   if (not ('_planetX_i2cAcquire')) {return -1}
+  local 'board' (boardType)
+  local 'pace' (or (board == 'micro:bit v2') (board == 'micro:bit'))
+  if (and pace _planetX_joystickHasRequest) {
+    comment 'A 10 ms gap improved sequential micro:bit reads in the hardware comparison. Recheck under the FIFO lock so parallel callers cannot bypass the gap.'
+    local 'remaining' (10 - (millisSince _planetX_joystickLastRequest))
+    if (remaining > 0) {waitMillis remaining}
+  }
   '_planetX_i2cSetClock'
   local 'value' -1
   if ('_planetX_attentionWaitReady') {
     '[sensors:i2cWrite]' 8 command
     value = ('_planetX_attentionReadByte')
+  }
+  if pace {
+    _planetX_joystickLastRequest = (millisOp)
+    _planetX_joystickHasRequest = true
   }
   '_planetX_i2cRelease'
   return value
