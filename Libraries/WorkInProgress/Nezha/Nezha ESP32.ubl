@@ -34,7 +34,7 @@ variables _nezha32_buttonEdges _nezha32_buttonLoopStarted _nezha32_buttonLoopHea
   space
   space
   spec 'r' '[elfreaks_dev_sensor:lightLevel]' 'Nezha light level(unit lux)'
-  spec 'r' '[elfreaks_dev_sensor:noiseDb]' 'Nezha loudness (dB)'
+  spec 'r' 'nezha32_noiseDb' 'Nezha loudness (dB)'
   space
   space
   spec 'r' 'nezha32_getColorVal' 'set color to _' 'color'
@@ -65,6 +65,18 @@ variables _nezha32_buttonEdges _nezha32_buttonLoopStarted _nezha32_buttonLoopHea
   space
   space
   spec 'r' 'nezha32_getIoNum' 'pin for port _ _' 'menu.nezha32_portMenu menu.range:1-2' 'J1' 1
+
+to nezha32_noiseDb {
+  comment 'Start dB capture, then yield only this task for up to 50 ms while
+the first asynchronous PCM block becomes a valid dB snapshot.'
+  repeat 5 {
+    if ('[elfreaks_dev_sensor:noiseDbReady]') {
+      return ('[elfreaks_dev_sensor:noiseDb]')
+    }
+    waitMillis 10
+  }
+  return ('[elfreaks_dev_sensor:noiseDb]')
+}
 
 to '_efsound_background_loop' {
   local 'my_id' 0
