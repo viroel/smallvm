@@ -155,7 +155,17 @@ Menus.project = {
 		},
 		{
 			label: 'Open',
-			action: () => { GP.apiCall('project.open'); }
+			action: () => {
+				// The GP IDE has no MB_editor; it opens through its own project.open.
+				if (typeof MB_editor == 'undefined') { GP.apiCall('project.open'); return; }
+				MB_editor.openProjectMenu();
+			}
+		},
+		{
+			label: 'Open from URL',
+			action: () => { GP.apiCall('project.openFromURL'); },
+			// Served by the Javascript engine only; the GP IDE has no such endpoint.
+			hidden: () => { return typeof MB_editor == 'undefined'; }
 		},
 		{
 			label: 'Open from board',
@@ -426,16 +436,21 @@ Menus.elementFor = function (descriptor, target) {
 					}
 
 				} else {
-					// Create a span element with a <l-> inside
-					text = document.createElement('span');
-					text.classList.add('menu__button-text');
-					textLocalization = document.createElement('l-');
-					text.appendChild(textLocalization);
+					if (typeof item.label == 'object') {
+						// Assume a DOM element
+						text = item.label;
+					} else {
+						// Create a span element with a <l-> inside
+						text = document.createElement('span');
+						text.classList.add('menu__button-text');
+						textLocalization = document.createElement('l-');
+						text.appendChild(textLocalization);
 
-					if (typeof item.label == 'string') {
-						textLocalization.innerText = item.label;
-					} else if (typeof item.label == 'function') {
-						textLocalization.innerText = item.label();
+						if (typeof item.label == 'string') {
+							textLocalization.innerText = item.label;
+						} else if (typeof item.label == 'function') {
+							textLocalization.innerText = item.label();
+						}
 					}
 				}
 
@@ -497,6 +512,8 @@ Menus.popUpFromDescriptor = function (
 		pos = type == 'context'
 			? { x: event.clientX, y: event.clientY }
 			: triggerElement.getClientRects()[0];
+
+	if (event) { event.preventDefault(); }
 
 	nav.trigger = triggerElement;
 	container.appendChild(nav);

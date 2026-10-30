@@ -37,24 +37,16 @@ static OBJ primTouchRead(int argCount, OBJ *args) {
 
 void initMicrophone() {
 	EM_ASM_({
-		if (!window.micRecorder) {
+		if (!window.lastMicSamples) {
 			navigator.mediaDevices.getUserMedia(
 				{ audio: true, video: false }
 			).then(function (stream) {
-				window.micRecorder = new MediaRecorder(stream);
-				window.lastMicSample = 0;
-				window.micRecorder.ondataavailable = function (e) {
-					if (e.data.size) {
-						e.data['bytes']().then(
-							function(bytes) {
-								window.lastMicSample =
-									bytes.reduce(function(a,b) { return a + b; }) / e.data.size;
-							}
-						);
-					}
+				let mic = window.audioContext.createMediaStreamSource(stream);
+				mic.connect(window.audioProcessor);
+				window.audioProcessor.onaudioprocess = function (event) {
+					// store current mic samples to average them later when asked
+					window.lastMicSamples = event.inputBuffer.getChannelData(0);
 				};
-				window.micRecorder.start(1);
-				window.micRecorder.requestData();
 			});
 		}
 	});
@@ -64,12 +56,17 @@ static OBJ primMicrophone(int argCount, OBJ *args) {
 	initMicrophone();
 	return int2obj(
 		EM_ASM_INT({
-			let sample = window.lastMicSample;
-			window.lastMicSample /= 2;
-			return sample;
+			if (window.lastMicSamples) {
+				// scale up and average last recorded samples
+				return window.lastMicSamples.reduce(
+						(acc, sample) => acc + (sample * 2000)
+					) / window.lastMicSamples.length;
+			} else {
+				return 0;
+			}
 		})
 	);
-}
+};
 
 // Stubs
 

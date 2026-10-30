@@ -640,7 +640,7 @@ class MB_Decompiler {
 					this.code.push(this.newCmd('waitUntil', this.codeForSequence(innerCmd[2], innerCmd[3])));
 				}
 				i = next;
-			} else if (op === 'callCustomCommand' || op === 'callCustomReporter') {
+			} else if (op === 'callCustomCommand') { // a callCustomReporter's pop is decoded on its own
 				const nextIdx    = this.opcodeAfter(i);
 				const isReporter = !this.cmdIs(this.opcodes[nextIdx], 'pop', 1);
 				this.decodeCmd(i);
@@ -743,7 +743,13 @@ class MB_Decompiler {
 			// skip — handled by extractOpcodes / readMetadata
 
 		} else if (op === 'pop') {
-			this.code.push(this.buildCmdOrReporter('pop', cmdArgVal, false));
+			const top = this.stack[this.stack.length - 1];
+			if ((cmdArgVal === 1) && top && top.isReporter) {
+				this.stack.pop();
+				this.code.push({ ...top, isReporter: false }); // a reporter used as a command
+			} else {
+				this.code.push(this.buildCmdOrReporter('pop', cmdArgVal, false));
+			}
 
 		} else if (op === 'returnResult') {
 			this.code.push(this.buildCmdOrReporter('return', 1, false));
@@ -823,13 +829,7 @@ class MB_Decompiler {
 	}
 
 	buildReporterSet() {
-		this.reporters = new Set(['pushArgCount', 'getArg']);
-		for (const spec of MB_Specs.mbBlockSpecs()) {
-			if (Array.isArray(spec) && spec[0] === 'r') {
-				const op = spec[1];
-				if (!op.startsWith('[')) this.reporters.add(op);
-			}
-		}
+		this.reporters = MB_Specs.builtInReporters();
 	}
 
 	// --- Name helpers ---

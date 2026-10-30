@@ -44,9 +44,14 @@
 		<!-- Localization -->
 		<script type="text/javascript" src="ui/gettext.js" defer></script>
 
+		<!-- Utils -->
+		<script type="text/javascript" src="ui/elements.js"></script>
+		<script type="text/javascript" src="lib/marked.umd.js" defer></script>
+
 		<!-- Window Components -->
 		<script type="text/javascript" src="ui/windows.js" defer></script>
 		<script type="text/javascript" src="ui/libraryinfo.js" defer></script>
+		<script type="text/javascript" src="ui/filebrowser.js" defer></script>
 		<script type="text/javascript" src="ui/graph.js" defer></script>
 
 		<!-- Firmware upload support -->
@@ -103,7 +108,7 @@
 					<div class="libraries">
 						<h2 class="libraries__title"><l->LIBRARIES</l-></h2>
 						<nav class="libraries__add-button-wrapper">
-							<button class="button-rounded libraries__add-button" onclick="GP.apiCall('ide.showLibraryDialog');">
+							<button class="button-rounded libraries__add-button" onclick="(new FileBrowser((path)=>{MB_editor.openLibraryFile(path)},'Libraries',['.ubl'])).popUp();">
 								<l->Add Library</l->
 								<span class="libraries__add-button-icon">
 									<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -149,7 +154,9 @@
 
 		<!-- Snap Blocks -->
 		<script type="text/javascript" src="engine/morphic.js"></script>
+		<script type="text/javascript" src="engine/mb-support.js"></script>
 		<script type="text/javascript" src="engine/mb-blocks.js"></script>
+		<script type="text/javascript" src="engine/mb-slots.js"></script>
 		<script type="text/javascript" src="engine/mb-block-search.js"></script>
 		<script type="text/javascript" src="engine/mb-code-manager.js"></script>
 		<script type="text/javascript" src="engine/mb-comm-port.js"></script>
@@ -172,6 +179,7 @@
 		<script type="text/javascript" src="engine/mb-project.js"></script>
 		<script type="text/javascript" src="engine/mb-specs.js"></script>
 		<script type="text/javascript" src="engine/mb-tips.js"></script>
+		<script type="text/javascript" src="engine/mb-autosave.js"></script>
 		<script type="text/javascript" src="engine/mb-editor.js"></script>
 
 		<!-- IDE -->
@@ -214,6 +222,8 @@
 					IDE.resize(); // place the world canvas over the workspace slot
 					// Started first, so the IDE keeps running while a link's project asks a question.
 					requestAnimationFrame(loop);
+					// Before a link's project, so the work a crash left behind is offered first.
+					if (MB_editor.autosave) await MB_editor.autosave.start();
 					try {
 						// A link the page was opened with.
 						await MB_editor.importFromURL(location.href);

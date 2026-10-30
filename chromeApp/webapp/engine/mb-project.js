@@ -14,166 +14,9 @@
 */
 
 /* global MB_editor, MB_Files, MB_Function, MB_Parser, MB_Specs, BlockMorph, HatBlockMorph,
-	ReporterBlockMorph, localized */
-
-// --- Module-level helpers ---
-
-function stringArg(x) {
-	// Extract a plain JS value from a parse tree token.
-	// Quoted strings like "'hello'" → "hello"; unquoted identifiers stay as-is.
-	if (typeof x === 'number' || typeof x === 'boolean') return x;
-	if (typeof x === 'string') {
-		if (x[0] === "'") return x.slice(1, -1); // remove surrounding quotes
-		return x;
-	}
-	return String(x);
-}
-
-function printString(s) {
-	// Return s wrapped in single quotes, with internal quotes doubled.
-	return "'" + String(s).replace(/'/g, "''") + "'";
-}
-
-function parsedSpecs(cmdList) {
-	// Extract spec definitions from a command list and return a Map of opName → spec object.
-	let specs = new Map();
-	for (const cmd of cmdList) {
-		if (!Array.isArray(cmd) || cmd[0] !== 'spec') continue;
-		let blockType = stringArg(cmd[1]);
-		let opName = stringArg(cmd[2]);
-		let specString = (cmd.length > 3) ? stringArg(cmd[3]) : opName;
-		let slotTypes = (cmd.length > 4) ? stringArg(cmd[4]) : '';
-		let defaults = [];
-		for (let i = 5; i < cmd.length; i++) {
-			// Keep nil as nil: specDefaultString prints a default by its slot
-			// type and needs to tell an empty slot from the word 'null'.
-			defaults.push(cmd[i] === null ? null : stringArg(cmd[i]));
-		}
-		specs.set(opName, { blockType, opName, specString, slotTypes, defaults });
-	}
-	return specs;
-}
-
-function gpString(value) {
-	// GP's toString: nil prints as the word nil, everything else as itself.
-	return (value === null || value === undefined) ? 'nil' : String(value);
-}
-
-function specDefaultString(slotType, value) {
-	// Print one spec default by its declared slot type, never by the type of
-	// the value, as specDefinitionString does at BlockSpec.gp:330. A type on
-	// neither list (any, color, cmd, var) is written as the word nil.
-	const type = String(slotType || '').split('.')[0]; // 'menu.foo' is a menu slot
-	if (['auto', 'menu', 'str', 'cmt'].includes(type)) {
-		return (typeof value === 'string') ? printString(value) : gpString(value);
-	}
-	if (['bool', 'num', 'microbitDisplay'].includes(type)) return gpString(value);
-	return 'nil';
-}
-
-function specSlotInfo(spec) {
-	// Pair each slot with its type and default, one slot per
-	// max(types, defaults, input slots), as setSlotInfo does at BlockSpec.gp:82.
-	// Walking the declared types alone would drop any default past the end of
-	// them. A slot with no declared type takes 'num' from a numeric default;
-	// anything else is an 'any' slot, whose default GP keeps as a hint only.
-	const types = String(spec.slotTypes || '').split(/\s+/).filter((t) => t.length > 0);
-	const defaults = spec.defaults || [];
-	const specString = String(spec.specString || spec.opName || '');
-	const slotCount = specString.split(/\s+/).filter((w) => w === '_').length;
-	const info = [];
-	for (let i = 0; i < Math.max(types.length, defaults.length, slotCount); i++) {
-		const value = (i < defaults.length) ? defaults[i] : null;
-		if (types[i] !== undefined) info.push([types[i], value]);
-		else info.push((typeof value === 'number') ? ['num', value] : ['any', null]);
-	}
-	return info;
-}
-
-function specSections(spec) {
-	// The spec string split at ':' into sections, less a final '...', which
-	// says the last section repeats.
-	const sections = String(spec.specString || spec.opName || '').split(':').map((s) => s.trim());
-	const repeatLast = (sections.length > 0) && ('...' === sections[sections.length - 1]);
-	if (repeatLast) sections.pop();
-	return { sections, repeatLast };
-}
-
-function specDefinitionString(spec) {
-	// Serialize a spec object to a 'spec' declaration line (without newline).
-	// Format: spec 'blockType' 'opName' 'specString' 'slotTypes' default1 default2...
-	let parts = ['spec'];
-	parts.push(printString(spec.blockType || ' '));
-	parts.push(printString(spec.opName));
-	parts.push(printString(spec.specString || spec.opName));
-	let slotInfo = specSlotInfo(spec);
-	if (slotInfo.length > 0) {
-		parts.push(printString(slotInfo.map((slot) => slot[0]).join(' ')));
-		let defaults = slotInfo.map((slot) => specDefaultString(slot[0], slot[1]));
-		while (defaults.length > 0 && defaults[defaults.length - 1] === 'nil') {
-			defaults.pop(); // GP trims trailing nils, as they add nothing
-		}
-		parts.push(...defaults);
-	}
-	return parts.join(' ');
-}
-
-function scriptForFunction(func, body = null, project = MB_editor.project) {
-	// The block that shows a function definition in the scripting pane: a hat
-	// that holds the function and shows its block's prototype.
-	if (func == null) return null;
-	let hat = new HatBlockMorph();
-	hat.selector = 'to';
-	hat.functionDefinition = func;
-	hat.setSpec('define');
-	hat.setCategory('Definition');
-	hat.isDraggable = true;
-	hat.add(blockPrototypeForFunction(func, project));
-	hat.fixLayout();
-	let cmdList = body || func.cmdList;
-	if (cmdList) hat.nextBlock(cmdList);
-	return hat;
-}
-
-function blockPrototypeForFunction(func, project) {
-	// A block of the function's shape and colour holding its editable
-	// prototype. A drag takes a copy of it, as from the palette.
-	const op = func.functionName;
-	const args = func.argNames || [];
-	MB_Specs.initialize();
-	const builtIn = MB_Specs.selectorToSpec.get(op);
-	const spec = project.blockSpecs.get(op)
-		|| (builtIn && { blockType: builtIn[0], opName: op, specString: builtIn[2],
-			slotTypes: builtIn[3] || '', defaults: builtIn.slice(4) })
-		|| { blockType: ' ', opName: op, specString: [op, ...args.map(() => '_')].join(' '),
-			slotTypes: args.map(() => 'auto').join(' ') };
-	const proto = ('r' === spec.blockType) ? new ReporterBlockMorph() : new CommandBlockMorph();
-	proto.isPrototype = true;
-	proto.isDraggable = false;
-	proto.isTemplate = true;
-	const lib = [...project.libraries.values()].find((m) => m.functions.includes(func));
-	proto.setCategory(lib ? lib.moduleCategory : 'My Blocks'); // as the palette colours it
-	const def = new BlockDefinitionMorph(op, spec, args, proto);
-	if (builtIn) def.isBuiltIn = true; // its spec is not the user's to change
-	proto.add(def);
-	if (builtIn) def.hideDetails();
-	proto.fixLayout();
-	return proto;
-}
-
-function blockForBody(bodyArg, singleIsReporter = false) {
-	// Build the block for a script or function body as the parser left it: an
-	// array of commands, a single command or reporter, or empty. Null when there
-	// is nothing to build, which is what loadFunctions() and loadScripts() check.
-	if (!Array.isArray(bodyArg) || bodyArg.length === 0) return null;
-	return MB_Parser.blockFor(bodyArg, singleIsReporter);
-}
-
-function recompileNeeded() {
-	// Called when compiled code can change without its source changing: a call
-	// compiles to its function's chunk id, and a variable to its global index.
-	if (typeof MB_editor !== 'undefined' && MB_editor.codeManager) MB_editor.codeManager.recompileNeeded();
-}
+	ReporterBlockMorph, localized,
+	blockForBody, parsedSpecs, printString, recompileNeeded, scriptForFunction,
+	specDefinitionString, specSlotInfo, stringArg */
 
 // --- MB_Project class ---
 
@@ -285,18 +128,31 @@ class MB_Project {
 		// the ones to load in their place, as loadFromString takes them. This project
 		// is not changed. If true is passed to the optional autoConfirm parameter,
 		// update old libraries without asking. Otherwise ask the user for confirmation.
+		// A library that another library in the project implements is left as it is.
 
-		let updates = new Map();
+		let libs = new MB_Project(); // the project's libraries, as the updates so far leave them
 		for (const modCmds of this.librariesIn(this.splitCmdListIntoModules(this.parseProject(s))).values()) {
 			let lib = new MB_Module();
 			lib.loadModuleNameAndCategory(modCmds);
 			lib.loadVersion(modCmds);
+			lib.loadImplements(modCmds);
+			libs.libraries.set(lib.moduleName, lib);
+		}
+		let updates = new Map();
+		for (const libName of Array.from(libs.libraries.keys())) {
+			let lib = libs.libraryNamed(libName); // null if an earlier update replaced it
+			if (!lib || libs.replacementFor(libName)) continue;
 			let newCmds = await lib.getNewerVersion();
 			if (!newCmds) continue;
 			// localized() has no parameter substitution, so the name is filled in here.
-			let question = localized('Found a newer version of %1.').replace('%1', lib.moduleName) + '\n' +
+			let question = localized('Found a newer version of %1.').replace('%1', libName) + '\n' +
 				localized('Do you want me to update the one in the project?');
-			if (autoConfirm || await MB_editor.confirm(question)) updates.set(lib.moduleName, newCmds);
+			if (autoConfirm || await MB_editor.confirm(question)) {
+				updates.set(libName, newCmds);
+				let newLib = new MB_Module(libName);
+				newLib.loadImplements(newCmds);
+				libs.addLibrary(newLib); // removes any library the new version replaces
+			}
 		}
 		return updates;
 	}
@@ -623,6 +479,7 @@ class MB_Project {
 		this.updatePrimitives();
 		this.fixFunctionLocals();
 		this.buildDefinitionHats(); // last: the passes above read plain script entries
+		this.updateCategories();
 		return this;
 	}
 
@@ -758,6 +615,11 @@ class MB_Project {
 			hat.mbScriptId = block.mbScriptId;
 			entry[2] = hat;
 		}
+	}
+
+	updateCategories() {
+		this.main.updateCategories();
+		for (const lib of this.libraries.values()) lib.updateCategories();
 	}
 
 	updatePrimitives() {
@@ -1048,10 +910,9 @@ class MB_Module {
 				parts.push(s);
 			}
 		}
-		// GP adds the newline to the list and then joins with a space, so a
-		// space lands in front of it (MicroBlocksProject.gp
-		// arrayToDeclaration).
-		return parts.join(' ') + ' \n';
+		// No space before the newline, so an editor that strips trailing
+		// spaces leaves a saved file unchanged. The reader accepts either form.
+		return parts.join(' ') + '\n';
 	}
 
 	codeString(owningProject, newLibName) {
@@ -1353,6 +1214,24 @@ class MB_Module {
 			this.scripts.push([x, y, block]);
 		}
 		this.assignScriptIds();
+	}
+
+	// Fix block categories after library load/change
+
+	updateCategories() {
+		for (const f of this.functions) {
+			if (!f.cmdList) continue;
+			f.cmdList.forAllBlocks( b => {
+				b.setCategory(MB_Specs.categoryForSelector(b.selector));
+			});
+		}
+		for (const entry of this.scripts) {
+			let block = entry[2];
+			if (!block) continue;
+			block.forAllBlocks( b => {
+				b.setCategory(MB_Specs.categoryForSelector(b.selector));
+			});
+		}
 	}
 
 	// Primitive updates

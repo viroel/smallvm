@@ -75,6 +75,7 @@ Graph.build = function () {
 	this.canvas.style.display = 'block';
 
 	this.controls = document.createElement('div');
+	this.controls.setAttribute('data-undraggable', true);
 	this.controls.classList.add('window__body-object-controls');
 	this.controls.classList.add('--can-drag-through');
 
@@ -400,6 +401,6 @@ Menus.serialDelay = {
 
 Menus.serialDelay.items.push({ label: '-' });
 Menus.serialDelay.items.push({
-	label: 'reset to default (10)',
-	action: () => { GP.apiCall('ide.setSerialDelay', [10]); }
+	label: 'reset to default (5)',
+	action: () => { GP.apiCall('ide.setSerialDelay', [5]); }
 });

@@ -220,6 +220,11 @@ MB_Firmware.installHexOrUF2File = async function (boardName, fromMenu) {
 
 MB_Firmware.installDFUFirmware = function (boardName) {
 	// DFUpload asks the user to put the board in DFU mode and flashes it over WebUSB.
+	if ((typeof navigator === 'undefined') || !navigator.usb) {
+		MB_editor.inform(localized('Installing firmware on this board needs WebUSB, which only Chrome and Edge support. You can still program the board from this browser once it has MicroBlocks firmware.'),
+			localized('Firmware Install'));
+		return;
+	}
 	MB_connection.disconnect();
 	DFUpload.flashBoard(boardName);
 }
@@ -227,9 +232,7 @@ MB_Firmware.installDFUFirmware = function (boardName) {
 // ESP boards
 
 MB_Firmware.installFirmwareFile = function (fileName, data) {
-	// Install a firmware file the user dropped on an ESP32 board, without erasing Flash.
-	// ESP8266 firmware is named after its board, and is not installed yet.
-	if (/8266|nodemcu|d1mini/i.test(fileName)) return this.notSupportedYet(fileName);
+	// Install a firmware file the user dropped on an ESP board, without erasing Flash.
 	return this.flashVM(fileName, false, data);
 }
 
@@ -321,16 +324,28 @@ MB_Firmware.flashVM = async function (boardName, eraseFlashFlag, vmData) {
 	}
 	this.showSpinner();
 	const espTool = new MB_ESPTool(port);
+	this.espTool = espTool; // for Escape on the spinner to cancel
 	// the spinner shows the install's progress twice a second
 	const ticker = setInterval(() => fireIDEEvent('spinner.setTitle', espTool.status), 500);
 	if (!vmData) vmData = await this.fetchVM(MB_ESPTool.vmNameForBoard(boardName));
 	const ok = await espTool.installFirmware(boardName, eraseFlashFlag, vmData);
 	clearInterval(ticker);
+	this.espTool = null;
 	// the board must be reconnected through the port chooser after an install
 	await port.serialDisconnect();
-	if (ok) {
+	if (espTool.cancelled) {
+		return; // the person cancelled it and needs no message
+	} else if (ok) {
 		MB_editor.informAndWait(localized('Reconnect to the board by clicking the "Connect" button.'),
 			localized('Firmware Installed'));
+	} else if ('wrongChip' == espTool.failure) {
+		MB_editor.informAndWait(localized('This firmware is for %1, but the board is an %2.')
+			.replace('%1', espTool.fileChip).replace('%2', espTool.chipType), localized('Firmware Install'));
+	} else if ('unsupportedChip' == espTool.failure) {
+		MB_editor.informAndWait(localized('This firmware is for %1, which MicroBlocks cannot install yet.')
+			.replace('%1', espTool.fileChip), localized('Firmware Install'));
+	} else if ('notFirmware' == espTool.failure) {
+		MB_editor.informAndWait(localized('This file is not firmware for an ESP board.'), localized('Firmware Install'));
 	} else if ('noResponse' == espTool.failure) {
 		MB_editor.informAndWait(localized('The board is not responding.'), localized('Firmware Install'));
 	} else {
