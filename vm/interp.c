@@ -1458,27 +1458,30 @@ void vmLoop() {
 				count = 95;
 			#endif
 		} else if ((count & 0xF) == 0) {
-			// Capture incoming data every 15 scheduler epochs
-			captureIncomingBytes();
 			#if defined(NEZHA_ESP32)
-				// Check for possible Nezha suspension every 15 scheduler epochs
+				// Check for possible Nezha suspension every 15 scheduler epochs.
+				// Do this before captureIncomingBytes(), which must not run once Serial has ended.
 				void delay(uint32_t); // declare the Arduino delay() function
 
 				if (suspendRequested) {
 					// this code executes when no primitives or Flash operations are in progress
-					// TODO: shut down communictions
 					suspendIDEComm();
 					stopAllAndSoftReset();
 					suspendRequested = false;
 					isSuspended = true;
-				}
-				if (isSuspended) {
-					// when suspended just loop without doing anything
-					// the delay() call allows Nezha tasks to get most of the CPU cycles
-					delay(5);
-					continue;
+
+					// Park the VM thread here until vmResume() clears isSuspended, so no scripts,
+					// background tasks, or VM thread requests run while suspended. The delay()
+					// call gives the Nezha tasks the CPU.
+					while (isSuspended) delay(5);
+
+					// Resume in the fresh-boot state (vmResume() has cleared the IDE buffers and dropped
+					// any requests queued while suspended): wait for the IDE before polling buttons.
+					hasStarted = false;
 				}
 			#endif
+			// Capture incoming data every 15 scheduler epochs
+			captureIncomingBytes();
 		}
 		uint32 usecs = 0; // compute usecs only the first it is needed
 		for (int t = 0; t < taskCount; t++) {

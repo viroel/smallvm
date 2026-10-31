@@ -648,6 +648,7 @@ int recvBytes(uint8 *buf, int count) {
 
 	if (!BLE_connected_to_IDE || USB_connected_to_IDE) { // USB wins; use Serial
 		bytesRead = Serial.available();
+		if (bytesRead <= 0) return 0; // -1 after Serial.end(); readBytes() would wait for its timeout
 		if (bytesRead > count) bytesRead = count; // there is only enough room for count bytes
 		return Serial.readBytes((char *) buf, bytesRead);
 	}
@@ -691,6 +692,7 @@ int sendBytes(uint8 *buf, int start, int end) {
 
 int recvBytes(uint8 *buf, int count) {
 	int bytesRead = Serial.available();
+	if (bytesRead <= 0) return 0; // -1 after Serial.end(); readBytes() would wait for its timeout
 	if (bytesRead > count) bytesRead = count; // there is only enough room for count bytes
 	return Serial.readBytes((char *) buf, bytesRead);
 }

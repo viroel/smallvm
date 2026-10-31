@@ -81,6 +81,15 @@ void processVMRequests() {
 	}
 }
 
+void discardVMRequests() {
+	// Drop any queued requests without running them. Used when the Nezha resumes.
+
+	VM_REQUEST_LOCK();
+		vmRequestFirst = 0;
+		vmRequestCount = 0;
+	VM_REQUEST_UNLOCK();
+}
+
 static void stopAllRequest(void *arg) {
 	stopAllAndSoftReset();
 }
@@ -95,8 +104,8 @@ int vmIDEConnected() {
 
 #if defined(NEZHA_ESP32)
 
-int suspendRequested = false;
-int isSuspended = false;
+volatile int suspendRequested = false;
+volatile int isSuspended = false;
 
 void vmRequestSuspend() {
 	// request suspension of VM execution and communications with IDE
@@ -110,8 +119,9 @@ int vmIsSuspended() {
 }
 
 void vmResume() {
-	// resume normal VM execution and communications with IDE; start all scripts
+	// resume normal VM execution and communications with IDE; scripts stay stopped until started
 	resumeIDEComm();
+	discardVMRequests(); // drop requests queued while suspended; the VM thread is still parked
 	suspendRequested = false;
 	isSuspended = false;
 }
