@@ -19,6 +19,8 @@ https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05011
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05012
 
 MP3
+The Planet X MP3 and ESP8266 WiFi modules cannot be used at the same time.
+Reinitialize the corresponding module when switching between them.
 WIKI:
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05038'
 variables _planetX_mp3Pin 

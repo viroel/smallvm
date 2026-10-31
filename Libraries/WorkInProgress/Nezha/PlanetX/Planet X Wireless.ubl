@@ -8,6 +8,8 @@ choices planetXJoystickButton '⬆' '⬇' '⬅' '➡' '▷' '☐' '𐤏' '⨉' L
 description 'ESP8266 WiFi
 Set the J port and module baud rate before using WiFi or SmartIoT.
 WiFi uses standard hardware serial on micro:bit V2 and Nezha ESP32.
+The Planet X MP3 and ESP8266 WiFi modules cannot be used at the same time.
+Reinitialize the corresponding module when switching between them.
 micro:bit V1 supports the I2C joystick, but not the bidirectional WiFi UART.
 WIKI:
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05036
