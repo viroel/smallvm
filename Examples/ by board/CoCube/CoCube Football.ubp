@@ -527,7 +527,7 @@ to rgb_to_color r g b {
 
 module CoCube
 author 'Liang Shuai'
-version 2 21 
+version 2 23
 depends Tone Display TFT '_Motors/PID' 'Robots/CoCube Module' '_Graphics and Displays/8 Bit Graphics' 
 tags 'cocube robot' 
 choices cocube_rotate_Menu 'cocube;left' 'cocube;right' 
@@ -557,8 +557,9 @@ v2.16 Change PID global variables into local
 v2.17 Modify the movement function on the map
 v2.18 Fix "_cocube_move_flag" variable missing
 v2.21 Add "CoCube track target" function
+v2.23 Stop PID before direct turns; stop positioning moves off mat or after 30 seconds; pace PID updates; honor cancellation during braking and reset PID after a stop
 '
-variables _cocube_set_right_speed _cocube_set_left_speed _cocube_error_angle _cocube_pid_flag _cocube_error_distance _cocube_error_y _cocube_error_x _cocube_target_angle _cocube_move_flag _cocube_target_x _cocube_target_y _cocube_target_speed 
+variables _cocube_set_right_speed _cocube_set_left_speed _cocube_error_angle _cocube_pid_flag _cocube_error_distance _cocube_error_y _cocube_error_x _cocube_target_angle _cocube_move_flag _cocube_target_x _cocube_target_y _cocube_target_speed _cocube_stop_id
 
   spec ' ' 'CoCube move for msecs' 'move _ at _ speed (0-50) for _ msecs' 'menu.cocube_move_Menu num num' 'cocube;forward' 40 1000
   spec ' ' 'CoCube rotate for msecs' 'rotate _ at _ speed (0-50) for _ msecs' 'menu.cocube_rotate_Menu num num' 'cocube;left' 30 1000
@@ -568,7 +569,7 @@ variables _cocube_set_right_speed _cocube_set_left_speed _cocube_error_angle _co
   spec ' ' 'CoCube set wheel' 'set wheel left _ right _ (-50 to 50)' 'num num' 40 20
   space
   spec ' ' 'CoCube wheels stop' 'wheels stop'
-  spec ' ' 'CoCube wheels break' 'wheels break'
+  spec ' ' 'CoCube wheels break' 'wheels brake'
   space
   spec 'r' 'CoCube position_X' 'X position'
   spec 'r' 'CoCube position_Y' 'Y position'
@@ -638,12 +639,17 @@ to 'CoCube move' direction speed {
 }
 
 to 'CoCube move by step' direction speed steps {
+  local 'start_time' (millisOp)
   _cocube_move_flag = (booleanConstant true)
   if ('CoCube on the mat') {
     local 'begin_x' ('CoCube position_X')
     local 'begin_y' ('CoCube position_Y')
     'CoCube move' direction speed
     forever {
+      if (or (not ('CoCube on the mat')) ((millisSince start_time) >= 30000)) {
+        'CoCube wheels break'
+        exitLoop
+      }
       if _cocube_move_flag {
         '_cocube_calculate_distance_error target_x _ target_y _' begin_x begin_y
         if ((steps - _cocube_error_distance) < 2) {
@@ -653,8 +659,10 @@ to 'CoCube move by step' direction speed steps {
       } else {
         exitLoop
       }
+      waitMillis 10
     }
   } else {
+    'CoCube wheels stop'
     sayIt 'Please put CoCube on CoMaps'
   }
   _cocube_move_flag = (booleanConstant false)
@@ -667,11 +675,24 @@ to 'CoCube move for msecs' direction speed time {
 }
 
 to 'CoCube move to' target_x target_y speed {
+  if (not ('CoCube on the mat')) {
+    'CoCube wheels stop'
+    sayIt 'Please put CoCube on CoMaps'
+    return
+  }
+  local 'start_time' (millisOp)
   _cocube_move_flag = (booleanConstant true)
   '_cocube_calculate_distance_error target_x _ target_y _' target_x target_y
   if (_cocube_error_distance > 3) {
-    'CoCube point towards' target_x target_y speed
+    if (not ('CoCube point towards' target_x target_y speed)) {
+      return
+    }
+    _cocube_move_flag = (booleanConstant true)
     repeatUntil (_cocube_error_distance < 3) {
+      if (or (not ('CoCube on the mat')) ((millisSince start_time) >= 30000)) {
+        'CoCube wheels break'
+        exitLoop
+      }
       if _cocube_move_flag {
         '_cocube_calculate_distance_error target_x _ target_y _' target_x target_y
         _cocube_target_angle = (('[misc:atan2]' _cocube_error_y _cocube_error_x) / 100)
@@ -683,6 +704,8 @@ to 'CoCube move to' target_x target_y speed {
       }
     }
     'CoCube wheels break'
+  } else {
+    'CoCube wheels stop'
   }
   _cocube_move_flag = (booleanConstant false)
 }
@@ -693,7 +716,7 @@ to 'CoCube on the mat' {
 
 to 'CoCube point towards' target_x target_y speed {
   _cocube_target_angle = (('[misc:atan2]' (target_y - ('CoCube position_Y')) (target_x - ('CoCube position_X'))) / 100)
-  'CoCube rotate to angle' _cocube_target_angle speed
+  return ('CoCube rotate to angle' _cocube_target_angle speed)
 }
 
 to 'CoCube position_X' {
@@ -713,10 +736,18 @@ to 'CoCube rotate' direction speed {
 }
 
 to 'CoCube rotate by degree' direction speed degree {
+  _cocube_pid_flag = (booleanConstant false)
+  _cocube_stop_id += 1
+  waitMillis 1
+  local 'start_time' (millisOp)
   _cocube_move_flag = (booleanConstant true)
   if ('CoCube on the mat') {
     local 'begin_degree' ('CoCube direction')
     forever {
+      if (or (not ('CoCube on the mat')) ((millisSince start_time) >= 30000)) {
+        'CoCube wheels break'
+        exitLoop
+      }
       if _cocube_move_flag {
         if (direction == 'cocube;left') {
           '_cocube_calculate_angle_error_' (begin_degree + degree)
@@ -730,15 +761,17 @@ to 'CoCube rotate by degree' direction speed degree {
           comment 'turn right'
           '_cocube_motors_speed' speed (0 - speed)
         } else {
-          comment 'motors break'
+          comment 'motors brake'
           'CoCube wheels break'
           exitLoop
         }
       } else {
         exitLoop
       }
+      waitMillis 10
     }
   } else {
+    'CoCube wheels stop'
     sayIt 'Please put CoCube on CoMaps'
   }
   _cocube_move_flag = (booleanConstant false)
@@ -751,9 +784,22 @@ to 'CoCube rotate for msecs' direction speed time {
 }
 
 to 'CoCube rotate to angle' angle speed {
+  _cocube_pid_flag = (booleanConstant false)
+  _cocube_stop_id += 1
+  waitMillis 1
+  if (not ('CoCube on the mat')) {
+    'CoCube wheels stop'
+    sayIt 'Please put CoCube on CoMaps'
+    return (booleanConstant false)
+  }
+  local 'start_time' (millisOp)
   local 'abs_speed' (absoluteValue speed)
   _cocube_move_flag = (booleanConstant true)
   forever {
+    if (or (not ('CoCube on the mat')) ((millisSince start_time) >= 30000)) {
+      'CoCube wheels break'
+      exitLoop
+    }
     if _cocube_move_flag {
       '_cocube_calculate_angle_error_' angle
       if (_cocube_error_angle > 1) {
@@ -763,22 +809,18 @@ to 'CoCube rotate to angle' angle speed {
         comment 'turn right'
         '_cocube_motors_speed' abs_speed (0 - abs_speed)
       } else {
-        comment 'motors break'
-        digitalWriteOp 9 true
-        digitalWriteOp 10 true
-        digitalWriteOp 26 true
-        digitalWriteOp 25 true
-        waitMillis 99
-        digitalWriteOp 9 false
-        digitalWriteOp 10 false
-        digitalWriteOp 26 false
-        digitalWriteOp 25 false
-        exitLoop
+        comment 'motors brake'
+        local 'stop_id' _cocube_stop_id
+        'CoCube wheels break'
+        return (_cocube_stop_id == (stop_id + 1))
       }
     } else {
       exitLoop
     }
+    waitMillis 10
   }
+  _cocube_move_flag = (booleanConstant false)
+  return (booleanConstant false)
 }
 
 to 'CoCube set emoji' emoji scale {
@@ -823,6 +865,7 @@ to 'CoCube track target' target_x target_y speed {
 }
 
 to 'CoCube wheels break' {
+  _cocube_stop_id += 1
   _cocube_pid_flag = (booleanConstant false)
   _cocube_move_flag = (booleanConstant false)
   waitMillis 1
@@ -838,6 +881,7 @@ to 'CoCube wheels break' {
 }
 
 to 'CoCube wheels stop' {
+  _cocube_stop_id += 1
   _cocube_pid_flag = (booleanConstant false)
   _cocube_move_flag = (booleanConstant false)
   waitMillis 1
@@ -889,6 +933,7 @@ to '_cocube_motors_speed' left_speed right_speed {
 to '_cocube_pid_control' {
   pid_resetPID 1
   pid_resetPID 2
+  local 'stop_id' _cocube_stop_id
   local 'pid_p' 320
   local 'pid_i' 1
   local 'pid_d' 3
@@ -897,6 +942,11 @@ to '_cocube_pid_control' {
   local 'var_left' 0
   forever {
     if _cocube_pid_flag {
+      if (stop_id != _cocube_stop_id) {
+        pid_resetPID 1
+        pid_resetPID 2
+        stop_id = _cocube_stop_id
+      }
       comment 'PID control'
       var_left = ((((4 * (absoluteValue _cocube_set_left_speed)) + 36) + (pid_computePID 1 ((18 * (absoluteValue _cocube_set_left_speed)) - (callCustomReporter '[sensors:speed_left]')) pid_p pid_i pid_d 0)) / pid_ratio)
       var_right = ((((4 * (absoluteValue _cocube_set_right_speed)) + 36) + (pid_computePID 2 ((18 * (absoluteValue _cocube_set_right_speed)) - (callCustomReporter '[sensors:speed_right]')) pid_p pid_i pid_d 0)) / pid_ratio)
@@ -917,15 +967,29 @@ to '_cocube_pid_control' {
     } else {
       exitLoop
     }
+    waitMillis 20
   }
 }
 
 to '_cocube_track_target' {
+  if (not ('CoCube on the mat')) {
+    'CoCube wheels stop'
+    sayIt 'Please put CoCube on CoMaps'
+    return
+  }
+  local 'start_time' (millisOp)
   _cocube_move_flag = (booleanConstant true)
   '_cocube_calculate_distance_error target_x _ target_y _' _cocube_target_x _cocube_target_y
   if (_cocube_error_distance > 3) {
-    'CoCube point towards' _cocube_target_x _cocube_target_y _cocube_target_speed
+    if (not ('CoCube point towards' _cocube_target_x _cocube_target_y _cocube_target_speed)) {
+      return
+    }
+    _cocube_move_flag = (booleanConstant true)
     repeatUntil (_cocube_error_distance < 3) {
+      if (or (not ('CoCube on the mat')) ((millisSince start_time) >= 30000)) {
+        'CoCube wheels break'
+        exitLoop
+      }
       if _cocube_move_flag {
         '_cocube_calculate_distance_error target_x _ target_y _' _cocube_target_x _cocube_target_y
         _cocube_target_angle = (('[misc:atan2]' _cocube_error_y _cocube_error_x) / 100)
@@ -937,10 +1001,11 @@ to '_cocube_track_target' {
       }
     }
     'CoCube wheels break'
+  } else {
+    'CoCube wheels stop'
   }
   _cocube_move_flag = (booleanConstant false)
 }
-
 
 module 'CoCube Module'
 author 'Liang Shuai'

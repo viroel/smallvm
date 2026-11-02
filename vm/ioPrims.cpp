@@ -1741,6 +1741,11 @@ void turnOffPins() {
 			#elif defined(DATABOT_V3)
 				if (46 == pin) continue; // do not turn off the RGB LED enable pin
 			#endif
+			#if defined(ESP32_ORIGINAL)
+				if ((25 == pin) || (26 == pin)) dacDisable(pin);
+			#elif defined(ESP32_S2)
+				if ((17 == pin) || (18 == pin)) dacDisable(pin);
+			#endif
 			#if defined(PICO_RP2350)
 				// workaround for RP2350 chip bug; set low before switching to input
 				pinMode(pin, OUTPUT);
@@ -1999,10 +2004,11 @@ OBJ primAnalogRead(int argCount, OBJ *args) {
 void primAnalogWrite(OBJ *args) {
 	if (!isInt(args[0]) || !isInt(args[1])) { fail(needsIntegerError); return; }
 	int pinNum = obj2int(args[0]);
-	#if defined(USE_DIGITAL_PIN_MAP) && !defined(DUELink) && !defined(ARDUINO_ARCH_SAMD)
-		// DUELink and SAMD cases handled below
-		pinNum = mapDigitalPinNum(pinNum);
-		if (pinNum < 0) return;
+	#if (defined(USE_DIGITAL_PIN_MAP) || defined(ARDUINO_CITILAB_ED1)) && \
+		 !defined(DUELink) && !defined(ARDUINO_ARCH_SAMD)
+			// DUELink and SAMD cases handled below
+			pinNum = mapDigitalPinNum(pinNum);
+			if (pinNum < 0) return;
 	#endif
 	#if defined(ADAFRUIT_ITSYBITSY_M0)
 		if (pinNum > 25) return;
@@ -2077,7 +2083,7 @@ void primAnalogWrite(OBJ *args) {
 	#if defined(ESP32)
 		#if !defined(ESP32_S3) && !defined(ESP32_C3) && !defined(ESP32_C6) && !defined(COCUBE)
 			if ((25 == pinNum) || (26 == pinNum)) { // ESP32 and ESP32-S2 DAC pins
-				dacWrite(pinNum, (value >> 2)); // convert 10-bit to 8-bit value for ESP32 DAC
+				dacWrite(pinNum, (value >> 1)); // convert 9-bit PWM to 8-bits for ESP32 DAC
 				return;
 			}
 		#endif
@@ -2490,6 +2496,7 @@ static void startServoToneTimer() {
 }
 
 extern "C" void MB_TIMER_IRQHandler() {
+	if (MB_TIMER->EVENTS_COMPARE[1]) MB_TIMER->EVENTS_COMPARE[1] = 0; // lightSleep wakeup (CC[1])
 	if (MB_TIMER->EVENTS_COMPARE[2]) { // tone waveform generator (CC[2])
 		uint32_t wakeTime = MB_TIMER->CC[2];
 		MB_TIMER->EVENTS_COMPARE[2] = 0; // clear interrupt
@@ -3666,6 +3673,11 @@ static OBJ primSquareWave(int argCount, OBJ *args) {
  	#include <esp_sleep.h>
 
 	extern "C" void lightSleep(int msecs) {
+		#if defined(ESP32_ORIGINAL)
+			delay(msecs); // changing the clock to nap makes the original ESP32 drop replies or reset
+			return;
+		#endif
+
 		if (servosRunning) return; // changing clock speed messes up servo timing
 
 		int lowCPUFrequency;
@@ -3734,6 +3746,29 @@ static OBJ primSquareWave(int argCount, OBJ *args) {
 		// not yet implemented
 		fail(primitiveNotImplemented);
 	}
+
+#elif (defined(ARDUINO_BBC_MICROBIT_V2) || defined(CALLIOPE_V3)) && !defined(BLE_IDE)
+
+	extern "C" void lightSleep(int msecs) {
+		// Stop the CPU until msecs have passed or a byte arrives from the IDE.
+		// Interrupts are masked between the test and WFI so a wakeup cannot be missed.
+		MB_TIMER->TASKS_CAPTURE[0] = true;
+		uint32_t endTime = MB_TIMER->CC[0] + (1000 * msecs);
+		MB_TIMER->CC[1] = endTime; // timer interrupt at endTime ends the last WFI
+		MB_TIMER->EVENTS_COMPARE[1] = 0;
+		MB_TIMER->INTENSET = TIMER_INTENSET_COMPARE1_Msk;
+		NVIC_EnableIRQ(MB_TIMER_IRQn);
+		__disable_irq();
+		while (((int) (endTime - microsecs()) > 0) && !Serial.available()) {
+			__WFI(); // a pending interrupt ends WFI even while interrupts are masked
+			__enable_irq(); // run its handler
+			__disable_irq();
+		}
+		__enable_irq();
+		MB_TIMER->INTENCLR = TIMER_INTENCLR_COMPARE1_Msk;
+	}
+
+	extern "C" void deepSleep(int secs) { } // stub
 
 #else
 

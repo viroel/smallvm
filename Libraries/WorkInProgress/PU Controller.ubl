@@ -1,11 +1,11 @@
 module 'PU Controller' Input
 author MicroBlocks
-version 1 1 
+version 1 2 
 depends _Radio 
 tags controller remote pu elecfreaks microbit 
 choices pu_button 'pu;joystick button' B1 B2 B3 B4 A B 'pu;touch' 
-choices pu_accel_axis X Y Z 
-choices pu_joystick_axis X Y 
+choices pu_accel_axis x y z 
+choices pu_joystick_axis x y
 description 'PU Robot remote control library for micro:bit V2. Can automatically transmit joystick, acceleration, and button press events, or explicitly send these values.
 Radio messages are encoded according to the PU Robot protocol. You can define your own name:value pairs for generic projects.'
 variables _pu_controller_button_states _pu_controller_task_started _pu_controller_task_heartbeat _pu_controller_send_phase _pu_controller_button_names _pu_controller_button_pins _pu_controller_auto_send _pu_controller_touch_state _pu_controller_touch_release_task_started 
@@ -14,12 +14,12 @@ variables _pu_controller_button_states _pu_controller_task_started _pu_controlle
   spec ' ' 'puControllerAutomaticSend' 'PU controller automatic send _' 'bool' true
   space
   spec 'r' 'puControllerPressedButton' 'PU controller get pressed button : return index _' 'bool' false
-  spec 'r' 'puControllerJoystick' 'PU controller joystick _ (-100 to 100)' 'menu.pu_joystick_axis' 'X'
-  spec 'r' 'puControllerButtonPressed' 'PU controller button _ pressed?' 'menu.pu_button' 'B1'
-  spec 'r' 'puControllerAcceleration' 'PU controller acceleration _' 'menu.pu_accel_axis' 'X'
+  spec 'r' 'puControllerJoystick' 'PU controller joystick _ (-100 to 100)' 'menu.pu_joystick_axis' 'x'
+  spec 'r' 'puControllerButtonPressed' 'PU controller _ pressed?' 'menu.pu_button' 'B1'
+  spec 'r' 'puControllerAcceleration' 'PU controller acceleration _' 'menu.pu_accel_axis' 'x'
   space
-  spec ' ' 'puControllerSendJoystick' 'PU controller send joystick _' 'menu.pu_joystick_axis' 'X'
-  spec ' ' 'puControllerSendAcceleration' 'PU controller send acceleration _' 'menu.pu_accel_axis' 'X'
+  spec ' ' 'puControllerSendJoystick' 'PU controller send joystick _' 'menu.pu_joystick_axis' 'x'
+  spec ' ' 'puControllerSendAcceleration' 'PU controller send acceleration _' 'menu.pu_accel_axis' 'x'
   spec ' ' 'puControllerSendButton' 'PU controller send button _' 'menu.pu_button' 'B1'
   spec ' ' 'puControllerSendValue' 'PU controller send name _ value _' 'str num' 'name' 0
   space
@@ -122,19 +122,19 @@ to '_pu_controllerSendState' {
     return
   }
   if (_pu_controller_send_phase == 0) {
-    puControllerSendJoystick 'Y'
+    puControllerSendJoystick 'y'
     _pu_controller_send_phase = 1
   } (_pu_controller_send_phase == 1) {
-    puControllerSendJoystick 'X'
+    puControllerSendJoystick 'x'
     _pu_controller_send_phase = 2
   } (_pu_controller_send_phase == 2) {
-    puControllerSendAcceleration 'X'
+    puControllerSendAcceleration 'x'
     _pu_controller_send_phase = 3
   } (_pu_controller_send_phase == 3) {
-    puControllerSendAcceleration 'Y'
+    puControllerSendAcceleration 'y'
     _pu_controller_send_phase = 4
   } else {
-    puControllerSendAcceleration 'Z'
+    puControllerSendAcceleration 'z'
     _pu_controller_send_phase = 0
   }
 }
@@ -202,13 +202,13 @@ to '_pu_ensureControllerButtonTables' {
 
 to puControllerAcceleration axis {
   comment 'Raw local micro:bit accelerometer axis. MicroBlocks tilt values are approximately -100..100 for +/-1 g.'
-  if (axis == 'X') {
+  if (axis == 'x') {
     return ('[sensors:tiltX]')
   }
-  if (axis == 'Y') {
+  if (axis == 'y') {
     return ('[sensors:tiltY]')
   }
-  if (axis == 'Z') {
+  if (axis == 'z') {
     return ('[sensors:tiltZ]')
   }
   return 0
@@ -247,9 +247,9 @@ to puControllerGroup group {
 }
 
 to puControllerJoystick axis {
-  comment 'Physical joystick axes. X is the horizontal axis (old turn input, pin 2); Y is the vertical axis (old speed input, pin 1).'
+  comment 'Physical joystick axes. x is the horizontal axis (old turn input, pin 2); y is the vertical axis (old speed input, pin 1).'
   local 'pin' 2
-  if (axis == 'Y') {
+  if (axis == 'y') {
     pin = 1
   }
   local 'raw' (analogReadOp pin)
@@ -284,12 +284,12 @@ Returns "none" if no button is pressed. If returnIndex is true, returns the nume
 }
 
 to puControllerSendAcceleration axis {
-  if (axis == 'X') {
-    '[radio:sendPair]' '#ctrlaccX' (puControllerAcceleration 'X')
-  } (axis == 'Y') {
-    '[radio:sendPair]' '#ctrlaccY' (puControllerAcceleration 'Y')
+  if (axis == 'x') {
+    '[radio:sendPair]' '#ctrlaccX' (puControllerAcceleration 'x')
+  } (axis == 'y') {
+    '[radio:sendPair]' '#ctrlaccY' (puControllerAcceleration 'y')
   } else {
-    '[radio:sendPair]' '#ctrlaccZ' (puControllerAcceleration 'Z')
+    '[radio:sendPair]' '#ctrlaccZ' (puControllerAcceleration 'z')
   }
 }
 
@@ -301,10 +301,10 @@ to puControllerSendButton button {
 }
 
 to puControllerSendJoystick axis {
-  if (axis == 'X') {
-    '[radio:sendPair]' '#ctrljoyX' (puControllerJoystick 'X')
+  if (axis == 'x') {
+    '[radio:sendPair]' '#ctrljoyX' (puControllerJoystick 'x')
   } else {
-    '[radio:sendPair]' '#ctrljoyY' (puControllerJoystick 'Y')
+    '[radio:sendPair]' '#ctrljoyY' (puControllerJoystick 'y')
   }
 }
 
@@ -312,4 +312,3 @@ to puControllerSendValue name value {
   comment 'Send a user-defined radio pair. Avoid the reserved names #ctrljoyX, #ctrljoyY, #ctrlaccX, #ctrlaccY, #ctrlaccZ and #ctrlbutton if the receiver also uses the standard PU Robot protocol.'
   '[radio:sendPair]' name value
 }
-

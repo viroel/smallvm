@@ -138,6 +138,8 @@ uint16_t bufferPixels[BUFFER_PIXELS_SIZE];
 	static void inline UPDATE_DISPLAY() {
 		#if defined(NEZHA_ESP32)
 			nezhaEndDrawing(); // a block's drawing reaches the screen in one piece
+			taskSleep(1);
+			return;
 		#endif
 		if (isOLED && !deferUpdates) {
 			oledUpdate();
@@ -2281,8 +2283,6 @@ int resetPin = GFX_NOT_DEFINED, int invertColors = true) {
 static void init_OLED(int w, int h, int flipVertical) {
 	if ((w < 32) || (w > 128) || (h < 16) || (h > 128)) return;
 	if (!tft) delete tft;
-
-	if (!hasI2CPullups()) return; // no OLED connected and no I2C pullups
 
 	const int OLED_ADDR_1 = 0x3C;
 	const int OLED_ADDR_2 = 0x3D;

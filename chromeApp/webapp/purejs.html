@@ -201,6 +201,7 @@
 					requestAnimationFrame(loop);
 					if (timestamp - lastStep >= 250) { // four times a second, as GP steps its scripter
 						lastStep = timestamp;
+						MB_editor.updateStopping();
 						MB_editor.step();
 					}
 					if (timestamp - lastTime < 1000 / FPS) {
@@ -220,6 +221,7 @@
 					IDE.init();
 					mbEditor = MB_editor.open(world);
 					IDE.resize(); // place the world canvas over the workspace slot
+					MB_editor.logUsage();
 					// Started first, so the IDE keeps running while a link's project asks a question.
 					requestAnimationFrame(loop);
 					// Before a link's project, so the work a crash left behind is offered first.

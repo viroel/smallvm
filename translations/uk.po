@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: interest@microblocks.fun\n"
 "POT-Creation-Date: 2025-02-03 16:24+0200\n"
-"PO-Revision-Date: 2026-10-20 15:02+0000\n"
-"Last-Translator: Sam McHardy <sammchardy@users.noreply.hosted.weblate.org>\n"
+"PO-Revision-Date: 2026-10-29 18:54+0000\n"
+"Last-Translator: Andriy Utkin <andriy@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/microblocks/"
 "ide/uk/>\n"
 "Language: uk\n"
@@ -5722,23 +5722,23 @@ msgstr ""
 
 #. the %1 tag should be kept intact. Seconds remaining for a process to finish.
 msgid "%1 seconds remaining"
-msgstr ""
+msgstr "залишається %1 секунд"
 
 #. Block size button tooltip
 msgid "Decrease block size"
-msgstr ""
+msgstr "Зменшити розмір блоку"
 
 #. Block size button tooltip
 msgid "Restore block size to 100%"
-msgstr ""
+msgstr "Повернути розмір блоку до 100%"
 
 #. Block size button tooltip
 msgid "Increase block size"
-msgstr ""
+msgstr "Збільшити розмір блоку"
 
 #. Tip Bar label or text (at the bottom of the IDE, gives info on the currently hovered element)
 msgid "Button"
-msgstr ""
+msgstr "Кнопка"
 
 #. Tip Bar label or text (at the bottom of the IDE, gives info on the currently hovered element)
 msgid "Boolean Input"
@@ -5751,7 +5751,7 @@ msgstr ""
 
 #. Tip Bar label or text (at the bottom of the IDE, gives info on the currently hovered element)
 msgid "Color Input"
-msgstr ""
+msgstr "Ввід кольору"
 
 #. Tip Bar label or text (at the bottom of the IDE, gives info on the currently hovered element)
 #. The [l] tag turns into an icon of a mouse with the left button pressed
@@ -6543,3 +6543,17 @@ msgstr "розділення _"
 #. Microphone library block
 msgid "turn off microphone"
 msgstr "вимкнути мікрофон"
+
+#. Add library error message
+msgid "A library with that name is already in the project. Remove it first to make a new one."
+msgstr ""
+"Бібліотека з таким ім'ям вже існує у проєкті. Видаліть її, щоб використати "
+"це ім'я знову."
+
+#. Placeholder text in the block search box (ctrl-space)
+msgid "search blocks and variables..."
+msgstr "пошук блоків та змінних..."
+
+#. Shown in the block search box when no block matches the search
+msgid "no matches"
+msgstr "збігів немає"

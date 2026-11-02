@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: interest@microblocks.fun\n"
 "POT-Creation-Date: 2024-10-30 06:26+0200\n"
-"PO-Revision-Date: 2026-10-20 02:13+0000\n"
-"Last-Translator: Sam McHardy <sammchardy@users.noreply.hosted.weblate.org>\n"
+"PO-Revision-Date: 2026-10-30 09:35+0000\n"
+"Last-Translator: John Maloney <jhmaloney@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Czech <https://hosted.weblate.org/projects/microblocks/ide/"
 "cs/>\n"
 "Language: cs\n"
@@ -656,7 +656,7 @@ msgstr "odešli rádiem text _"
 
 #. Example string for blocks that send a message via some communication channel.
 msgid "Hello!"
-msgstr "AHOJ!"
+msgstr "Ahoj!"
 
 #. Primitive block. Mostly hidden from end users.
 msgid "radio send pair _ = _"
@@ -908,7 +908,7 @@ msgstr "nastav práh kapacitního senzoru na _"
 
 #. BirdBrain Technologies Hummingbird kit library label
 msgid "Hummingbird LED _ _ %"
-msgstr ""
+msgstr "Hummingbird LED _ _ %"
 
 #. BirdBrain Technologies Hummingbird kit library block
 msgid "Hummingbird Tri-LED _ R _ % G _ % B _ %"
@@ -916,19 +916,19 @@ msgstr ""
 
 #. BirdBrain Technologies Hummingbird kit library block
 msgid "Hummingbird Position Servo _ _ °"
-msgstr ""
+msgstr "Hummingbird Servo _ úhel _ °"
 
 #. BirdBrain Technologies Hummingbird kit library block
 msgid "Hummingbird Rotation Servo _ _ %"
-msgstr ""
+msgstr "Hummingbird Servo _ rychlost _ %"
 
 #. BirdBrain Technologies Hummingbird kit library block
 msgid "Hummingbird _ _"
-msgstr ""
+msgstr "Hummingbird _ _"
 
 #. BirdBrain Technologies Hummingbird kit library block
 msgid "Hummingbird Battery (mV)"
-msgstr ""
+msgstr "Hummingbird Baterie (mV)"
 
 #. BirdBrain Technologies Hummingbird kit library block
 msgid "humm;Light"
@@ -952,55 +952,55 @@ msgstr "Jiné"
 
 #. BirdBrain Technologies Finch library label
 msgid "Finch Beak Red _ Green _ Blue _"
-msgstr ""
+msgstr "Finch Zobák Červená _ Zelená _ Modrá _"
 
 #. BirdBrain Technologies Finch Robot library block
 msgid "Finch Tail _ Red _ Green _ Blue _"
-msgstr ""
+msgstr "Finch Ocas Červená _ Zelená _ Modrá _"
 
 #. BirdBrain Technologies Finch Robot library block
 msgid "Finch Move _ _ cm at _ %"
-msgstr ""
+msgstr "Finch posun _ o _ cm rychlostí _ %"
 
 #. BirdBrain Technologies Finch Robot library block
 msgid "Finch Turn _ _ ° at _ %"
-msgstr ""
+msgstr "Finch otoč_ o _ ° rychlostí _ %"
 
 #. BirdBrain Technologies Finch Robot library block
 msgid "Finch Wheels L _ % R _ %"
-msgstr ""
+msgstr "Finch kola Levé _ % Pravé _ %"
 
 #. BirdBrain Technologies Finch Robot library block
 msgid "Finch Stop"
-msgstr ""
+msgstr "Finch zastav"
 
 #. BirdBrain Technologies Finch Robot library block
 msgid "Finch Distance (cm)"
-msgstr ""
+msgstr "Finch vzdálenost (cm)"
 
 #. BirdBrain Technologies Finch Robot library block
 msgid "Finch _ Light"
-msgstr ""
+msgstr "Finch _ světlo"
 
 #. BirdBrain Technologies Finch Robot library block
 msgid "Finch _ Line"
-msgstr ""
+msgstr "Finch _ čára"
 
 #. BirdBrain Technologies Finch Robot library block
 msgid "Finch Reset Encoders"
-msgstr ""
+msgstr "Finch reset enkodérů"
 
 #. BirdBrain Technologies Finch Robot library block
 msgid "Finch _ Encoder"
-msgstr ""
+msgstr "Finc _ enkodér"
 
 #. BirdBrain Technologies Finch Robot library block
 msgid "Finch Accelerometer _"
-msgstr ""
+msgstr "Finch akcelerometr _"
 
 #. BirdBrain Technologies Finch Robot library block
 msgid "Finch Battery"
-msgstr ""
+msgstr "Finch baterie"
 
 #. BirdBrain Technologies Finch Robot library block
 msgid "All"
@@ -1080,7 +1080,7 @@ msgstr "přijmi IR kód ze zařízení _"
 
 #. Infrared Remote library block
 msgid "test IR"
-msgstr "test IR"
+msgstr "testování IR"
 
 #. Infrared Remote library block
 msgid "attach IR receiver to pin _"
@@ -1365,11 +1365,11 @@ msgstr "Servo"
 
 #. Servo motor library block
 msgid "set servo _ to _ degrees (-90 to 90)"
-msgstr "nastav servo _ na úhel _ (-90 až 90)"
+msgstr "nastav servo _ na úhel _ ° (-90 až 90)"
 
 #. Servo motor library block
 msgid "set servo _ to speed _ (-100 to 100)"
-msgstr "nastav servo _ na rychlost _ (-100 až 100)"
+msgstr "nastav servo _ na rychlost _ % (-100 až 100)"
 
 #. Servo motor library block
 msgid "stop servo _"
@@ -1571,19 +1571,19 @@ msgstr "nůžky"
 
 #. OLED Graphics library block
 msgid "initialize i2c _ address(hex) _ reset pin# _ flip _"
-msgstr "aktivuj OLED I2C _ adresa (hex) _ reset pin# _ otoč _"
+msgstr "aktivuj I2C _ adresa (hex) _ reset pin# _ otoč _"
 
 #. OLED Graphics library block
 msgid "initialize spi _ d/c pin# _ reset pin# _ flip _"
-msgstr "aktivuj OLED SPI _ adresa (hex) _ reset pin# _ otoč _"
+msgstr "aktivuj SPI _ adresa (hex) _ reset pin# _ otoč _"
 
 #. OLED Graphics library block
 msgid "write _ at x _ y _ inverse _"
-msgstr "OLED napiš _ na x _ y _ inverze _"
+msgstr "napiš _ na x _ y _ inverze _"
 
 #. OLED Graphics library block
 msgid "show display buffer"
-msgstr "OLED ukaž obraz z paměti displeje"
+msgstr "ukaž obraz z paměti displeje"
 
 #. OLED Graphics library block
 msgid "clear"
@@ -1591,31 +1591,31 @@ msgstr "vymaž OLED"
 
 #. OLED Graphics library block
 msgid "set contrast (1-4) _"
-msgstr "nastav kontrast OLED (1-4) _"
+msgstr "nastav kontrast (1-4) _"
 
 #. OLED Graphics library block
 msgid "draw circle at x _ y _ radius _ erase _"
-msgstr "OLED nakresli kružnici střed x _ y _ poloměr _ výmaz _"
+msgstr "nakresli kružnici střed x _ y _ poloměr _ výmaz _"
 
 #. OLED Graphics library block
 msgid "draw image _ at x _ y _"
-msgstr "OLED nakresli obrázek _ na x _ y _"
+msgstr "nakresli obrázek _ na x _ y _"
 
 #. OLED Graphics library block
 msgid "draw line from x _ y _ to x _ y _ erase _"
-msgstr "OLED nakresli přímku z bodu x _ y _ do x _ y _ výmaz _"
+msgstr "nakresli přímku z bodu x _ y _ do x _ y _ výmaz _"
 
 #. OLED Graphics library block
 msgid "draw rectangle x _ y _ w _ h _ erase _ rounding(3-15) _"
-msgstr "OLED nakresli obdélník x _ y _ š _ d _ výmaz _ zaoblení (3-15) _"
+msgstr "nakresli obdélník x _ y _ š _ d _ výmaz _ zaoblení (3-15) _"
 
 #. OLED Graphics library block
 msgid "fill rectangle x _ y _ w _ h _ erase _"
-msgstr "OLED vyplň obdélník x _ y _ š _ d _ výmaz _"
+msgstr "vyplň obdélník x _ y _ š _ d _ výmaz _"
 
 #. OLED Graphics library block
 msgid "_flip display top _"
-msgstr "_překlop OLED displej nahoře _"
+msgstr "_překlop displej nahoře _"
 
 #. OLED Graphics library block
 msgid "make image _"
@@ -1623,19 +1623,19 @@ msgstr "vytvoř obrázek _"
 
 #. OLED Graphics library block
 msgid "set pixel x _ y _ erase _"
-msgstr "OLED nastav bod x _ y _ výmaz _"
+msgstr "nastav bod x _ y _ výmaz _"
 
 #. OLED Graphics library block
 msgid "set video _"
-msgstr "OLED nastav video _"
+msgstr "nastav video _"
 
 #. OLED Graphics library block
 msgid "cursor location"
-msgstr "OLED pozice kurzoru"
+msgstr "pozice kurzoru"
 
 #. OLED Graphics library block
 msgid "defer display updates"
-msgstr "OLED odlož aktualizaci displeje"
+msgstr "odlož aktualizace displeje"
 
 #. TFT display library block
 msgid "clear TFT display"
@@ -1681,7 +1681,8 @@ msgstr "nakresli na TFT kružnicí se středem x _ y _ poloměr _ barva _"
 
 #. TFT Display library block
 msgid "draw triangle on TFT at x _ y _ , x _ y _ , x _ y _ color _"
-msgstr "nakresli na TFT trojúhelník s vrcholy x _ y _ , x _ y, x _ y _ barva _"
+msgstr ""
+"nakresli na TFT trojúhelník s vrcholy x _ y _ , x _ y _ , x _ y _ barva _"
 
 #. TFT Display library block
 msgid "filled _"
@@ -1940,7 +1941,7 @@ msgstr "zadrnkej notu _ oktáva _ po _ ms"
 
 #. Pluck library block
 msgid "pluck MIDI key _ for _ msecs"
-msgstr "zadrnkej MIDI klávesu _ oktáva _ po _ ms"
+msgstr "zadrnkej MIDI klávesu _ po _ ms"
 
 #. Pluck library block
 msgid "set pluck pin _"
@@ -2686,7 +2687,7 @@ msgstr "pole bajtů"
 
 #. File System library block
 msgid "file names"
-msgstr "jménAa souborů"
+msgstr "jména souborů"
 
 #. File System library block
 msgid "in directory _"
@@ -2803,7 +2804,7 @@ msgstr "WiFi připojení k AP _ heslo _"
 
 #. Example WiFi network name
 msgid "Network_Name"
-msgstr "Jméno sítě _"
+msgstr "Jméno_sítě"
 
 #. WiFi library block
 msgid "IP _ gateway _ subnet _"
@@ -2815,7 +2816,7 @@ msgstr "WiFi vytvoř hotspot _ heslo _"
 
 #. Example WiFi network password
 msgid "Network_Password"
-msgstr "Síťové heslo _"
+msgstr "Síťové_heslo"
 
 #. WiFi library block
 msgid "IP address"
@@ -3153,11 +3154,11 @@ msgstr "WT události JSON"
 
 #. Citilab Fantàstic Robot library block
 msgid "turn fantàstic _ degrees"
-msgstr ""
+msgstr "otoč fantàstic _ °"
 
 #. Citilab Fantàstic Robot library block
 msgid "move fantàstic _ mm"
-msgstr ""
+msgstr "posuň fantàstic _ cm"
 
 #. MiKe Robot library block
 msgid "MiKe front obstacle (cm)"
@@ -3249,7 +3250,7 @@ msgstr "SB nastav LED _ (1-4) na _"
 
 #. Shield:bit library block
 msgid "sb send audio to shield _"
-msgstr "SB _ pošli audio na ??? _"
+msgstr "SB pošli audio na ??? _"
 
 #. Shield:bit library block
 msgid "sb stop _"
@@ -3529,23 +3530,23 @@ msgstr "TdR přijmi IR kód"
 
 #. InnovaDidàctic Imagina shield library block
 msgid "Imagina set _ led to _"
-msgstr ""
+msgstr "Imagina nastav LED _ na _"
 
 #. InnovaDidàctic Imagina shield library block
 msgid "Imagina play _ octave _ for _ ms"
-msgstr ""
+msgstr "Imagina hraj _ oktáva _ po _ ms"
 
 #. InnovaDidàctic Imagina shield library block
 msgid "Imagina temperature (°C)"
-msgstr ""
+msgstr "Imagina teplota (°C)"
 
 #. InnovaDidàctic Imagina shield library block
 msgid "Imagina light"
-msgstr ""
+msgstr "Imagina světlo"
 
 #. InnovaDidàctic Imagina shield library block
 msgid "Imagina distance (cm)"
-msgstr ""
+msgstr "Imagina vzdálenost (cm)"
 
 #. InnovaDidàctic Imagina shield library block
 msgid "Imagina button (D2) pressed?"
@@ -4814,7 +4815,7 @@ msgstr "staženo"
 
 #. Graph window title
 msgid "Data Graph"
-msgstr "Graf Dat"
+msgstr "Grafické zobrazení dat"
 
 #. Graph button tooltip
 msgid "Graph"
@@ -6076,7 +6077,6 @@ msgid "brightness _ %"
 msgstr "NeZha jas _ %"
 
 #. File System library block
-#, fuzzy
 msgid "skip _ bytes of file _"
 msgstr "přeskoč _ bajtů souboru _"
 
@@ -6125,7 +6125,6 @@ msgid "Nezha line sensor _ sees line on left _ right _"
 msgstr "Nezha senzor čáry _ vidí čáru vlevo _ vpravo _"
 
 #. File System library block
-#, fuzzy
 msgid "set read position _ of file _"
 msgstr "nastav pozici čtení _ souboru _"
 
@@ -6134,7 +6133,6 @@ msgid "allow WiFi while using BLE _"
 msgstr "povolit WiFi při používání BLE _"
 
 #. File System library block
-#, fuzzy
 msgid "read position of file _"
 msgstr "čti pozici souboru _"
 
@@ -6176,7 +6174,7 @@ msgstr "Calliope zastav servo _"
 
 #. Calliope Servoboard library block
 msgid "Calliope set continous servo _ to speed _ (-100~100)"
-msgstr "Calliope nastav kontinuální servo _ rychlost _ (-100~100)"
+msgstr "Calliope nastav kontinuální servo _ rychlost _ % (-100~100)"
 
 #. Calliope Servoboard library block
 msgid "Calliope stop all motors and servos"
@@ -6188,7 +6186,7 @@ msgstr "Calliope nastav _ servo _ do úhlu _ °"
 
 #. Calliope Servoboard library block
 msgid "Calliope set motor _ to speed _ (-100~100)"
-msgstr "Calliope nastav motor _ rychlost _ (-100 - 100)"
+msgstr "Calliope nastav motor _ rychlost _ % (-100 - 100)"
 
 #. Calliope Servoboard library block
 msgid "Calliope stop motor _"
@@ -6612,7 +6610,7 @@ msgstr "CB nadmořská výška (m)"
 
 #. Coding Box library block
 msgid "cb speaker beep for _ millisecs"
-msgstr "_CB pípnutí po dobu _ ms"
+msgstr "CB pípnutí po dobu _ ms"
 
 #. Coding Box library block
 msgid "cb clear rainbow colors"
@@ -6798,7 +6796,7 @@ msgstr "sluč bitmapu _ na _ , _"
 
 #. 8 Bit Graphics Library block
 msgid "bitmap _ mirrored across _ axis"
-msgstr "zrcadli bitmapu _ podle osy _"
+msgstr "překlop bitmapu _ podle osy _"
 
 #. Graph context menu option
 msgid "decrease range"
@@ -6955,7 +6953,7 @@ msgstr "barevná skvrna"
 
 #. Calliope MotionKit library block
 msgid "mk2;bright"
-msgstr "jas"
+msgstr "jasný"
 
 #. Calliope MotionKit library block
 msgid "mk2;dark"
@@ -6999,7 +6997,7 @@ msgstr "MotionKit zhasni NeoPixely"
 
 #. Calliope MotionKit library block
 msgid "MotionKit set motor _ _ speed _ (0~100)"
-msgstr "MotionKit nastav motor _ _ rychlost _ (0-100)"
+msgstr "MotionKit nastav motor _ _ rychlost _ % (0-100)"
 
 #. Calliope MotionKit library block
 msgid "MotionKit stop motor _"
@@ -7027,11 +7025,11 @@ msgstr "MotionKit nastav servo _ do úhlu _ (0-180)"
 
 #. Calliope MotionKit library block
 msgid "MotionKit set _ servo _ to _ degrees"
-msgstr "MotionKit nastav servo _ do úhlu _"
+msgstr "MotionKit nastav _ servo _ do úhlu _"
 
 #. Calliope MotionKit library block
 msgid "MotionKit rotate servo _ _ speed _ (0~100)"
-msgstr "MotionKit roztoč servo _ rychlostí _ (0-100)"
+msgstr "MotionKit roztoč servo _ _ rychlostí _ % (0-100)"
 
 #. LCD Display library block
 msgid "draw char _ on LCD line _ column _"
@@ -7269,7 +7267,7 @@ msgstr "nakresli bod x _ y _ bílá _"
 
 #. Tiny OLED library block
 msgid "draw rect x _ y _ w _ h _ fill _ white _"
-msgstr "nakresli obdélník x _ y _ š _ v _ bílá _"
+msgstr "nakresli obdélník x _ y _ š _ v _ výplň _ bílá _"
 
 #. Tiny OLED library block
 msgid "draw string _ x _ y _ white _"
@@ -7305,7 +7303,7 @@ msgstr "Maqueen"
 
 #. Maqueen Car Kit library block
 msgid "Maqueen motor _ dir _ speed(0-255) _"
-msgstr "Maqueen motor _ směr _ rychlost (0-255)"
+msgstr "Maqueen motor _ směr _ rychlost (0-255) _"
 
 #. Maqueen Car Kit library block
 msgid "Maqueen stop motors _"
@@ -7342,3 +7340,143 @@ msgstr "vpřed"
 #. Maqueen Car Kit library choice
 msgid "bwd"
 msgstr "vzad"
+
+#. Block in Comm category
+msgid "rx pin _ tx pin _"
+msgstr "rx pin _ tx pin _"
+
+#. Block in Comm category
+msgid "stop _"
+msgstr "stop _"
+
+#. Block in Comm category
+msgid "bit order _"
+msgstr "pořadí bitů _"
+
+#. Block in Comm category
+msgid "duelink receive"
+msgstr "duelink přijjmi"
+
+#. Block in Comm category
+msgid "duelink send _ starting at _"
+msgstr "duelink pošli _ od pozice _"
+
+#. Citilab ED1 Stepper Motor library block
+msgid "set motor pin _ for motor _ to _"
+msgstr "nastav pin _ pro motor _ na _"
+
+#. HTTP Client library block
+msgid "fetch URL _"
+msgstr "získej URL _"
+
+#. Color name input.
+msgid "cyan"
+msgstr "modrozelená"
+
+#. Color name input.
+msgid "magenta"
+msgstr "purpurová"
+
+#. Calliope Servoboard library label
+msgid "Calliope Servoboard"
+msgstr "Calliope Servoboard"
+
+#. Calliope MotionKit library label
+msgid "Calliope MotionKit"
+msgstr "Calliope MotionKit"
+
+#. Calliope NeoPixel library label
+msgid "Calliope NeoPixel"
+msgstr "Calliope NeoPixel"
+
+#. Calliope MotionKit library block
+msgid "MotionKit set servo _ to _ degrees (-90~90)"
+msgstr "MotionKit nastav servo _ do úhlu _ ° (-90~90)"
+
+#. Nezha Pro library label
+msgid "Nezha Pro"
+msgstr "Nezha Pro"
+
+#. Nehza Pro library choice
+msgid "M1"
+msgstr "M1"
+
+#. Nehza Pro library choice
+msgid "M2"
+msgstr "M2"
+
+#. Nehza Pro library choice
+msgid "M3"
+msgstr "M3"
+
+#. Nehza Pro library choice
+msgid "M4"
+msgstr "M4"
+
+#. LCD 16x2 (Seeed) library example
+msgid "Hi!"
+msgstr "Ahoj!"
+
+#. LCD Display library example
+msgid "Moon!"
+msgstr "Měsíc!"
+
+#. Settings menu option
+msgid "snapshot code on board"
+msgstr "snímek kódu v mikropočítači"
+
+#. Firmware install by URL dialog
+msgid "ESP32 firmware URL?"
+msgstr "URL s firmware ESP32?"
+
+#. Firmware install download failure
+msgid "Could not download"
+msgstr "Nelze stáhnout"
+
+#. Variable rename error message
+msgid "That name is already in use."
+msgstr "Toto jméno je již použito."
+
+#. Block right-click context menu
+msgid "delete obsolete block..."
+msgstr "smaž nepoužívaný blok ..."
+
+#. Block right-click context menu
+msgid "add to library"
+msgstr "přidat do knihovny"
+
+#. Examples folder
+msgid "folder;Widgets"
+msgstr "Widgets"
+
+#. String in file picker and library dialogs
+msgid "That URL does not return a MicroBlocks library."
+msgstr "Toto URL nevrací knihovnu Microblocks."
+
+#. Add library error message
+msgid "A library with that name is already in the project. Remove it first to make a new one."
+msgstr ""
+"Knihovna tohoto jména je již v projektu. Nejprve ji smažte a pak vytvořte "
+"znova."
+
+#. Placeholder text in the block search box (ctrl-space)
+msgid "search blocks and variables..."
+msgstr "hledání bloků a proměnných..."
+
+#. Shown in the block search box when no block matches the search
+msgid "no matches"
+msgstr "nenalezeno"
+
+#. Library folder
+#, fuzzy
+msgid "folder;Nezha"
+msgstr "Nezha"
+
+#. Library folder
+#, fuzzy
+msgid "folder;Planet X"
+msgstr "Planet X"
+
+#. Library name
+msgid "Nezha ESP32 Motor"
+msgstr "Nezha ESP32 motor"

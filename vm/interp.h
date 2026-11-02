@@ -282,6 +282,7 @@ void taskTest(void);
 // UTF-8 Utilities (from dataPrims.c)
 
 int countUTF8(char *s);
+OBJ newSubstring(OBJ *stringPtr, int offset, int byteCount);
 OBJ charAt(OBJ stringObj, int i);
 int unicodeCodePoint(char *s);
 char *nextUTF8(char *s);
@@ -445,6 +446,7 @@ void BLE_UART_ReceiveCallback(uint8 *data, int byteCount);
 void BLE_UART_Send(uint8 *data, int byteCount);
 
 void getMACAddress(uint8 *sixBytes);
+void clearIDECommBuffers();
 
 // Primitive Sets
 

@@ -182,7 +182,7 @@ static void updateConnectionState() { // NimBLE
 		BLE_resumeAdvertising();
 	}
 	if (!USB_connected_to_IDE) { // either not connected or connected via BLE
-		if (Serial.available()) {
+		if (Serial.available() > 0) {
 			// New serial connection. A connected BLE client is left alone; it may be
 			// using BLE serial, which stays available while the IDE is on USB.
 			// tell runtime that we've gotten a ping
@@ -537,7 +537,7 @@ static void updateConnectionState() { // PicoBLE
 		BLE_resumeAdvertising();
 	}
 	if (!USB_connected_to_IDE) { // either not connected or connected via BLE
-		if (Serial.available()) {
+		if (Serial.available() > 0) {
 			// new serial connection; disconnect BLE if it is connected
 			bleDisconnect();
 			BTstack.stopAdvertising();
@@ -648,6 +648,7 @@ int recvBytes(uint8 *buf, int count) {
 
 	if (!BLE_connected_to_IDE || USB_connected_to_IDE) { // USB wins; use Serial
 		bytesRead = Serial.available();
+		if (bytesRead <= 0) return 0; // -1 if Serial not ready; readBytes() would wait for timeout
 		if (bytesRead > count) bytesRead = count; // there is only enough room for count bytes
 		return Serial.readBytes((char *) buf, bytesRead);
 	}
@@ -691,6 +692,7 @@ int sendBytes(uint8 *buf, int start, int end) {
 
 int recvBytes(uint8 *buf, int count) {
 	int bytesRead = Serial.available();
+	if (bytesRead <= 0) return 0; // -1 if Serial not ready; readBytes() would wait for timeout
 	if (bytesRead > count) bytesRead = count; // there is only enough room for count bytes
 	return Serial.readBytes((char *) buf, bytesRead);
 }
@@ -765,3 +767,25 @@ int BLE_isEnabled() {
 	BLE_allowShutdown = false;
 	return false;
 }
+
+#if defined(NEZHA_ESP32)
+
+extern "C" void suspendIDEComm() {
+	if (BLE_isEnabled()) {
+		BLE_stop();
+		BLE_connected_to_IDE = false;
+	}
+	Serial.end();
+	USB_connected_to_IDE = false;
+	clearIDECommBuffers();
+}
+
+extern "C" void resumeIDEComm() {
+	if (BLE_isEnabled()) {
+		BLE_start();
+	}
+	clearIDECommBuffers();
+	Serial.begin(115200);
+}
+
+#endif

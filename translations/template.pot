@@ -9343,3 +9343,272 @@ msgstr ""
 #. Library name
 msgid "Planet X Support"
 msgstr ""
+
+#. PU Robot library name
+msgid "PU Robot"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;left eye"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;right eye"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;both eyes"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;joystick button"
+msgstr ""
+
+#. PU Robot menu option
+msgid "B1"
+msgstr ""
+
+#. PU Robot menu option
+msgid "B2"
+msgstr ""
+
+#. PU Robot menu option
+msgid "B3"
+msgstr ""
+
+#. PU Robot menu option
+msgid "B4"
+msgstr ""
+
+#. PU Robot menu option
+msgid "A"
+msgstr ""
+
+#. PU Robot menu option
+msgid "B"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;touch"
+msgstr ""
+
+#. PU Robot menu option
+msgid "cm"
+msgstr ""
+
+#. PU Robot menu option
+msgid "inch"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;all"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;left foot"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;left leg"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;right foot"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;right leg"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;head yaw"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;head pitch"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;forward"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;backward"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;side left"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;side right"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;turn left"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;turn right"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;greet"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;rest"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;explore"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;jump"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;kick"
+msgstr ""
+
+#. PU Robot menu option
+msgid "pu;dance"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot initialize"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot radio group _"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot action _"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot move _"
+msgstr ""
+
+#. PU Robot library block
+msgid "for _ steps speed _ (1-10)"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot stop"
+msgstr ""
+
+#. PU Robot library block
+msgid "in neutral pose _"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot set _ servo to _ degrees"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot eyes left _ right _"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot set _ brightness _ (0-100)%"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot ambience light _ color _"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot clear ambience lights"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot distance in _"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot body roll (degrees)"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot body pitch (degrees)"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot controller joystick _ (-100 to 100)"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot controller acceleration _"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot _ received?"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot move to pose _ speed _ (1-10)"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot trim left foot _ left leg _ right foot _ right leg _ head yaw _ head pitch _"
+msgstr ""
+
+#. PU Robot library block
+msgid "PU robot calibration pose"
+msgstr ""
+
+#. PU Controller library name
+msgid "PU Controller"
+msgstr ""
+
+#. PU Controller library block
+msgid "PU controller radio group _"
+msgstr ""
+
+#. PU Controller library block
+msgid "PU controller automatic send _"
+msgstr ""
+
+#. PU Controller library block
+msgid "PU controller get pressed button"
+msgstr ""
+
+#. PU Controller library block
+msgid "return index _"
+msgstr ""
+
+#. PU Controller library block
+msgid "PU controller joystick _ (-100 to 100)"
+msgstr ""
+
+#. PU Controller library block
+msgid "PU controller _ pressed?"
+msgstr ""
+
+#. PU Controller library block
+msgid "PU controller acceleration _"
+msgstr ""
+
+#. PU Controller library block
+msgid "PU controller send joystick _"
+msgstr ""
+
+#. PU Controller library block
+msgid "PU controller send acceleration _"
+msgstr ""
+
+#. PU Controller library block
+msgid "PU controller send button _"
+msgstr ""
+
+#. PU Controller library block
+msgid "PU controller send name _ value _"
+msgstr ""
+
+#. PU Controller library default value (puControllerSendValue)
+msgid "name"
+msgstr ""
+

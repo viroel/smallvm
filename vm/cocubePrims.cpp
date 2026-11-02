@@ -26,7 +26,9 @@ CoCubeSensor cocube;
 
 void boardInit() {
 	WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); // disable brownout detector
-	cocube.Init();
+	if (!cocube.Init()) {
+		Serial.printf("CoCube position sensor initialization failed (status %d)\n", cocube.GetInitStatus());
+	}
 }
 
 void boardAddPrims() { }

@@ -1077,6 +1077,11 @@ int * appendPersistentRecord(int recordType, int id, int extra, int byteCount, u
 	int wordCount = (byteCount + 3) / 4;
 	int needed = wordCount + 2 + 4; // add 4 extra words for DUELink rounding
 	int *end = (0 == current) ? end0 : end1;
+	if ((deleteAll == recordType) && ((end - freeStart) < 100)) {
+		// this half-space is almost full so just clear memory
+		clearPersistentMemory();
+		return freeStart;
+	}
 	if ((freeStart + needed) > end) {
 		compactCodeStore(NULL, NULL);
 		end = (0 == current) ? end0 : end1;

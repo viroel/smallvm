@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: interest@microblocks.fun\n"
 "POT-Creation-Date: 2024-10-30 07:10+0200\n"
-"PO-Revision-Date: 2026-10-25 23:56+0000\n"
+"PO-Revision-Date: 2026-11-01 18:39+0000\n"
 "Last-Translator: Josep Ferràndiz <josep.ferrandiz@gmail.com>\n"
 "Language-Team: Catalan <https://hosted.weblate.org/projects/microblocks/ide/"
 "ca/>\n"
@@ -5284,7 +5284,7 @@ msgstr "biblioteca d'usuari"
 
 #. String in file picker and library dialogs
 msgid "Add Library"
-msgstr "Afegeix una biblioteca"
+msgstr "Afegeix biblioteca"
 
 #. the %1 tag should be kept intact. Seconds remaining for a process to finish.
 msgid "%1 seconds remaining"
@@ -9045,3 +9045,571 @@ msgstr "pin rx _ pin tx _"
 #. Block in Comm category
 msgid "stop _"
 msgstr "atura _"
+
+#. Color name input.
+msgid "cyan"
+msgstr "cian"
+
+#. Color name input.
+msgid "magenta"
+msgstr "magenta"
+
+#. Library folder
+msgid "folder;Nezha"
+msgstr "Nezha"
+
+#. Library folder
+msgid "folder;Planet X"
+msgstr "Planet X"
+
+#. Library name
+msgid "Nezha ESP32 Motor"
+msgstr "Nezha ESP32 Motor"
+
+#. Nezha ESP32 Motor library choice
+msgid "low"
+msgstr "baix"
+
+#. Nezha ESP32 Motor library choice
+msgid "medium"
+msgstr "mitjà"
+
+#. Nezha ESP32 Motor library choice
+msgid "high"
+msgstr "alt"
+
+#. Nezha ESP32 Motor library choice
+msgid "mm"
+msgstr "mm"
+
+#. Nezha ESP32 Motor library choice
+msgid "counterclockwise"
+msgstr "sentit antihorari"
+
+#. Nezha ESP32 Motor library choice
+msgid "shortest path"
+msgstr "el camí més curt"
+
+#. Nezha ESP32 Motor library choice
+msgid "no wait"
+msgstr "sense espera"
+
+#. Nezha ESP32 Motor library choice
+msgid "wait until done"
+msgstr "espera a que s'acabi"
+
+#. Nezha ESP32 Motor library block
+msgid "read motor _ absolute angle (degrees)"
+msgstr "angle absolut (graus) del motor _"
+
+#. Nezha ESP32 Motor library block
+msgid "read motor _ relative angle (degrees)"
+msgstr "angle relatiu (graus) del motor _"
+
+#. Nezha ESP32 Motor library block
+msgid "read motor _ speed (degrees/sec)"
+msgstr "velocitat del motor _ (graus/seg)"
+
+#. Nezha ESP32 Motor library block
+msgid "turn motor _ speed _ % direction _ to absolute angle _"
+msgstr "gira el motor _ a velocitat _ % en direcció _ fins a l'angle absolut _"
+
+#. Nezha ESP32 Motor library block
+msgid "turn motor _ speed _ % direction _ for _ _"
+msgstr "gira el motor _ a velocitat _ % en direcció _ per a _ _"
+
+#. Nezha ESP32 Motor library block
+msgid "reset motor _ position"
+msgstr "restableix la posició del motor _"
+
+#. Nezha ESP32 Motor library block
+msgid "drive robot at _ % speed _ with _ acceleration for _ _"
+msgstr "condueix el robot a velocitat _ % amb acceleració _ per a _ _"
+
+#. Nezha ESP32 Motor library block
+msgid "run robot left wheel speed _ % right wheel speed _ %"
+msgstr "mou el robot velocitat roda esquerra _ % velocitat roda dreta _ %"
+
+#. Nezha ESP32 Motor library block
+msgid "set robot left wheel _ right wheel _"
+msgstr "roda esquerra del robot _ roda dreta _"
+
+#. Nezha ESP32 Motor library block
+msgid "set robot wheel diameter _ mm"
+msgstr "diàmetre de les rodes _ mm"
+
+#. Nezha ESP32 Motor library block
+msgid "stop robot"
+msgstr "atura el robot"
+
+#. Nezha ESP32 Motor library block
+msgid "turn robot at _ % speed with _ acceleration by _ degrees"
+msgstr "gira el robot a velocitat _ % amb acceleració _ _ graus"
+
+#. Nezha ESP32 Motor library block
+msgid "start motor _ speed _ % direction _"
+msgstr "inicia el motor _ velocitat _ % direcció _"
+
+#. Nezha ESP32 Motor library block
+msgid "stop motor _"
+msgstr "atura el motor _"
+
+#. Library name
+msgid "Nezha ESP32 Speech Recognition"
+msgstr "Nezha ESP32 Reconeixement de Veu"
+
+#. Nezha ESP32 Speech Recognition library choice
+msgid "CN"
+msgstr "CN"
+
+#. Nezha ESP32 Speech Recognition library choice
+msgid "EN"
+msgstr "EN"
+
+#. Nezha ESP32 Speech Recognition library block
+msgid "disable speech recognition"
+msgstr "desactiva el reconeixement de veu"
+
+#. Nezha ESP32 Speech Recognition library block
+msgid "enable speech recognition _"
+msgstr "activa el reconeixement de veu _"
+
+#. Nezha ESP32 Speech Recognition library block
+msgid "when _ recognized broadcast _"
+msgstr "quan reconeguis _ envia missatge _"
+
+#. Library name
+msgid "Planet X Color"
+msgstr "Planet X Color"
+
+#. Planet X Color library block
+msgid "color sensor detected _ ?"
+msgstr "sensor de color detecta _ ?"
+
+#. Planet X Color library block
+msgid "color sensor hue (0-360)"
+msgstr "sensor de color to (0-360)"
+
+#. Library name
+msgid "Planet X Gesture"
+msgstr "Planet X Gesture"
+
+#. Planet X Gesture library choice
+msgid "up"
+msgstr "amunt"
+
+#. Planet X Gesture library choice
+msgid "down"
+msgstr "avall"
+
+#. Planet X Gesture library choice
+msgid "wave"
+msgstr "ona"
+
+#. Planet X Gesture library block
+msgid "gesture sensor detected _ ?"
+msgstr "sensor de gests ha detectat _ ?"
+
+#. Library name
+msgid "Planet X Speech"
+msgstr "Planet X Veu"
+
+#. Planet X Speech library choice
+msgid "hello Xiaoen"
+msgstr "hello Xiaoen"
+
+#. Planet X Speech library choice
+msgid "turn headlights on"
+msgstr "turn headlights on"
+
+#. Planet X Speech library choice
+msgid "turn headlights off"
+msgstr "turn headlights off"
+
+#. Planet X Speech library choice
+msgid "move forward"
+msgstr "move forward"
+
+#. Planet X Speech library choice
+msgid "move backward"
+msgstr "move backward"
+
+#. Planet X Speech library choice
+msgid "line-tracking mode"
+msgstr "line-tracking mode"
+
+#. Planet X Speech library choice
+msgid "obstacle-avoidance mode"
+msgstr "obstacle-avoidance mode"
+
+#. Planet X Speech library choice
+msgid "park"
+msgstr "park"
+
+#. Planet X Speech library choice
+msgid "start device"
+msgstr "start device"
+
+#. Planet X Speech library choice
+msgid "stop device"
+msgstr "stop device"
+
+#. Planet X Speech library choice
+msgid "pause operation"
+msgstr "pause operation"
+
+#. Planet X Speech library choice
+msgid "resume operation"
+msgstr "resume operation"
+
+#. Planet X Speech library choice
+msgid "increase level"
+msgstr "increase level"
+
+#. Planet X Speech library choice
+msgid "decrease level"
+msgstr "decrease level"
+
+#. Planet X Speech library choice
+msgid "play music"
+msgstr "play music"
+
+#. Planet X Speech library choice
+msgid "stop music"
+msgstr "stop music"
+
+#. Planet X Speech library choice
+msgid "next track"
+msgstr "next track"
+
+#. Planet X Speech library choice
+msgid "run function one"
+msgstr "run function one"
+
+#. Planet X Speech library choice
+msgid "run function two"
+msgstr "run function two"
+
+#. Planet X Speech library choice
+msgid "learned phrase 1"
+msgstr "frase apresa 1"
+
+#. Planet X Speech library choice
+msgid "learned phrase 2"
+msgstr "frase apresa 2"
+
+#. Planet X Speech library choice
+msgid "learned phrase 3"
+msgstr "frase apresa 3"
+
+#. Planet X Speech library choice
+msgid "learned phrase 4"
+msgstr "frase apresa 4"
+
+#. Planet X Speech library choice
+msgid "learned phrase 5"
+msgstr "frase apresa 5"
+
+#. Planet X Speech library choice
+msgid "learned phrase 6"
+msgstr "frase apresa 6"
+
+#. Planet X Speech library choice
+msgid "learned phrase 7"
+msgstr "frase apresa 7"
+
+#. Planet X Speech library choice
+msgid "learned phrase 8"
+msgstr "frase apresa 8"
+
+#. Planet X Speech library choice
+msgid "learned phrase 9"
+msgstr "frase apresa 9"
+
+#. Planet X Speech library choice
+msgid "learned phrase 10"
+msgstr "frase apresa 10"
+
+#. Planet X Speech library block
+msgid "speech recognition sensor clear learned phrases"
+msgstr "sensor de reconeixement de veu esborra les frases apreses"
+
+#. Planet X Speech library block
+msgid "speech recognition sensor enter learning mode"
+msgstr "sensor de reconeixement de veu activa el mode d'aprenentatge"
+
+#. Planet X Speech library block
+msgid "speech recognition sensor heard _ ?"
+msgstr "sensor de reconeixement de veu ha sentit _?"
+
+#. Planet X Speech library block
+msgid "speech recognition sensor current code"
+msgstr "sensor de reconeixement de veu codi actual"
+
+#. Library name
+msgid "Planet X AI Lens"
+msgstr "Planet X AI Lens"
+
+#. Planet X AI Lens library choice
+msgid "x coordinate"
+msgstr "coordenada x"
+
+#. Planet X AI Lens library choice
+msgid "y coordinate"
+msgstr "coordenada y"
+
+#. Planet X AI Lens library choice
+msgid "size"
+msgstr "mida"
+
+#. Planet X AI Lens library choice
+msgid "confidence"
+msgstr "confiança"
+
+#. Planet X AI Lens library choice
+msgid "ball ID"
+msgstr "ID de la pilota"
+
+#. Planet X AI Lens library choice
+msgid "color ID"
+msgstr "ID del color"
+
+#. Planet X AI Lens library choice
+msgid "width"
+msgstr "amplada"
+
+#. Planet X AI Lens library choice
+msgid "height"
+msgstr "alçada"
+
+#. Planet X AI Lens library choice
+msgid "face ID"
+msgstr "ID de la cara"
+
+#. Planet X AI Lens library choice
+msgid "card recognition"
+msgstr "reconeixement de targetes"
+
+#. Planet X AI Lens library choice
+msgid "face recognition"
+msgstr "reconeixement de cares"
+
+#. Planet X AI Lens library choice
+msgid "ball recognition"
+msgstr "reconeixement de pilotes"
+
+#. Planet X AI Lens library choice
+msgid "line tracking"
+msgstr "seguiment de línia"
+
+#. Planet X AI Lens library choice
+msgid "color recognition"
+msgstr "reconeixement de color"
+
+#. Planet X AI Lens library choice
+msgid "feature learning"
+msgstr "aprenentatge de característiques"
+
+#. Planet X AI Lens library choice
+msgid "ID1"
+msgstr "ID1"
+
+#. Planet X AI Lens library choice
+msgid "ID2"
+msgstr "ID2"
+
+#. Planet X AI Lens library choice
+msgid "ID3"
+msgstr "ID3"
+
+#. Planet X AI Lens library choice
+msgid "ID4"
+msgstr "ID4"
+
+#. Planet X AI Lens library choice
+msgid "ID5"
+msgstr "ID5"
+
+#. Planet X AI Lens library choice
+msgid "offset angle"
+msgstr "desviació de l'angle"
+
+#. Planet X AI Lens library choice
+msgid "offset distance"
+msgstr "desviació en distància"
+
+#. Planet X AI Lens library choice
+msgid "line length"
+msgstr "longitud de la línia"
+
+#. Planet X AI Lens library choice
+msgid "mouse"
+msgstr "ratolí"
+
+#. Planet X AI Lens library choice
+msgid "micro:bit"
+msgstr "micro:bit"
+
+#. Planet X AI Lens library choice
+msgid "ruler"
+msgstr "regle"
+
+#. Planet X AI Lens library choice
+msgid "pear"
+msgstr "pera"
+
+#. Planet X AI Lens library choice
+msgid "boat"
+msgstr "vaixell"
+
+#. Planet X AI Lens library choice
+msgid "apple"
+msgstr "poma"
+
+#. Planet X AI Lens library choice
+msgid "car"
+msgstr "cotxe"
+
+#. Planet X AI Lens library choice
+msgid "pen"
+msgstr "bolígraf"
+
+#. Planet X AI Lens library choice
+msgid "airplane"
+msgstr "avió"
+
+#. Planet X AI Lens library choice
+msgid "clock"
+msgstr "rellotge"
+
+#. Planet X AI Lens library choice
+msgid "grapes"
+msgstr "raïm"
+
+#. Planet X AI Lens library choice
+msgid "cup"
+msgstr "tassa"
+
+#. Planet X AI Lens library choice
+msgid "turn around"
+msgstr "carrusel"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains _ ball?"
+msgstr "càmera IA la imatge conté una pilota _?"
+
+#. Planet X AI Lens library block
+msgid "AI camera ball _ value"
+msgstr "càmera IA valor _ de la pilota"
+
+#. Planet X AI Lens library block
+msgid "AI camera ball count"
+msgstr "càmera IA nombre de pilotes detectades"
+
+#. Planet X AI Lens library block
+msgid "AI camera capture image"
+msgstr "càmera IA captura una imatge"
+
+#. Planet X AI Lens library block
+msgid "AI camera any card _ value"
+msgstr "càmera IA _ de qualsevol targeta detectada"
+
+#. Planet X AI Lens library block
+msgid "AI camera card count"
+msgstr "càmera IA nombre de targetes detectades"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains a ball?"
+msgstr "càmera IA la imatge conté una pilota?"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains a face?"
+msgstr "càmera IA la imatge conté una cara?"
+
+#. Planet X AI Lens library block
+msgid "AI camera clear learned objects"
+msgstr "càmera IA esborra els objectes apresos"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains _ color card?"
+msgstr "càmera IA la imatge conté una targeta de color _ ?"
+
+#. Planet X AI Lens library block
+msgid "AI camera color-card _ value"
+msgstr "càmera IA _ de la targeta de color"
+
+#. Planet X AI Lens library block
+msgid "AI camera color-card count"
+msgstr "càmera IA nombre de targetes de color detectades"
+
+#. Planet X AI Lens library block
+msgid "AI camera face _ value"
+msgstr "càmera IA _ de la cara"
+
+#. Planet X AI Lens library block
+msgid "AI camera face count"
+msgstr "càmera IA nombre de cares detectades"
+
+#. Planet X AI Lens library block
+msgid "AI camera learn object in view as _"
+msgstr "càmera IA aprèn l'objecte que es veu com a _"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains letter card _ ?"
+msgstr "càmera IA la imatge conté la targeta amb la lletra _?"
+
+#. Planet X AI Lens library block
+msgid "AI camera black-line _ value"
+msgstr "càmera IA _ de la línia negra detectada"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains black line offset _ ?"
+msgstr "càmera IA la imatge conté una línia negra amb desviació _?"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains number card _ ?"
+msgstr "càmera IA la imatge conté la targeta amb el número _ ?"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains object _ ?"
+msgstr "càmera IA la imatge conté l'objecte _ ?"
+
+#. Planet X AI Lens library block
+msgid "AI camera object _ confidence"
+msgstr "càmera IA grau de confiança en la detecció de l'objecte _"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains _ card?"
+msgstr "càmera IA la imatge conté la targeta _ ?"
+
+#. Planet X AI Lens library block
+msgid "AI camera switch function to _"
+msgstr "càmera IA canvia a la funció a _"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains traffic sign card _ ?"
+msgstr "càmera IA la imatge conté la targeta amb el senyal de trànsit _ ?"
+
+#. Library name
+msgid "Planet X AI Lens Pro"
+msgstr "Planet X AI Lens Pro"
+
+#. Library name
+msgid "Planet X Display"
+msgstr "Planet X Pantalla"
+
+#. Library name
+msgid "Planet X Execute"
+msgstr "Planet X Execute"
+
+#. Library name
+msgid "Planet X Input"
+msgstr "Planet X Entrada"
+
+#. Library name
+msgid "Planet X Wireless"
+msgstr "Planet X Sense Fils"
+
+#. Library name
+msgid "Planet X Support"
+msgstr "Planet X Suport"

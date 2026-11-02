@@ -20,7 +20,7 @@ class MB_Editor {
 		this.lastProjectFolder = 'Examples'; // where the file picker opens
 		this.lastLibraryFolder = 'Libraries'; // and where it opens for a library
 		this.runningChunks = new Map(); // used for block highlighting
-		this.stoppingHighlights = new Map(); // block -> timer that unhighlights it
+		this.stoppingHighlights = new Map(); // block -> steps until its highlight goes
 		this.resultBubbles = new Map(); // block -> the bubble showing its value
 		this.blockForResultImage = null; // the script to save a picture of when its result arrives
 		this.chunkErrorListeners = []; // called with each decoded board error
@@ -166,10 +166,14 @@ class MB_Editor {
 		// A block released on the world rather than on a pane, as under the tip bar, slides back
 		// to where it was picked up. A duplicate with nowhere to return to is discarded, and one
 		// grabbed again mid-slide comes back here with no hand, so it is kept in view.
+		// A definition released on a library's entry, or on My Blocks, then moves there.
 		world.reactToDropOf = (morph, hand) => {
 			if (!((morph instanceof BlockMorph) || (morph instanceof SelectedScriptsMorph))) return;
-			if (hand && hand.grabOrigin) morph.slideBackTo(hand.grabOrigin);
-			else if (hand) morph.destroy();
+			if (hand && hand.grabOrigin) {
+				const lib = (morph instanceof BlockMorph) && morph.isFunctionDefinition() && this.moduleEntryAt(hand.position());
+				const moveIt = lib ? () => this.addToLibrary(morph.definedFunctionName(), lib) : null;
+				morph.slideBackTo(hand.grabOrigin, null, null, moveIt);
+			} else if (hand) morph.destroy();
 			else {
 				this.scripts.add(morph);
 				morph.keepWithin(this.scriptsFrame);
@@ -1266,19 +1270,28 @@ class MB_Editor {
 			return; // unknown chunk
 		}
 
-		// A script that stops keeps its highlight for half a second, so one that
+		// A script that stops keeps its highlight for two steps, so one that
 		// runs again at once does not flicker.
-		clearTimeout(this.stoppingHighlights.get(runningBlock));
 		this.stoppingHighlights.delete(runningBlock);
 		if (isRunning) {
 			if (!runningBlock.getHighlight()) runningBlock.addHighlight();
 			this.runningChunks.set(runningBlock, chunkID);
 		} else {
 			this.runningChunks.delete(runningBlock);
-			this.stoppingHighlights.set(runningBlock, setTimeout(() => {
-				this.stoppingHighlights.delete(runningBlock);
-				runningBlock.removeHighlight();
-			}, 500));
+			this.stoppingHighlights.set(runningBlock, 2);
+		}
+	}
+
+	updateStopping() {
+		// Called four times a second, with step. A stopped script's highlight goes
+		// when its count of steps runs out.
+		for (const [block, count] of this.stoppingHighlights) {
+			if (count > 1) {
+				this.stoppingHighlights.set(block, count - 1);
+			} else {
+				this.stoppingHighlights.delete(block);
+				block.removeHighlight();
+			}
 		}
 	}
 
@@ -1320,6 +1333,16 @@ class MB_Editor {
 		} catch (e) {
 			this.reportError(e);
 		}
+	}
+
+	logUsage() {
+		// Ask microblocks.fun for the latest version number, once, so it can count this start.
+		// The answer is not read and a failure is not reported.
+		// The random number only keeps a cache from answering.
+		const letter = /CrOS/.test(navigator.userAgent) ? 'C' : 'B';
+		const stamp = 100000 + Math.floor(Math.random() * 900000);
+		fetch('https://microblocks.fun/downloads/latest/VERSION.txt?' + letter + '=' + stamp,
+			{ mode: 'no-cors', cache: 'no-store' }).catch(() => {});
 	}
 
 	sendTransferPercent() {
@@ -1855,6 +1878,17 @@ class MB_Editor {
 		this.updateProjectProperties();
 	}
 
+	moduleEntryAt(worldPoint) {
+		// The library whose entry in the left bar is at worldPoint, main for My Blocks, else null.
+		const r = world.worldCanvas.getBoundingClientRect();
+		const el = document.elementFromPoint(r.left + worldPoint.x * ZOOM, r.top + worldPoint.y * ZOOM);
+		const label = el && el.closest('.category-button')?.querySelector('l-')?.key;
+		if (!label) return null;
+		if (el.closest('[data-ide="libraries-list"]')) return this.project.libraryNamed(label) || null;
+		if (el.closest('[data-ide="categories-list"]') && (label === 'cat;My Blocks')) return this.project.main;
+		return null;
+	}
+
 	recolourCallsOf(op) {
 		// Give every call to op in the pane the colour of the category op is in now.
 		const category = MB_Specs.categoryForSelector(op);
@@ -2200,9 +2234,11 @@ class MB_Editor {
 				type = type.split('.')[0];
 				if (('color' === type) && (value == null)) {
 					// Marked as filled in here, so a later type change replaces it;
-					// a swatch the user wrote stays.
-					value = { selector: 'colorSwatch', args: [35, 190, 30, 255], isReporter: true, next: null,
-						isDefaultColour: true };
+					// a colour the user picked or wrote stays.
+					value = { isColor: true, r: 35, g: 190, b: 30, alpha: 255, isDefaultColour: true };
+				} else if (value instanceof Color) {
+					// A colour default picked in the definition, as a colour node.
+					value = { isColor: true, r: value.r, g: value.g, b: value.b, alpha: Math.round(value.a * 255) };
 				}
 				if (('auto' === type) && (typeof value === 'string') && /^-?\d+$/.test(value)) {
 					value = Number(value);
@@ -2327,12 +2363,15 @@ class MB_Editor {
 		fireIDEEvent('scripts.redoAvailable', this.redoAvailable());
 	}
 
-	async restoreUndoState(source) {
-		// Undo and redo share this path. Each hands over the code string it wants
-		// shown and the project is rebuilt from it, rather than mutated in place.
+	async restoreUndoState(source, implementationLibs = []) {
+		// Undo, redo and a language change share this path. Each hands over the code
+		// string it wants shown and the project is rebuilt from it, not mutated in place.
+		// The text does not record which libraries are implementations, so a
+		// caller that knows passes their names.
 		this.saveNeeded = false;
 		this.project = new MB_Project();
 		if (source != null) this.project.loadFromString(source);
+		for (const libName of implementationLibs) this.project.libraryNamed(libName).beImplementation();
 		this.watchProjectVariables();
 		this.removeAllScripts();
 		for (const [x, y, script] of this.project.main.scripts) {
@@ -2379,7 +2418,9 @@ class MB_Editor {
 		}
 		this.endOpenEdit();
 		MB_BlockSearchBox.close(); // its index holds the old language's words
-		await this.restoreUndoState(this.project.codeString());
+		const implementationLibs = Array.from(this.project.libraries.values())
+			.filter((lib) => lib.isImplementationLib()).map((lib) => lib.moduleName);
+		await this.restoreUndoState(this.project.codeString(), implementationLibs);
 	}
 
 	readCustomTranslationFile() {
@@ -3512,10 +3553,7 @@ class MB_Editor {
 		// Called on disconnect. Everything the board put on the screen goes with
 		// it, bubbles included -- GP clears them together too (:2717).
 		this.removeResultBubbles();
-		for (const [block, timer] of this.stoppingHighlights) {
-			clearTimeout(timer);
-			block.removeHighlight();
-		}
+		for (const block of this.stoppingHighlights.keys()) block.removeHighlight();
 		this.stoppingHighlights = new Map();
 		for (const block of this.runningChunks.keys()) block.removeHighlight();
 		this.runningChunks = new Map();
