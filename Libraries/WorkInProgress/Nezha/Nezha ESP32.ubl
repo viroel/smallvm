@@ -21,7 +21,12 @@ Sound control
 
 Gyroscope
 
-Port IO pin lookup'
+Port IO pin lookup
+
+Full firmware upgrade (Nezha ESP32-S3)
+
+In the MicroBlocks settings menu, select "Install ESP firmware from URL", paste the following full firmware URL into the dialog, and follow the prompts to complete the installation:
+https://www.smartiot.space/static_resource/NEZHA-ESP32-S3_all.bin'
 variables _nezha32_buttonEdges _nezha32_buttonLoopStarted _nezha32_buttonLoopHeartbeat _nezha32_buttonRawMask _nezha32_buttonRawSince _nezha32_buttonStableMask _nezha32_buttonPhase _nezha32_buttonCandidateMask _nezha32_buttonCandidateSince _nezha32_buttonActiveMask _efsound_tempo _efsound_play_id _efsound_bg_melody _efsound_bg_bpm 
 
   spec 'r' 'nezha32_buttonEvent' 'button _ _ ?' 'menu.nezha32_buttonMenu menu.nezha32_pressReleaseMenu' 'A' 'pressed'
