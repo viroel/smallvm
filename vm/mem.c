@@ -516,19 +516,11 @@ void gc() {
 	captureIncomingBytes();
 	updateMicrobitDisplay();
 
-	uint32 usecs = microsecs();
-
 	// assume: forwarding pointers cleared at end of compaction so no need to clear them here
 	markRoots();
 	sweep();
 	applyForwarding();
 	compact();
-
-	usecs = microsecs() - usecs;
-
-	char s[100];
-	sprintf(s, "GC took %d usecs; free %d words", usecs, WORDS(freeChunk) - 2);
-	outputString(s);
 
 	captureIncomingBytes();
 	updateMicrobitDisplay();
