@@ -8056,8 +8056,8 @@ msgid "New Library"
 msgstr "New Library"
 
 #. MicroBlocks IDE. Script right-click context menu
-msgid "Show call tree"
-msgstr "Show call tree"
+msgid "show call tree"
+msgstr "show call tree"
 
 #. Examples folder
 msgid "folder;Examples"

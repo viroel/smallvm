@@ -7679,8 +7679,8 @@ msgid "New Library"
 msgstr "Nová knihovna"
 
 #. MicroBlocks IDE. Script right-click context menu
-msgid "Show call tree"
-msgstr "Ukázat strom volání"
+msgid "show call tree"
+msgstr "ukázat strom volání"
 
 #. Nezha ESP32 Motor library choice
 msgid "low"

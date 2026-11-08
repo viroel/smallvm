@@ -10204,5 +10204,5 @@ msgid "New Library"
 msgstr "Neue Bibliothek"
 
 #. MicroBlocks IDE. Script right-click context menu
-msgid "Show call tree"
-msgstr "Zeige Aufrufbaum"
+msgid "show call tree"
+msgstr "zeige Aufrufbaum"
