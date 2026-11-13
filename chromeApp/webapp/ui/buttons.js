@@ -111,9 +111,7 @@ const Buttons = {
 		action: () => {
 			GP.apiCall('scripts.zoomIn', [], () => { IDE.recreateScriptControls(); });
 		},
-		disabled: () => {
-			return Graph.step >= Graph.stepRange[Graph.stepRange.length];
-		}
+		disabled: () => { return IDE.blockSizePercent() >= 250; }
 	},
 
 	// Graph buttons
@@ -215,17 +213,6 @@ Buttons.connectWidget = function () {
 
 	// Clicking anywhere in the widget triggers the menu
 	container.onclick = () => { Menus.popUp('connection', container); };
-
-	document.addEventListener(
-		'board.connected',
-		(e) => {
-			if (e.detail.value) {
-				container.classList.add('--is-connected');
-			} else {
-				container.classList.remove('--is-connected');
-			}
-		}
-	);
 
 	return container;
 };

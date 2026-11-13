@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: interest@microblocks.fun\n"
 "POT-Creation-Date: 2025-02-03 16:24+0200\n"
-"PO-Revision-Date: 2026-10-29 18:54+0000\n"
+"PO-Revision-Date: 2026-11-10 11:03+0000\n"
 "Last-Translator: Andriy Utkin <andriy@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/microblocks/"
 "ide/uk/>\n"
@@ -13,7 +13,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && "
 "n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.11.dev0\n"
+"X-Generator: Weblate 2026.11.2.dev0\n"
 
 #. "Output" blocks category label
 msgid "cat;Output"
@@ -934,23 +934,23 @@ msgstr "зупинити кророві мотори"
 
 #. Citilab ED1 Stepper Motor library block
 msgid "clockwise"
-msgstr ""
+msgstr "за годинниковою стрілкою"
 
 #. Citilab ED1 Stepper Motor library block
 msgid "counter-clockwise"
-msgstr ""
+msgstr "проти годинникової стрілки"
 
 #. Citilab ED1 Buttons library label
 msgid "ED1 Buttons"
-msgstr ""
+msgstr "Кнопки ED1"
 
 #. Citilab ED1 Buttons library block
 msgid "capacitive sensor _"
-msgstr ""
+msgstr "ємнісний датчик _"
 
 #. Citilab ED1 Buttons library block
 msgid "set capacitive threshold to _"
-msgstr ""
+msgstr "встановити ємнісний порог у _"
 
 #. BirdBrain Technologies Hummingbird kit library label
 msgid "Hummingbird LED _ _ %"
@@ -5504,23 +5504,23 @@ msgstr ""
 
 #. Examples folder
 msgid "folder;Examples"
-msgstr ""
+msgstr "Приклади"
 
 #. Examples folder
 msgid "folder; by board"
-msgstr ""
+msgstr " за платою"
 
 #. Examples folder
 msgid "folder;Art"
-msgstr ""
+msgstr "Мистецтво"
 
 #. Examples folder
 msgid "folder;Games"
-msgstr ""
+msgstr "Ігри"
 
 #. Examples folder
 msgid "folder;Music"
-msgstr ""
+msgstr "Музика"
 
 #. Examples folder
 msgid "folder;Web of Things"
@@ -5532,71 +5532,71 @@ msgstr ""
 
 #. Examples folder
 msgid "folder;microbit and Calliope"
-msgstr ""
+msgstr "microbit та Calliope"
 
 #. Examples folder
 msgid "folder;Citilab ED1 and M5Stack"
-msgstr ""
+msgstr "Citilab ED1 та M5Stack"
 
 #. Library folder
 msgid "LIBRARIES"
-msgstr ""
+msgstr "БІБЛІОТЕКИ"
 
 #. Library folder
 msgid "folder;Libraries"
-msgstr ""
+msgstr "Бібліотеки"
 
 #. Library folder
 msgid "folder;AI"
-msgstr ""
+msgstr "ШІ"
 
 #. Library folder
 msgid "folder;Graphics and Displays"
-msgstr ""
+msgstr "Графіка та дисплеї"
 
 #. Library folder
 msgid "folder;Kits and Boards"
-msgstr ""
+msgstr "Набори і плати"
 
 #. Library folder
 msgid "folder;Network"
-msgstr ""
+msgstr "Мережа"
 
 #. Library folder
 msgid "folder;Motors"
-msgstr ""
+msgstr "Мотори"
 
 #. Library folder
 msgid "folder;Other"
-msgstr ""
+msgstr "Інше"
 
 #. Library folder
 msgid "folder;Robots"
-msgstr ""
+msgstr "Роботи"
 
 #. Library folder
 msgid "folder;Sensing"
-msgstr ""
+msgstr "Сприйняття"
 
 #. Library folder
 msgid "folder;Sound"
-msgstr ""
+msgstr "Звук"
 
 #. Library folder
 msgid "folder;System"
-msgstr ""
+msgstr "Система"
 
 #. Library folder
 msgid "folder;WorkInProgress"
-msgstr ""
+msgstr "Робота, що триває"
 
 #. String in file picker and library dialogs
 msgid "New library name?"
-msgstr ""
+msgstr "Назва нової бібліотеки?"
 
 #. Scripting area right-click context menu
 msgid "show all block definitions"
-msgstr ""
+msgstr "показати визначення всіх блоків"
 
 #. Scripting area right-click context menu
 msgid "hide all block definitions"
@@ -6557,3 +6557,68 @@ msgstr "пошук блоків та змінних..."
 #. Shown in the block search box when no block matches the search
 msgid "no matches"
 msgstr "збігів немає"
+
+#. PU Controller library default value (puControllerSendValue)
+msgid "name"
+msgstr "ім'я"
+
+#. Block in Comm category
+msgid "rx pin _ tx pin _"
+msgstr "пін прийому _ пін передачі _"
+
+#. Block in Comm category
+msgid "stop _"
+msgstr "зупинити _"
+
+#. Block in Comm category
+#, fuzzy
+msgid "bit order _"
+msgstr "бітовий порядок _"
+
+#. MicroBlocks IDE. Script right-click context menu
+msgid "show call tree"
+msgstr "показати дерево викликів"
+
+#. Examples folder
+msgid "folder;CoCube"
+msgstr "CoCube"
+
+#. Examples folder
+msgid "folder;Widgets"
+msgstr "Віджети"
+
+#. Library button, abbreviated
+msgid "LIBS"
+msgstr "ЛІБИ"
+
+#. Library name
+msgid "8 Bit Graphics"
+msgstr "8-бітна графіка"
+
+#. Library name
+msgid "Color"
+msgstr "Колір"
+
+#. Library name
+msgid "External Displays"
+msgstr "Зовнішні дисплеї"
+
+#. Library name
+msgid "Four Digit Display (TM1637)"
+msgstr "Чотирицифрові дисплеї (TM1637)"
+
+#. Library name
+msgid "Four Digit Display (TM1650)"
+msgstr "Чотирицифрові дисплеї (TM1650)"
+
+#. Library name
+msgid "CoCube Module"
+msgstr "Модуль для CoCube"
+
+#. Library name
+msgid "MIDI Player"
+msgstr "MIDI програвач"
+
+#. Library name
+msgid "Function Calls"
+msgstr "Виклики функцій"

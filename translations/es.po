@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: interest@microblocks.fun\n"
 "POT-Creation-Date: 2024-10-28 16:23+0200\n"
-"PO-Revision-Date: 2026-11-01 21:39+0000\n"
+"PO-Revision-Date: 2026-11-10 11:03+0000\n"
 "Last-Translator: Josep Ferràndiz <josep.ferrandiz@gmail.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/microblocks/ide/"
 "es/>\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.11.dev0\n"
+"X-Generator: Weblate 2026.11.2.dev0\n"
 
 #. Block part type, while making a new block
 msgid "input"
@@ -505,7 +505,7 @@ msgstr "duración _ ms"
 
 #. Block selection right-click context menu
 msgid "delete selection"
-msgstr "elimina selección"
+msgstr "elimina la selección"
 
 #. Scripting area right-click context menu
 msgid "paste script"
@@ -2285,7 +2285,7 @@ msgstr "La placa no responde."
 
 #. Block selection right-click context menu
 msgid "duplicate selection"
-msgstr "duplica selección"
+msgstr "duplica la selección"
 
 #. Settings menu option
 msgid "firmware version"
@@ -2364,7 +2364,7 @@ msgstr "organiza programas"
 
 #. Settings menu option
 msgid "about..."
-msgstr "sobre..."
+msgstr "acerca de..."
 
 #. Library folder
 msgid "folder;System"
@@ -5099,7 +5099,7 @@ msgstr "para impresión (200%)"
 
 #. Block selection right-click context menu
 msgid "drag selection"
-msgstr "arrastra selección"
+msgstr "arrastra la selección"
 
 #. Window title
 msgid "About MicroBlocks"
@@ -9120,3 +9120,1010 @@ msgstr "Nezha"
 #. Library folder
 msgid "folder;Planet X"
 msgstr "Planet X"
+
+#. In MicroBlocks IDE project save
+msgid "Untitled"
+msgstr "Sin título"
+
+#. In MicroBlocks IDE project open
+msgid "Open from URL"
+msgstr "Abre desde una URL"
+
+#. In MicroBlocks IDE project open
+msgid "URL?"
+msgstr "URL?"
+
+#. MicroBlocks IDE error message.
+msgid "Installing firmware on this board needs WebUSB, which only Chrome and Edge support. You can still program the board from this browser once it has MicroBlocks firmware."
+msgstr ""
+"Para instalar el firmware en esta placa es necesario utilizar WebUSB, que "
+"sólo es compatible con Chrome i Edge. Una vez instalado el firmware de "
+"MicroBlocks, podrás programar la placa desde este navegador."
+
+#. MicroBlocks IDE error message.
+msgid "Could not open serial port"
+msgstr "No se ha podido abrir el puerto serie"
+
+#. MicroBlocks IDE error message.
+msgid "Close any other program or browser tab using the board, then try again."
+msgstr ""
+"Cierra cualquier otro programa o pestaña del navegador que esté usando la "
+"placa y prueba de nuevo."
+
+#. Confirmation window
+msgid "Restore unsaved work?"
+msgstr "¿Quieres recuperar los cambios no guardados?"
+
+#. Scripting area right-click context menu
+msgid "paste all scripts from clipboard"
+msgstr "pega todos los programas del portapapeles"
+
+#. Block selection right-click context menu
+msgid "copy selection"
+msgstr "copia la selección"
+
+#. Block selection right-click context menu
+msgid "run selected"
+msgstr "ejecuta la selección"
+
+#. Block selection right-click context menu
+msgid "stop selected"
+msgstr "detén la selección"
+
+#. Block selection right-click context menu
+msgid "toggle selected"
+msgstr "conmuta la selección"
+
+#. MicroBlocks IDE information
+msgid "Installing firmware on this board is not supported yet in this version of MicroBlocks"
+msgstr ""
+"Esta versión de MicroBlocks todavía no permite instalar el firmware en esta "
+"placa."
+
+#. MicroBlocks IDE information. Firmware install
+msgid "When the NeoPixels turn off"
+msgstr "Cuando se apague los NeoPíxels"
+
+#. MicroBlocks IDE information
+msgid "reconnect to the board by clicking the \"Connect\" button."
+msgstr "reconecta la placa haciendo clic en el botón \"Conecta\"."
+
+#. IDE confirmation message; opening serial port for firmware update
+msgid "Open port?"
+msgstr "¿Quieres abrir el puerto serie?"
+
+#. Load Library window shortcut option
+msgid "Libraries"
+msgstr "Bibliotecas"
+
+#. Load project window title
+msgid "Load Project"
+msgstr "Carga el Proyecto"
+
+#. MicroBlocks IDE information
+msgid "MicroBlocks hit an error, so the last thing it was doing may not have finished. Your project is still open: check that it looks right before you save it."
+msgstr ""
+"MicroBlocks ha detectado un error y es posible que la última operación no se "
+"haya completado. Tu proyecto sigue abierto: comprueba que todo esté correcto "
+"antes de guardarlo."
+
+#. MicroBlocks IDE error message.
+msgid "Program is too large to store on board."
+msgstr "El programa es demasiado grande para guardarlo en la placa."
+
+#. MicroBlocks IDE error message.
+msgid "This browser does not support WebBluetooth."
+msgstr "Este navegador no es compatible con WebBluetooth."
+
+#. MicroBlocks IDE information
+msgid "Blocks and functions of %1 that this library does not define:"
+msgstr "Bloques y funciones de %1 que esta biblioteca no define:"
+
+#. MicroBlocks IDE information
+msgid "Blocks and functions of %1 that differ in this library:"
+msgstr "Bloques y funciones de %1 que son diferentes en esta biblioteca:"
+
+#. MicroBlocks IDE error message.
+msgid "Could not read: "
+msgstr "No se ha podido leer: "
+
+#. MicroBlocks IDE error message.
+msgid "No library found in: "
+msgstr "No se ha encontrado ninguna biblioteca en: "
+
+#. MicroBlocks IDE information. Firmware install
+msgid "Press the reset button on the board twice before proceeding."
+msgstr "Pulsa dos veces el botón de reinicio de la placa antes de continuar."
+
+#. MicroBlocks IDE information. Firmware install
+msgid "Press the reset button on the board twice before proceeding. The NeoPixels should turn green."
+msgstr ""
+"Pulsa dos veces el botón de reinicio de la placa antes de continuar. Los "
+"NeoPíxels deberían iluminarse en verde"
+
+#. MicroBlocks IDE error message.. Firmware install
+msgid "Could not find the firmware file %1."
+msgstr "No se ha podido encontrar el archivo de firmware %1."
+
+#. MicroBlocks IDE error message.. Firmware install
+msgid "Could not find firmware files at"
+msgstr "No se han encontrado archivos de firmware en"
+
+#. MicroBlocks IDE information. Firmware install
+msgid "The firmware file will be saved to your downloads folder."
+msgstr "El archivo de firmware se guardará en la carpeta de descargas."
+
+#. MicroBlocks IDE information. End erasing flash
+msgid "Done"
+msgstr "Hecho"
+
+#. MicroBlocks IDE information. Module update
+msgid "%1 replaces %2"
+msgstr "%1 substituye %2"
+
+#. Library name
+msgid "Distance (HC-SR04)"
+msgstr "Distancia (HC-SR04)"
+
+#. Library name
+msgid "Sound Primitives"
+msgstr "Primitivas de Sonido"
+
+#. New library window title
+msgid "Library name?"
+msgstr "¿Nombre de la biblioteca?"
+
+#. Load library from URL window title
+msgid "Library URL?"
+msgstr "¿URL de la biblioteca?"
+
+#. Block variable rename window title
+msgid "Variable Name?"
+msgstr "¿Nombre de la variable?"
+
+#. MicroBlocks IDE message
+msgid "Erasing Flash..."
+msgstr "Borrando la memoria Flash..."
+
+msgid "Input name"
+msgstr "Nombre de la entrada"
+
+#. MicroBlocks IDE information message
+msgid "Error"
+msgstr "Error"
+
+#. Defined in filebrowser.js as a label. Appears in Load Project and Load Library windows
+msgid "Shortcuts"
+msgstr "Atajos"
+
+#. Defined in libraryinfo.js as a label
+msgid "None"
+msgstr "Ninguno"
+
+#. Button in Load Library window
+msgid "New Library"
+msgstr "Nueva Biblioteca"
+
+#. MicroBlocks IDE. Script right-click context menu
+msgid "show call tree"
+msgstr "muestra el arbol de llamadas"
+
+#. Library name
+msgid "Nezha ESP32 Motor"
+msgstr "Nezha ESP32 Motor"
+
+#. Nezha ESP32 Motor library choice
+msgid "low"
+msgstr "bajo"
+
+#. Nezha ESP32 Motor library choice
+msgid "medium"
+msgstr "medio"
+
+#. Nezha ESP32 Motor library choice
+msgid "high"
+msgstr "alto"
+
+#. Nezha ESP32 Motor library choice
+msgid "mm"
+msgstr "mm"
+
+#. Nezha ESP32 Motor library choice
+msgid "counterclockwise"
+msgstr "sentido antihorario"
+
+#. Nezha ESP32 Motor library choice
+msgid "shortest path"
+msgstr "por el camino más corto"
+
+#. Nezha ESP32 Motor library choice
+msgid "no wait"
+msgstr "sin espera"
+
+#. Nezha ESP32 Motor library choice
+msgid "wait until done"
+msgstr "espera hasta que acabe"
+
+#. Nezha ESP32 Motor library block
+msgid "read motor _ absolute angle (degrees)"
+msgstr "ángulo absoluto (grados) del motor _"
+
+#. Nezha ESP32 Motor library block
+msgid "read motor _ relative angle (degrees)"
+msgstr "ángulo relativo (grados) del motor _"
+
+#. Nezha ESP32 Motor library block
+msgid "read motor _ speed (degrees/sec)"
+msgstr "velocidad del motor (grados/seg)"
+
+#. Nezha ESP32 Motor library block
+msgid "turn motor _ speed _ % direction _ to absolute angle _"
+msgstr ""
+"gira el motor _ a velocidad _ % en dirección _ hasta el ángulo absoluto _"
+
+#. Nezha ESP32 Motor library block
+msgid "turn motor _ speed _ % direction _ for _ _"
+msgstr "gira el motor _ a velocidad _ % en dirección _ para _ _"
+
+#. Nezha ESP32 Motor library block
+msgid "reset motor _ position"
+msgstr "restablece la posición del motor _"
+
+#. Nezha ESP32 Motor library block
+msgid "drive robot at _ % speed _ with _ acceleration for _ _"
+msgstr "conduce el robot a velocidad _ % con aceleración _ para _ _"
+
+#. Nezha ESP32 Motor library block
+msgid "run robot left wheel speed _ % right wheel speed _ %"
+msgstr ""
+"mueve el robot velocidad rueda izquierda _ % velocidad rueda derecha _ %"
+
+#. Nezha ESP32 Motor library block
+msgid "set robot left wheel _ right wheel _"
+msgstr "rueda izquierda del robot _ rueda derecha _"
+
+#. Nezha ESP32 Motor library block
+msgid "set robot wheel diameter _ mm"
+msgstr "diámetro de las ruedas _ mm"
+
+#. Nezha ESP32 Motor library block
+msgid "stop robot"
+msgstr "detén el robot"
+
+#. Nezha ESP32 Motor library block
+msgid "turn robot at _ % speed with _ acceleration by _ degrees"
+msgstr "gira el robot a velocidad _ % con aceleración _ _ grados"
+
+#. Nezha ESP32 Motor library block
+msgid "start motor _ speed _ % direction _"
+msgstr "inicia el motor _ velocidad _ % dirección _"
+
+#. Nezha ESP32 Motor library block
+msgid "stop motor _"
+msgstr "detén el motor _"
+
+#. Library name
+msgid "Nezha ESP32 Speech Recognition"
+msgstr "Nezha ESP32 Reconocimineto de Voz"
+
+#. Nezha ESP32 Speech Recognition library choice
+msgid "CN"
+msgstr "CN"
+
+#. Nezha ESP32 Speech Recognition library choice
+msgid "EN"
+msgstr "EN"
+
+#. Nezha ESP32 Speech Recognition library block
+msgid "disable speech recognition"
+msgstr "desactiva el reconocimiento de voz"
+
+#. Nezha ESP32 Speech Recognition library block
+msgid "enable speech recognition _"
+msgstr "activa el reconocimiento de voz"
+
+#. Nezha ESP32 Speech Recognition library block
+msgid "when _ recognized broadcast _"
+msgstr "cuando reconozcas _ envía mensaje _"
+
+#. Library name
+msgid "Planet X Color"
+msgstr "Planet X Color"
+
+#. Planet X Color library block
+msgid "color sensor detected _ ?"
+msgstr "sensor de color detecta _ ?"
+
+#. Planet X Color library block
+msgid "color sensor hue (0-360)"
+msgstr "sensor de color tono (0-360)"
+
+#. Library name
+msgid "Planet X Gesture"
+msgstr "Planet X Gestos"
+
+#. Planet X Gesture library choice
+msgid "up"
+msgstr "arriba"
+
+#. Planet X Gesture library choice
+msgid "down"
+msgstr "abajo"
+
+#. Planet X Gesture library choice
+msgid "wave"
+msgstr "onda"
+
+#. Planet X Gesture library block
+msgid "gesture sensor detected _ ?"
+msgstr "sensor de gestos ha detectado _ ?"
+
+#. Library name
+msgid "Planet X Speech"
+msgstr "Planet X Voz"
+
+#. Planet X Speech library choice
+msgid "hello Xiaoen"
+msgstr "hello Xiaoen"
+
+#. Planet X Speech library choice
+msgid "turn headlights on"
+msgstr "turn headlights on"
+
+#. Planet X Speech library choice
+msgid "turn headlights off"
+msgstr "turn headlights off"
+
+#. Planet X Speech library choice
+msgid "move forward"
+msgstr "move forward"
+
+#. Planet X Speech library choice
+msgid "move backward"
+msgstr "move backward"
+
+#. Planet X Speech library choice
+msgid "line-tracking mode"
+msgstr "line-tracking mode"
+
+#. Planet X Speech library choice
+msgid "obstacle-avoidance mode"
+msgstr "obstacle-avoidance mode"
+
+#. Planet X Speech library choice
+msgid "park"
+msgstr "park"
+
+#. Planet X Speech library choice
+msgid "start device"
+msgstr "start device"
+
+#. Planet X Speech library choice
+msgid "stop device"
+msgstr "stop device"
+
+#. Planet X Speech library choice
+msgid "pause operation"
+msgstr "pause operation"
+
+#. Planet X Speech library choice
+msgid "resume operation"
+msgstr "resume operation"
+
+#. Planet X Speech library choice
+msgid "increase level"
+msgstr "increase level"
+
+#. Planet X Speech library choice
+msgid "decrease level"
+msgstr "decrease level"
+
+#. Planet X Speech library choice
+msgid "play music"
+msgstr "play music"
+
+#. Planet X Speech library choice
+msgid "stop music"
+msgstr "stop music"
+
+#. Planet X Speech library choice
+msgid "next track"
+msgstr "next track"
+
+#. Planet X Speech library choice
+msgid "run function one"
+msgstr "run function one"
+
+#. Planet X Speech library choice
+msgid "run function two"
+msgstr "run function two"
+
+#. Planet X Speech library choice
+msgid "learned phrase 1"
+msgstr "learned phrase 1"
+
+#. Planet X Speech library choice
+msgid "learned phrase 2"
+msgstr "learned phrase 2"
+
+#. Planet X Speech library choice
+msgid "learned phrase 3"
+msgstr "learned phrase 3"
+
+#. Planet X Speech library choice
+msgid "learned phrase 4"
+msgstr "learned phrase 4"
+
+#. Planet X Speech library choice
+msgid "learned phrase 5"
+msgstr "learned phrase 5"
+
+#. Planet X Speech library choice
+msgid "learned phrase 6"
+msgstr "learned phrase 6"
+
+#. Planet X Speech library choice
+msgid "learned phrase 7"
+msgstr "learned phrase 7"
+
+#. Planet X Speech library choice
+msgid "learned phrase 8"
+msgstr "learned phrase 8"
+
+#. Planet X Speech library choice
+msgid "learned phrase 9"
+msgstr "learned phrase 9"
+
+#. Planet X Speech library choice
+msgid "learned phrase 10"
+msgstr "learned phrase 10"
+
+#. Planet X Speech library block
+msgid "speech recognition sensor clear learned phrases"
+msgstr "sensor de reconocimiento de voz elimina las frases aprendidas"
+
+#. Planet X Speech library block
+msgid "speech recognition sensor enter learning mode"
+msgstr "sensor de reconocimiento de voz activa el modo aprendizaje"
+
+#. Planet X Speech library block
+msgid "speech recognition sensor heard _ ?"
+msgstr "sensor de reconocimiento de voz ha oído _ ?"
+
+#. Planet X Speech library block
+msgid "speech recognition sensor current code"
+msgstr "sensor de reconocimiento de voz código actual"
+
+#. Library name
+msgid "Planet X AI Lens"
+msgstr "Planet X cámara IA"
+
+#. Planet X AI Lens library choice
+msgid "x coordinate"
+msgstr "coordenada x"
+
+#. Planet X AI Lens library choice
+msgid "y coordinate"
+msgstr "coordenada y"
+
+#. Planet X AI Lens library choice
+msgid "size"
+msgstr "tamaño"
+
+#. Planet X AI Lens library choice
+msgid "confidence"
+msgstr "confianza"
+
+#. Planet X AI Lens library choice
+msgid "ball ID"
+msgstr "ID de la pelota"
+
+#. Planet X AI Lens library choice
+msgid "color ID"
+msgstr "ID del color"
+
+#. Planet X AI Lens library choice
+msgid "width"
+msgstr "ancho"
+
+#. Planet X AI Lens library choice
+msgid "height"
+msgstr "alto"
+
+#. Planet X AI Lens library choice
+msgid "face ID"
+msgstr "ID de la cara"
+
+#. Planet X AI Lens library choice
+msgid "card recognition"
+msgstr "reconocimiento de targetas"
+
+#. Planet X AI Lens library choice
+msgid "face recognition"
+msgstr "reconocimiento de caras"
+
+#. Planet X AI Lens library choice
+msgid "ball recognition"
+msgstr "reconocimiento de pelotas"
+
+#. Planet X AI Lens library choice
+msgid "line tracking"
+msgstr "seguimiento de línea"
+
+#. Planet X AI Lens library choice
+msgid "color recognition"
+msgstr "reconocimineto de color"
+
+#. Planet X AI Lens library choice
+msgid "feature learning"
+msgstr "aprendizaje de características"
+
+#. Planet X AI Lens library choice
+msgid "ID1"
+msgstr "ID1"
+
+#. Planet X AI Lens library choice
+msgid "ID2"
+msgstr "ID2"
+
+#. Planet X AI Lens library choice
+msgid "ID3"
+msgstr "ID3"
+
+#. Planet X AI Lens library choice
+msgid "ID4"
+msgstr "ID4"
+
+#. Planet X AI Lens library choice
+msgid "ID5"
+msgstr "ID5"
+
+#. Planet X AI Lens library choice
+msgid "offset angle"
+msgstr "desviación del ángulo"
+
+#. Planet X AI Lens library choice
+msgid "offset distance"
+msgstr "desviación de la distancia"
+
+#. Planet X AI Lens library choice
+msgid "line length"
+msgstr "longitud de la línea"
+
+#. Planet X AI Lens library choice
+msgid "mouse"
+msgstr "ratón"
+
+#. Planet X AI Lens library choice
+msgid "micro:bit"
+msgstr "micro:bit"
+
+#. Planet X AI Lens library choice
+msgid "ruler"
+msgstr "regla"
+
+#. Planet X AI Lens library choice
+msgid "pear"
+msgstr "pera"
+
+#. Planet X AI Lens library choice
+msgid "boat"
+msgstr "barco"
+
+#. Planet X AI Lens library choice
+msgid "apple"
+msgstr "manzana"
+
+#. Planet X AI Lens library choice
+msgid "car"
+msgstr "coche"
+
+#. Planet X AI Lens library choice
+msgid "pen"
+msgstr "bolígrafo"
+
+#. Planet X AI Lens library choice
+msgid "airplane"
+msgstr "avión"
+
+#. Planet X AI Lens library choice
+msgid "clock"
+msgstr "reloj"
+
+#. Planet X AI Lens library choice
+msgid "grapes"
+msgstr "uvas"
+
+#. Planet X AI Lens library choice
+msgid "cup"
+msgstr "taza"
+
+#. Planet X AI Lens library choice
+msgid "turn around"
+msgstr "carrusel"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains _ ball?"
+msgstr "cámara IA ¿la imagen contiene una pelota _ ?"
+
+#. Planet X AI Lens library block
+msgid "AI camera ball _ value"
+msgstr "cámara IA valor _ de la pelota"
+
+#. Planet X AI Lens library block
+msgid "AI camera ball count"
+msgstr "cámara IA pelotas detectadas"
+
+#. Planet X AI Lens library block
+msgid "AI camera capture image"
+msgstr "cámara IA captura una imagen"
+
+#. Planet X AI Lens library block
+msgid "AI camera any card _ value"
+msgstr "cámara IA _ de cualquier tarjeta detectada"
+
+#. Planet X AI Lens library block
+msgid "AI camera card count"
+msgstr "cámara IA tarjetas detectadas"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains a ball?"
+msgstr "cámara IA ¿la imagen contiene una pelota?"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains a face?"
+msgstr "cámara IA ¿la imagen contiene una cara?"
+
+#. Planet X AI Lens library block
+msgid "AI camera clear learned objects"
+msgstr "cámara IA elimina los objetos aprendidos"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains _ color card?"
+msgstr "cámara IA ¿la imagen contiene una tarjeta de color _ ?"
+
+#. Planet X AI Lens library block
+msgid "AI camera color-card _ value"
+msgstr "cámara IA _ de la tarjeta de color"
+
+#. Planet X AI Lens library block
+msgid "AI camera color-card count"
+msgstr "cámara IA tarjetas de color detectadas"
+
+#. Planet X AI Lens library block
+msgid "AI camera face _ value"
+msgstr "cámara IA _ de la cara"
+
+#. Planet X AI Lens library block
+msgid "AI camera face count"
+msgstr "cámara IA caras detectadas"
+
+#. Planet X AI Lens library block
+msgid "AI camera learn object in view as _"
+msgstr "cámara IA aprende el objeto que se ve como _"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains letter card _ ?"
+msgstr "cámara IA ¿la imagen contiene la tarjeta con la letra _ ?"
+
+#. Planet X AI Lens library block
+msgid "AI camera black-line _ value"
+msgstr "cámara IA _ de la línea negra detectada"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains black line offset _ ?"
+msgstr "cámara IA ¿la imagen contiene una línea negra con desviación _ ?"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains number card _ ?"
+msgstr "cámara IA ¿la imagen contienen la tarjeta con el número _ ?"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains object _ ?"
+msgstr "cámara IA ¿la imagen contienen el objeto _ ?"
+
+#. Planet X AI Lens library block
+msgid "AI camera object _ confidence"
+msgstr "cámara IA grado de confianza en la detección del objeto _"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains _ card?"
+msgstr "cámara IA ¿la imagen contiene la tarjeta _ ?"
+
+#. Planet X AI Lens library block
+msgid "AI camera switch function to _"
+msgstr "cámara IA cambia al modo _"
+
+#. Planet X AI Lens library block
+msgid "AI camera image contains traffic sign card _ ?"
+msgstr "cámara IA ¿la imagen contiene una tarjeta con señal de tráfico _ ?"
+
+#. Library name
+msgid "Planet X AI Lens Pro"
+msgstr "Planet X Cámara IA Pro"
+
+#. Library name
+msgid "Planet X Display"
+msgstr "Planet X Pantalla"
+
+#. Library name
+msgid "Planet X Execute"
+msgstr "Planet X Actuadores"
+
+#. Library name
+msgid "Planet X Input"
+msgstr "Planet X Entrada"
+
+#. Library name
+msgid "Planet X Wireless"
+msgstr "Planet X Sin Hilos"
+
+#. Library name
+msgid "Planet X Support"
+msgstr "Planet X Soporte"
+
+#. PU Robot library name
+msgid "PU Robot"
+msgstr "PU Robot"
+
+#. PU Robot menu option
+msgid "pu;left eye"
+msgstr "ojo izquierdo"
+
+#. PU Robot menu option
+msgid "pu;right eye"
+msgstr "ojo derecho"
+
+#. PU Robot menu option
+msgid "pu;both eyes"
+msgstr "ambos ojos"
+
+#. PU Robot menu option
+msgid "pu;joystick button"
+msgstr "botón del joystick"
+
+#. PU Robot menu option
+msgid "B1"
+msgstr "B1"
+
+#. PU Robot menu option
+msgid "B2"
+msgstr "B2"
+
+#. PU Robot menu option
+msgid "B3"
+msgstr "B3"
+
+#. PU Robot menu option
+msgid "B4"
+msgstr "B4"
+
+#. PU Robot menu option
+msgid "A"
+msgstr "A"
+
+#. PU Robot menu option
+msgid "pu;touch"
+msgstr "táctil"
+
+#. PU Robot menu option
+msgid "cm"
+msgstr "cm"
+
+#. PU Robot menu option
+msgid "inch"
+msgstr "pulgadas"
+
+#. PU Robot menu option
+msgid "pu;all"
+msgstr "todos"
+
+#. PU Robot menu option
+msgid "pu;left foot"
+msgstr "pie izquierdo"
+
+#. PU Robot menu option
+msgid "pu;left leg"
+msgstr "pierna izquierda"
+
+#. PU Robot menu option
+msgid "pu;right foot"
+msgstr "pie derecho"
+
+#. PU Robot menu option
+msgid "pu;right leg"
+msgstr "pierna derecha"
+
+#. PU Robot menu option
+msgid "pu;head yaw"
+msgstr "giro de la cabeza"
+
+#. PU Robot menu option
+msgid "pu;head pitch"
+msgstr "inclinación de la cabeza"
+
+#. PU Robot menu option
+msgid "pu;forward"
+msgstr "adelante"
+
+#. PU Robot menu option
+msgid "pu;backward"
+msgstr "atrás"
+
+#. PU Robot menu option
+msgid "pu;side left"
+msgstr "lateralmente a la izquierda"
+
+#. PU Robot menu option
+msgid "pu;side right"
+msgstr "lateralmente a la derecha"
+
+#. PU Robot menu option
+msgid "pu;turn left"
+msgstr "gira a la izquierda"
+
+#. PU Robot menu option
+msgid "pu;turn right"
+msgstr "gira a la derecha"
+
+#. PU Robot menu option
+msgid "pu;greet"
+msgstr "saluda"
+
+#. PU Robot menu option
+msgid "pu;rest"
+msgstr "descansa"
+
+#. PU Robot menu option
+msgid "pu;explore"
+msgstr "explora"
+
+#. PU Robot menu option
+msgid "pu;jump"
+msgstr "salta"
+
+#. PU Robot menu option
+msgid "pu;kick"
+msgstr "chuta"
+
+#. PU Robot menu option
+msgid "pu;dance"
+msgstr "baila"
+
+#. PU Robot library block
+msgid "PU robot initialize"
+msgstr "PU robot inicializa"
+
+#. PU Robot library block
+msgid "PU robot radio group _"
+msgstr "PU robot grupo de radio _"
+
+#. PU Robot library block
+msgid "PU robot action _"
+msgstr "PU robot acción _"
+
+#. PU Robot library block
+msgid "PU robot move _"
+msgstr "PU robot muevete _"
+
+#. PU Robot library block
+msgid "for _ steps speed _ (1-10)"
+msgstr "_ pasos a velocidad _ (1-10)"
+
+#. PU Robot library block
+msgid "PU robot stop"
+msgstr "PU robot detente"
+
+#. PU Robot library block
+msgid "in neutral pose _"
+msgstr "en posición de descanso _"
+
+#. PU Robot library block
+msgid "PU robot set _ servo to _ degrees"
+msgstr "PU robot pon el servo _ a _ grados"
+
+#. PU Robot library block
+msgid "PU robot eyes left _ right _"
+msgstr "PU robot ojo derecho _ izquierdo _"
+
+#. PU Robot library block
+msgid "PU robot set _ brightness _ (0-100)%"
+msgstr "PU robot _ brillo _ (0-100)%"
+
+#. PU Robot library block
+msgid "PU robot ambience light _ color _"
+msgstr "PU robot luz ambiental _ color _"
+
+#. PU Robot library block
+msgid "PU robot clear ambience lights"
+msgstr "PU robot apaga luces ambientales"
+
+#. PU Robot library block
+msgid "PU robot distance in _"
+msgstr "PU robot distancia en _"
+
+#. PU Robot library block
+msgid "PU robot body roll (degrees)"
+msgstr "PU robot inclinación lateral del cuerpo (grados)"
+
+#. PU Robot library block
+msgid "PU robot body pitch (degrees)"
+msgstr "PU robot inclinación frontal del cuerpo (grados)"
+
+#. PU Robot library block
+msgid "PU robot controller joystick _ (-100 to 100)"
+msgstr "PU robot joystick del control remoto _ (-100 a 100)"
+
+#. PU Robot library block
+msgid "PU robot controller acceleration _"
+msgstr "PU robot aceleración _ del control remoto"
+
+#. PU Robot library block
+msgid "PU robot _ received?"
+msgstr "PU robot ¿se ha recibido _ ?"
+
+#. PU Robot library block
+msgid "PU robot move to pose _ speed _ (1-10)"
+msgstr "PU robot muévete a la posición _ a velocidad _ (1-10)"
+
+#. PU Robot library block
+msgid "PU robot trim left foot _ left leg _ right foot _ right leg _ head yaw _ head pitch _"
+msgstr ""
+"PU robot  ajusta pie izquierdo _ pierna izquierda _ pie derecho _ pierna "
+"derecha _ #BR# giro de cabeza _ inclinación de cabeza _"
+
+#. PU Robot library block
+msgid "PU robot calibration pose"
+msgstr "PU robot posición de calibración"
+
+#. PU Controller library name
+msgid "PU Controller"
+msgstr "PU Control remoto"
+
+#. PU Controller library block
+msgid "PU controller radio group _"
+msgstr "PU control grupo de radio _"
+
+#. PU Controller library block
+msgid "PU controller automatic send _"
+msgstr "PU control envío automático _"
+
+#. PU Controller library block
+msgid "PU controller get pressed button"
+msgstr "PU control botón presionado"
+
+#. PU Controller library block
+msgid "return index _"
+msgstr "devuelve el Id _"
+
+#. PU Controller library block
+msgid "PU controller joystick _ (-100 to 100)"
+msgstr "PU control posición _ del joystick (-100 a 100)"
+
+#. PU Controller library block
+msgid "PU controller _ pressed?"
+msgstr "PU control ¿se presionó _ ?"
+
+#. PU Controller library block
+msgid "PU controller acceleration _"
+msgstr "PU control aceleración _"
+
+#. PU Controller library block
+msgid "PU controller send joystick _"
+msgstr "PU control envía la posición _ del joystick"
+
+#. PU Controller library block
+msgid "PU controller send acceleration _"
+msgstr "PU control aceleración _"
+
+#. PU Controller library block
+msgid "PU controller send button _"
+msgstr "PU control envía el botón _"
+
+#. PU Controller library block
+msgid "PU controller send name _ value _"
+msgstr "PU control envía nombre _ valor _"
+
+#. PU Controller library default value (puControllerSendValue)
+msgid "name"
+msgstr "nombre"

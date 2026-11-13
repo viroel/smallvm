@@ -44,7 +44,7 @@ Costume, IDE_Morph, BlockDialogMorph, BlockEditorMorph, localized, CLEAR, Point,
 isSnapObject, PushButtonMorph, SpriteIconMorph, Process, AlignmentMorph, List,
 ToggleButtonMorph, DialMorph, SnapExtensions, CostumeIconMorph, SoundIconMorph,
 SVG_Costume, embedMetadataPNG, ThreadManager, snapEquals, InputList, BLACK,
-CustomHatBlockMorph, MB_Compiler, MB_editor, MB_Function, MB_Specs, world, Path2D, ZOOM */
+CustomHatBlockMorph, MB_Compiler, MB_editor, MB_Function, MB_Specs, world, Path2D, ZOOM, screenPixels */
 /*global SyntaxElementMorph, BlockMorph, ReporterBlockMorph, ArgMorph, HatBlockMorph, blockTextHeight, blockTextBaseline, blockTextWidth, blockTextFont, renderBlockString, blockHalf */
 
 // InputSlotMorph //////////////////////////////////////////////////////
@@ -461,8 +461,8 @@ InputSlotMorph.prototype.mouseClickLeft = function (pos) {
 	var hand = this.world().hand;
 
 	// the pan carries the slot back under the hand, but its end is not a click
-	if (this.pans() && hand.grabPosition &&
-			hand.grabPosition.distanceTo(hand.position()) > MorphicPreferences.grabThreshold) return;
+	if (this.pans() && (hand.fingerDown ? hand.touchMoved : (hand.grabPosition &&
+			hand.grabPosition.distanceTo(hand.position()) > MorphicPreferences.grabThreshold))) return;
 	if (this.isReadOnly || this.symbol) {
 		// a read-only slot with no menu takes the click as its block does
 		if (!this.dropDownMenu()) this.escalateEvent('mouseClickLeft', pos);
@@ -583,7 +583,9 @@ InputSlotMorph.prototype.evaluate = function () {
 	if (this.mbValueText === val) {
 		return this.mbValue;
 	}
-	if (this.isNumeric || (this.isAlphanumeric && /^-?\d+$/.test(val))) {
+	// An auto slot is numeric and alphanumeric both. It holds a number only
+	// when the whole text is an integer, so '1,2,3' stays text.
+	if ((this.isNumeric && !this.isAlphanumeric) || (this.isAlphanumeric && /^-?\d+$/.test(val))) {
 		let num = parseInt(val, 10);
 		if (!isNaN(num)) return num;
 	}
@@ -844,6 +846,38 @@ InputSlotTextMorph.prototype.getRenderColor =
 
 InputSlotTextMorph.prototype.getShadowRenderColor =
 	InputSlotStringMorph.prototype.getShadowRenderColor;
+
+// A finger edits slot text when it lifts without having moved, so a swipe that
+// starts on the text pans the pane instead. Text already being edited takes the
+// press as before, to place the cursor.
+
+function slotTextEditedOnRelease(enableSelecting, mouseClickLeft) {
+	return {
+		enableSelecting: function () {
+			var editOnPress;
+			enableSelecting.call(this);
+			editOnPress = this.mouseDownLeft;
+			this.mouseDownLeft = function (pos) {
+				var cursor = this.root().cursor;
+				if (this.world().hand.fingerDown && !(cursor && (cursor.target === this))) {
+					this.escalateEvent('mouseDownLeft', pos);
+				} else {
+					editOnPress.call(this, pos);
+				}
+			};
+		},
+		mouseClickLeft: function (pos) {
+			var hand = this.world().hand;
+			if (hand.fingerDown && hand.touchMoved) return;
+			mouseClickLeft.call(this, pos);
+		}
+	};
+}
+
+Object.assign(InputSlotStringMorph.prototype, slotTextEditedOnRelease(
+	StringMorph.prototype.enableSelecting, StringMorph.prototype.mouseClickLeft));
+Object.assign(InputSlotTextMorph.prototype, slotTextEditedOnRelease(
+	TextMorph.prototype.enableSelecting, TextMorph.prototype.mouseClickLeft));
 
 // TemplateSlotMorph ///////////////////////////////////////////////////
 
@@ -1419,7 +1453,8 @@ ColorSlotMorph.prototype.render = function (ctx) {
 	I am the colour picker a ColorSlotMorph opens; there is at most one of me.
 	A press on my gray ramp or palette picks the screen pixel under the hand,
 	and I keep picking while the button is held. A press elsewhere on me drags
-	me, and I stay open until my close button is clicked.
+	me, and I stay open until my close button is clicked. My sizes are screen
+	pixels, so I am one size at every block size, as menus are.
 */
 
 // ColorSlotPickerMorph inherits from Morph:
@@ -1442,20 +1477,21 @@ function ColorSlotPickerMorph() {
 }
 
 ColorSlotPickerMorph.prototype.init = function () {
-	var labelColor = new Color(176, 179, 197); // blueGray 200
+	var labelColor = new Color(176, 179, 197), // blueGray 200
+		px = screenPixels;
 	ColorSlotPickerMorph.uber.init.call(this);
 	this.action = null;
 	this.lastColor = null;
 	this.brightness = 50; // the slider's value: 0 is full brightness, 100 black
 	this.color = new Color(45, 49, 67); // blueGray 850
-	this.bounds.setExtent(new Point(289, 170));
+	this.bounds.setExtent(new Point(px(289), px(170)));
 
-	// one palette pixel per world canvas pixel, so the palettes are as sharp as the IDE
-	const px = ZOOM * Math.ceil(window.devicePixelRatio || 1);
-	this.fullPalette = newCanvas(new Point(200 * px, 128 * px), true);
+	// one palette pixel per device pixel, so the palettes are as sharp as the IDE
+	const res = Math.ceil(window.devicePixelRatio || 1);
+	this.fullPalette = newCanvas(new Point(200 * res, 128 * res), true);
 	this.drawColorPalette(this.fullPalette);
-	this.grayRamp = this.addPalette(this.drawGrayRamp(newCanvas(new Point(200 * px, 10 * px), true)), 10, 18, 200, 10);
-	this.colorPalette = this.addPalette(newCanvas(new Point(200 * px, 128 * px), true), 10, 32, 200, 128);
+	this.grayRamp = this.addPalette(this.drawGrayRamp(newCanvas(new Point(200 * res, 10 * res), true)), 10, 18, 200, 10);
+	this.colorPalette = this.addPalette(newCanvas(new Point(200 * res, 128 * res), true), 10, 32, 200, 128);
 	this.slider = this.addSlider(214, 32);
 	this.swatch = this.addPart(new Morph(), 228, 32, 52, 52);
 	this.swatch.color = WHITE;
@@ -1463,21 +1499,23 @@ ColorSlotPickerMorph.prototype.init = function () {
 
 	this.boxes = ['R', 'G', 'B'].map((component, i) => {
 		var y = 93 + (26 * i),
-			label = new StringMorph(component, 13, 'monospace', true, false, false, null, null, labelColor, 'Courier'),
-			frame = this.addPart(new Morph(), 228 + label.width() + 6, y, 36, 15),
-			box = new StringMorph('000', 13, 'monospace', true, false, true, null, null, new Color(38, 41, 56), 'Courier');
+			label = new StringMorph(component, px(13), 'monospace', true, false, false, null, null, labelColor, 'Courier'),
+			frame = this.addPart(new Morph(), 228 + (label.width() * ZOOM) + 6, y, 36, 15),
+			box = new StringMorph('000', px(13), 'monospace', true, false, true, null, null, new Color(38, 41, 56), 'Courier');
 		this.addPart(label, 228, y + 2);
 		frame.color = WHITE;
 		box.isEditable = true;
 		frame.add(box);
-		box.setPosition(frame.position().add(new Point(3, Math.floor((frame.height() - box.height()) / 2))));
+		box.setPosition(frame.position().add(new Point(px(3), px(Math.floor((15 - (box.height() * ZOOM)) / 2)))));
 		return box;
 	});
 };
 
 ColorSlotPickerMorph.prototype.addPart = function (part, x, y, w, h) {
-	if (w) part.setExtent(new Point(w, h));
-	part.setPosition(this.position().add(new Point(x, y)));
+	// x, y, w and h are screen pixels.
+	var px = screenPixels;
+	if (w) part.setExtent(new Point(px(w), px(h)));
+	part.setPosition(this.position().add(new Point(px(x), px(y))));
 	this.add(part);
 	return part;
 };
@@ -1486,7 +1524,7 @@ ColorSlotPickerMorph.prototype.addPalette = function (canvas, x, y, w, h) {
 	// A part w by h that shows canvas and picks screen colours while pressed.
 	var part = this.addPart(new Morph(), x, y, w, h);
 	part.canvas = canvas;
-	part.render = (ctx) => ctx.drawImage(canvas, 0, 0, w, h);
+	part.render = (ctx) => ctx.drawImage(canvas, 0, 0, part.width(), part.height());
 	part.mouseDownLeft = () => {
 		this.world().worldCanvas.style.cursor = 'crosshair';
 		this.track((pos) => this.pickAt(pos), () => {
@@ -1497,13 +1535,15 @@ ColorSlotPickerMorph.prototype.addPalette = function (canvas, x, y, w, h) {
 };
 
 ColorSlotPickerMorph.prototype.addSlider = function (x, y) {
-	var slider = this.addPart(new Morph(), x, y, 10, 128);
+	var w = 10, h = 128,
+		slider = this.addPart(new Morph(), x, y, w, h);
 	slider.render = (ctx) => {
+		ctx.scale(screenPixels(1), screenPixels(1)); // drawn in screen pixels
 		ctx.fillStyle = 'rgb(207, 209, 220)'; // blueGray 100
-		ctx.fillRect(0, 0, slider.width(), slider.height());
+		ctx.fillRect(0, 0, w, h);
 		ctx.fillStyle = 'rgb(176, 179, 197)'; // blueGray 200
 		ctx.beginPath();
-		ctx.roundRect(0, Math.trunc((this.brightness / 100) * (slider.height() - 20)), slider.width(), 20, 4);
+		ctx.roundRect(0, Math.trunc((this.brightness / 100) * (h - 20)), w, 20, 4);
 		ctx.fill();
 	};
 	slider.mouseDownLeft = () => this.track((pos) => this.setBrightness(
@@ -1512,10 +1552,11 @@ ColorSlotPickerMorph.prototype.addSlider = function (x, y) {
 };
 
 ColorSlotPickerMorph.prototype.addCloseButton = function () {
-	var button = this.addPart(new Morph(), this.width() - 45, 5, 40, 25);
+	var button = this.addPart(new Morph(), 244, 5, 40, 25);
 	button.render = (ctx) => {
 		ctx.fillStyle = button.isHighlighted ? 'rgb(254, 215, 34)' : 'rgb(207, 209, 220)'; // yellow, blueGray 100
-		ctx.translate(button.width() - 16, 0);
+		ctx.translate(button.width() - screenPixels(16), 0);
+		ctx.scale(screenPixels(1), screenPixels(1)); // the icon is 16 screen pixels
 		ctx.fill(new Path2D(this.closeIcon));
 	};
 	button.mouseEnter = () => { button.isHighlighted = true; button.changed(); };
@@ -1529,7 +1570,7 @@ ColorSlotPickerMorph.prototype.addCloseButton = function () {
 ColorSlotPickerMorph.prototype.render = function (ctx) {
 	ctx.fillStyle = this.color.toString();
 	ctx.beginPath();
-	ctx.roundRect(0, 0, this.width(), this.height(), 4);
+	ctx.roundRect(0, 0, this.width(), this.height(), screenPixels(4));
 	ctx.fill();
 };
 
@@ -1728,7 +1769,6 @@ MicroBitDisplaySlotMorph.prototype.init = function (bits) {
 	this.strideY = 14;
 	this.ledWidth = 9;
 	this.ledHeight = 12;
-	this.setColor(new Color(71, 82, 191));
 	if (bits) this.setContents(bits);
 	this.fixLayout();
 };
@@ -1794,15 +1834,7 @@ MicroBitDisplaySlotMorph.prototype.fixLayout = function () {
 };
 
 MicroBitDisplaySlotMorph.prototype.render = function (ctx) {
-	var borderColor;
-
-	ctx.fillStyle = this.color.toString();
-	ctx.fillRect(
-		this.edge,
-		this.edge,
-		this.width(),
-		this.height()
-	);
+	// Only the LEDs: the block's own colour shows between them, selected or not.
 	let offColor = new Color(37, 43, 101);
 	let onColor = new Color(229, 0, 0);
 	for (let row = 0; row < 5; row++) {

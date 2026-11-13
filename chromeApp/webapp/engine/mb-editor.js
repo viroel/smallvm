@@ -6,7 +6,7 @@
 
 // mb-editor.js - MicroBlocks top-level editor.
 
-/* global MB_BlockSearchBox, MB_Files, MB_FilePicker, MB_LibraryImportDialog, MB_LibraryInfoDialog, MB_Module, MB_Parser, MB_Specs, MB_Project, Color, Point, BlockMorph, ReporterBlockMorph, ScriptsMorph, ScrollFrameMorph, StringMorph, HatBlockMorph, SpeechBubbleMorph, TextMorph, ZOOM, world, askChrome, blockScale, chromeDrawnMenu, chromeMenuFor, clipboardText, cropTransparent, errorFrame, errorSite, fireIDEEvent, fixEmbeddedQuotes, fixedCallArgs, forEachExpression, htmlText, isMobile, isReportableError, localized, readGPClipboard, setClipboardBuffer, uniqueNameNotIn, waitMSecs */
+/* global MB_BlockSearchBox, ColorSlotPickerMorph, MB_Files, MB_FilePicker, MB_LibraryImportDialog, MB_LibraryInfoDialog, MB_Module, MB_Parser, MB_Specs, MB_Project, Color, Point, BlockMorph, ReporterBlockMorph, ScriptsMorph, ScrollFrameMorph, StringMorph, HatBlockMorph, SpeechBubbleMorph, TextMorph, ZOOM, world, askChrome, blockScale, detect, chromeDrawnMenu, chromeMenuFor, clipboardText, cropTransparent, errorFrame, errorSite, fireIDEEvent, fixEmbeddedQuotes, fixedCallArgs, forEachExpression, htmlText, isMobile, isReportableError, localized, readGPClipboard, setClipboardBuffer, uniqueNameNotIn, waitMSecs */
 
 class MB_Editor {
 	constructor() {
@@ -39,6 +39,9 @@ class MB_Editor {
 		this.paletteY = 0; // where the next block goes while the palette is being filled
 		this.undoStack = [];
 		this.redoStack = [];
+		// Libraries loaded only to serve another, by name. The project text does not
+		// record them, so they are marked again whenever the project is rebuilt from it.
+		this.implementationLibs = new Set();
 		this.watchProjectVariables();
 		this.blockSize = 125; // a fresh profile draws at GP's default block size
 		this.autosave = (typeof MB_Autosave === 'function') ? new MB_Autosave(this) : null;
@@ -105,6 +108,15 @@ class MB_Editor {
 		if (world.keyboardHandler) world.keyboardHandler.focus = function () {
 			if (!((typeof GP === 'object') && GP.delegateKeyboardEvents)) HTMLTextAreaElement.prototype.focus.call(this);
 		};
+
+		// The keyboard textarea keeps the focus after an edit ends, which on a touch screen keeps
+		// the soft keyboard up. A touch that ends with nothing being edited lets the keyboard go.
+		if (world.keyboardHandler) world.worldCanvas.addEventListener('touchend', () => {
+			if (!world.cursor && (document.activeElement === world.keyboardHandler)) world.keyboardHandler.blur();
+		});
+		// A chrome menu closes on a click outside it, and morphic's touchstart prevents
+		// that click, so a touch on the canvas closes the menu itself.
+		world.worldCanvas.addEventListener('touchstart', () => { if (typeof Menus !== 'undefined') Menus.close(); });
 
 		// morphic takes a Cmd-click as a right click; the click event after it must not close its menu.
 		world.worldCanvas.addEventListener('click', (event) => {
@@ -565,7 +577,8 @@ class MB_Editor {
 			const title = this.projectName.replace(/\.ubp$/, '');
 			code = "projectName '" + fixEmbeddedQuotes(title) + "'\n\n" + code;
 		}
-		return this.urlPrefix(pageURL) + '?project=' + MB_ScriptExchange.urlEncode(code);
+		// In the fragment, which the browser does not send, so the server cannot refuse a large project.
+		return this.urlPrefix(pageURL) + '#project=' + MB_ScriptExchange.urlEncode(code);
 	}
 
 	urlPrefix(pageURL) {
@@ -1028,7 +1041,7 @@ class MB_Editor {
 				this.paletteY += 20 / ZOOM;
 			} else if ('advanced' == op) {
 				if (!this.devMode()) return; // the rest is for developer mode
-				this.addPaletteLabel('Advanced:');
+				this.addPaletteLabel(localized('Advanced:'));
 			} else if (this.showHiddenBlocks() || !op.startsWith('_')) {
 				let spec = MB_Specs.specArrayForProjectSpec(this.project.blockSpecs.get(op))
 					|| MB_Specs.specArrayForSelector(op);
@@ -1098,7 +1111,7 @@ class MB_Editor {
 		if (!this.devMode()) return;
 		let specs = MB_Specs.specsForCategory(cat + '-Advanced');
 		if (specs.length == 0) return;
-		this.addPaletteLabel('Advanced:');
+		this.addPaletteLabel(localized('Advanced:'));
 		this.addBlocksForSpecs(specs, cat.substring(4));
 	}
 
@@ -1338,8 +1351,9 @@ class MB_Editor {
 	logUsage() {
 		// Ask microblocks.fun for the latest version number, once, so it can count this start.
 		// The answer is not read and a failure is not reported.
+		// J and K (Chromebook) tell these starts from the GP IDE's B and C.
 		// The random number only keeps a cache from answering.
-		const letter = /CrOS/.test(navigator.userAgent) ? 'C' : 'B';
+		const letter = /CrOS/.test(navigator.userAgent) ? 'K' : 'J';
 		const stamp = 100000 + Math.floor(Math.random() * 900000);
 		fetch('https://microblocks.fun/downloads/latest/VERSION.txt?' + letter + '=' + stamp,
 			{ mode: 'no-cors', cache: 'no-store' }).catch(() => {});
@@ -1441,13 +1455,17 @@ class MB_Editor {
 		}
 	}
 
-	exportLibrary(libName) {
+	async exportLibrary(libName) {
 		// A library's own source in a file named after it.
 
 		this.endOpenEdit();
 		let lib = this.project.libraryNamed(libName);
 		if (!lib) return;
-		this.saveTextAsFile(lib.codeString(this.project), lib.moduleName + '.ubl');
+		try {
+			await this.saveFileWithDialog(lib.codeString(this.project), lib.moduleName + '.ubl', 'library', 'text/plain');
+		} catch (e) {
+			this.reportError(e); // e.g. a folder the browser may not write to
+		}
 	}
 
 	showLibraryInfo(libName, forEditing = this.devMode()) {
@@ -1470,6 +1488,7 @@ class MB_Editor {
 		}
 		const lib = new MB_Module(libName);
 		this.project.addLibrary(lib);
+		this.implementationLibs.delete(libName);
 		this.updateLibraryList();
 		this.selectLibrary(libName);
 		return lib;
@@ -1609,6 +1628,9 @@ class MB_Editor {
 		}
 		if (asImplementation && (!replacing || replacing.isImplementationLib())) {
 			this.project.libraryNamed(moduleName).beImplementation();
+			this.implementationLibs.add(moduleName);
+		} else {
+			this.implementationLibs.delete(moduleName); // a library of its own now
 		}
 		// A library replacing one of its own name keeps the dependencies the
 		// project already resolved for it; a new one needs them brought in.
@@ -2363,15 +2385,13 @@ class MB_Editor {
 		fireIDEEvent('scripts.redoAvailable', this.redoAvailable());
 	}
 
-	async restoreUndoState(source, implementationLibs = []) {
+	async restoreUndoState(source) {
 		// Undo, redo and a language change share this path. Each hands over the code
 		// string it wants shown and the project is rebuilt from it, not mutated in place.
-		// The text does not record which libraries are implementations, so a
-		// caller that knows passes their names.
 		this.saveNeeded = false;
 		this.project = new MB_Project();
 		if (source != null) this.project.loadFromString(source);
-		for (const libName of implementationLibs) this.project.libraryNamed(libName).beImplementation();
+		this.markImplementationLibs();
 		this.watchProjectVariables();
 		this.removeAllScripts();
 		for (const [x, y, script] of this.project.main.scripts) {
@@ -2382,6 +2402,19 @@ class MB_Editor {
 		this.codeManager.project = this.project;
 		this.codeManager.recompileNeeded();
 		await this.codeManager.syncScripts();
+	}
+
+	markImplementationLibs() {
+		// Mark each listed library that another one in the project still depends on as
+		// an implementation. A name stays after its library is removed, so undoing the
+		// removal hides it again.
+		const served = new Set();
+		for (const lib of this.project.libraries.values()) {
+			for (const dep of lib.dependencyNames()) if (dep.startsWith('_')) served.add(dep.slice(1));
+		}
+		for (const libName of this.implementationLibs) {
+			if (served.has(libName)) this.project.libraryNamed(libName)?.beImplementation();
+		}
 	}
 
 	cancelScriptEdit() {
@@ -2418,9 +2451,7 @@ class MB_Editor {
 		}
 		this.endOpenEdit();
 		MB_BlockSearchBox.close(); // its index holds the old language's words
-		const implementationLibs = Array.from(this.project.libraries.values())
-			.filter((lib) => lib.isImplementationLib()).map((lib) => lib.moduleName);
-		await this.restoreUndoState(this.project.codeString(), implementationLibs);
+		await this.restoreUndoState(this.project.codeString());
 	}
 
 	readCustomTranslationFile() {
@@ -2468,7 +2499,8 @@ class MB_Editor {
 				}
 			}
 			for (const part of parts.reverse()) {
-				if (part instanceof SyntaxElementMorph) part.fixLayout();
+				// a prototype's row is laid out only from below, after its inputs have grown
+				if ((part instanceof SyntaxElementMorph) || (part instanceof BlockSectionDefinitionMorph)) part.fixLayout();
 			}
 		} finally {
 			SyntaxElementMorph.prototype.fixesParentLayout = true;
@@ -2524,9 +2556,15 @@ class MB_Editor {
 		world.zoom(Math.max(Math.min(percent, 250), 50) / 100);
 		if ((ZOOM !== oldZoom) && this.scripts) this.relayoutBlocks();
 		if (ZOOM !== oldZoom) {
-			// An open picker was sized at the old zoom.
+			// An open file or colour picker was sized at the old zoom.
 			const picker = (typeof MB_FilePicker !== 'undefined') && MB_FilePicker.findOpen(world);
 			if (picker) picker.removeFromOwner();
+			const colorPicker = detect(world.children, (m) => m instanceof ColorSlotPickerMorph);
+			if (colorPicker) {
+				// an edit in one of its boxes would go on taking keys
+				if (world.cursor && colorPicker.allChildren().includes(world.cursor.target)) world.stopEditing();
+				colorPicker.destroy();
+			}
 		}
 		// A wheel notch scrolls 120 screen pixels, as in GP; morphic scrolls in scene units.
 		// Both settings objects: the first touch event swaps MorphicPreferences to the second.
@@ -2551,6 +2589,7 @@ class MB_Editor {
 			this.blockSize = percent;
 		}
 		await this.codeManager.syncScripts();
+		IDE.recreateScriptControls();
 	}
 
 	zoomIn() {
@@ -3026,9 +3065,13 @@ class MB_Editor {
 			// adds a step for undo to stop at. A dropped file passes false and skips it.
 			const cleared = clearFirst ? MB_editor.clearProject() : null;
 			// Without clearProject the old scripts stay on screen, and the next save keeps them.
-			if (!clearFirst) MB_editor.removeAllScripts();
+			if (!clearFirst) {
+				MB_editor.removeAllScripts();
+				if (MB_editor.autosave) MB_editor.autosave.replaced(); // as clearProject does
+			}
 			MB_editor.saveNeeded = false; // don't save scripts while project is loading, as GP does
 			MB_editor.project = project;
+			MB_editor.implementationLibs.clear(); // an opened project's libraries are all its own
 			MB_editor.watchProjectVariables();
 			MB_editor.project.main.scripts.forEach( (entry) => {
 				let x = entry[0], y = entry[1], script = entry[2];
@@ -3374,10 +3417,12 @@ class MB_Editor {
 		// so the blocks are built once this project is the editor's.
 		this.project = new MB_Project();
 		this.project.loadFromString(project.codeString());
-		// The text does not record which libraries were loaded as implementations.
+		// The decompiled project marks the implementation libraries; its text does not.
+		this.implementationLibs.clear();
 		for (const lib of project.libraries.values()) {
-			if (lib.isImplementationLib()) this.project.libraryNamed(lib.moduleName).beImplementation();
+			if (lib.isImplementationLib()) this.implementationLibs.add(lib.moduleName);
 		}
+		this.markImplementationLibs();
 		this.watchProjectVariables();
 		this.removeAllScripts();
 		this.project.main.scripts.forEach(

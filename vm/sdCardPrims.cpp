@@ -9,6 +9,7 @@
 
 #include "mem.h"
 #include "interp.h"
+#include "sdCardPrims.h"
 
 #ifdef ARDUINO_WEACT
 #include "SdFat.h"
@@ -134,10 +135,11 @@ static void initSecondarySPI() {
 }
 #endif
 
-static void initSDCard(int chipSelectPin) {
+void initSDCard(int chipSelectPin) {
 	#ifdef ARDUINO_WEACT
-	if (!SD.begin(cfg)) {
+	if (sdCardCSPin != 0 && !SD.begin(cfg)) {
 		outputString("Could not open SD Card.");
+		sdCardCSPin = -1;
 		return;
 	} else {
 		sdCardCSPin = 0; // not used in this board, but will prevent reinitializing
@@ -171,11 +173,12 @@ static void initSDCard(int chipSelectPin) {
 	#endif
 }
 
+bool sdCardInitialized() { return (sdCardCSPin >= 0); }
+
 static char *extractFilename(OBJ obj) {
 	fullPath[0] = '\0';
 	if (IS_TYPE(obj, StringType)) {
 		char *fileName = obj2str(obj);
-		if (strcmp(fileName, "ublockscode") == 0) return fullPath;
 		if ('/' == fileName[0]) return fileName; // fileName already had a leading "/"
 		snprintf(fullPath, MAX_FILE_PATH - 1, "/%s", fileName);
 	} else {
@@ -327,7 +330,7 @@ static OBJ primEndOfFile(int argCount, OBJ *args) {
 	int i = entryFor(fileName);
 	if (i < 0) return trueObj;
 
-	processMessage();
+	taskSleep(-1); // let the VM handle messages once this task yields, not mid-primitive
 	return (!fileEntry[i].file.available()) ? trueObj : falseObj;
 }
 
@@ -353,7 +356,7 @@ static OBJ primReadLine(int argCount, OBJ *args) {
 	if (result) {
 		memcpy(obj2str(result), buf, byteCount);
 	}
-	processMessage();
+	taskSleep(-1);
 	return result;
 }
 
@@ -390,7 +393,7 @@ static OBJ primReadBytes(int argCount, OBJ *args) {
 			return result;
 		}
 	}
-	processMessage();
+	taskSleep(-1);
 	return newObj(ByteArrayType, 0, falseObj); // empty byte array
 }
 
@@ -423,7 +426,7 @@ static OBJ primReadPosition(int argCount, OBJ *args) {
 		result = fileEntry[i].file.position();
 		#endif
 	}
-	processMessage();
+	taskSleep(-1);
 	return int2obj(result);
 }
 
@@ -504,7 +507,7 @@ static OBJ primAppendLine(int argCount, OBJ *args) {
 		fileEntry[i].file.flush();
 		fileEntry[i].file.seekSet(oldPos); // reset position for reading
 	}
-	processMessage();
+	taskSleep(-1);
 	return falseObj;
 }
 
@@ -536,7 +539,7 @@ static OBJ primAppendBytes(int argCount, OBJ *args) {
 	fileEntry[i].file.flush();
 	fileEntry[i].file.seekSet(oldPos); // reset position for reading
 
-	processMessage();
+	taskSleep(-1);
 	return falseObj;
 }
 

@@ -14,6 +14,7 @@ FloatingWindow.graph = function () {
 		height: Graph.height + 24,
 		resizable: true,
 		onResize: Graph.resize,
+		className: '--graph',
 		onOpen: () => {
 			IDE.controlsButtons.querySelector('.--graph').classList.add('--is-active');
 		},

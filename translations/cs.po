@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: interest@microblocks.fun\n"
 "POT-Creation-Date: 2024-10-30 06:26+0200\n"
-"PO-Revision-Date: 2026-10-30 09:35+0000\n"
-"Last-Translator: John Maloney <jhmaloney@users.noreply.hosted.weblate.org>\n"
+"PO-Revision-Date: 2026-11-09 13:10+0000\n"
+"Last-Translator: Josep Ferràndiz <josep.ferrandiz@gmail.com>\n"
 "Language-Team: Czech <https://hosted.weblate.org/projects/microblocks/ide/"
 "cs/>\n"
 "Language: cs\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=((n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2);\n"
-"X-Generator: Weblate 2026.11.dev0\n"
+"X-Generator: Weblate 2026.11.2.dev0\n"
 
 #. "Output" blocks category label
 msgid "cat;Output"
@@ -3906,213 +3906,217 @@ msgstr "Cutebot"
 
 #. Cutebot library block
 msgid "Cutebot set wheel left _ right _ (-100 to 100)"
-msgstr ""
+msgstr "Cutebot nastav rychlost kol levé _ pravé _ (-100 až 100)"
 
 #. Cutebot library block
 msgid "Cutebot stop wheels"
-msgstr ""
+msgstr "Cutebot zastav kola"
 
 #. Cutebot library block
 msgid "Cutebot set servo _ to _ degrees (-90 to 90)"
-msgstr ""
+msgstr "Cutebot nastav servo _ do úhlu _ (-90° až 90°)"
 
 #. Cutebot library block
 msgid "Cutebot set servo _ to speed _ (-100 to 100)"
-msgstr ""
+msgstr "Cutebot nastav servo _ na rychlost _ (-100 až 100)"
 
 #. Cutebot library block
 msgid "Cutebot set headlight _ to _"
-msgstr ""
+msgstr "Cutebot nastav přední světlo _ na _"
 
 #. Cutebot library block
 msgid "Cutebot set NeoPixel _ to _"
-msgstr ""
+msgstr "Cutebot nastav Neopixel _ na _"
 
 #. Cutebot library block
 msgid "Cutebot _ line sensor"
-msgstr ""
+msgstr "Cutebot senzor čáry _"
 
 #. Cutebot library block
 msgid "Cutebot sees line on left _ right _"
-msgstr ""
+msgstr "Cutebot čára vlevo _ vpravo _"
 
 #. Cutebot library block
 msgid "Cutebot distance (cm)"
-msgstr ""
+msgstr "Cutebot vzdálenost (cm)"
 
 #. Cutebot Pro library block dropdown option
 #. as in "left" light
 msgid "cutebotlight;left"
-msgstr ""
+msgstr "levé"
 
 #. Cutebot Pro library block dropdown option
 #. as in "right" light
 msgid "cutebotlight;right"
-msgstr ""
+msgstr "pravé"
 
 #. Cutebot Pro library block dropdown option
 #. as in "both" lights
 msgid "cutebotlight;both"
-msgstr ""
+msgstr "obě"
 
 #. Cutebot Pro library block dropdown option
 #. as in "left" side
 msgid "cutebotside;left"
-msgstr ""
+msgstr "vlevo"
 
 #. Cutebot Pro library block dropdown option
 #. as in "right" side
 msgid "cutebotside;right"
-msgstr ""
+msgstr "vpravo"
 
 #. Cutebot Pro library block dropdown option
 #. as in "left" wheel
 msgid "cutebotwheel;left"
-msgstr ""
+msgstr "levé"
 
 #. Cutebot Pro library block dropdown option
 #. as in "right" wheel
 msgid "cutebotwheel;right"
-msgstr ""
+msgstr "pravé"
 
 #. Cutebot Pro library block dropdown option
 #. as in "both" wheels
 msgid "cutebotwheel;both"
-msgstr ""
+msgstr "obě"
 
 #. Cutebot Pro library block dropdown option
 msgid "45 degrees"
-msgstr ""
+msgstr "45°"
 
 #. Cutebot Pro library block dropdown option
 msgid "90 degrees"
-msgstr ""
+msgstr "90°"
 
 #. Cutebot Pro library block dropdown option
 msgid "135 degrees"
-msgstr ""
+msgstr "135°"
 
 #. Cutebot Pro library block dropdown option
 msgid "180 degrees"
-msgstr ""
+msgstr "180°"
 
 #. Cutebot Pro library block dropdown option
 #. robot motion direction
 msgid "cutebot;forward"
-msgstr ""
+msgstr "dopředu"
 
 #. Cutebot Pro library block dropdown option
 #. robot motion direction
 msgid "cutebot;backward"
-msgstr ""
+msgstr "dozadu"
 
 #. Cutebot Pro library block dropdown option
 msgid "180 degree"
-msgstr ""
+msgstr "180°"
 
 #. Cutebot Pro library block dropdown option
 msgid "270 degree"
-msgstr ""
+msgstr "270°"
 
 #. Cutebot Pro library block dropdown option
 msgid "360 degree"
-msgstr ""
+msgstr "360°"
 
 #. Cutebot Pro library block dropdown option
 #. as in turn "left"
 msgid "cutebotturn;left"
-msgstr ""
+msgstr "doleva"
 
 #. Cutebot Pro library block dropdown option
 #. as in turn "right"
 msgid "cutebotturn;right"
-msgstr ""
+msgstr "doprava"
 
 #. Cutebot Pro library block dropdown option
 #. as in turn "left" on your axis
 msgid "cutebotturn;left-in-place"
-msgstr ""
+msgstr "doleva na místě"
 
 #. Cutebot Pro library block dropdown option
 #. as in turn "right" on your axis
 msgid "cutebotturn;right-in-place"
-msgstr ""
+msgstr "doprava na místě"
 
 #. Cutebot Pro library block
 msgid "CBPro set wheel speed left _ right _ (-60 to 60 cm/s)"
-msgstr ""
+msgstr "CBPro nastav rychlosti kol levé _ pravé _ (-60 až 60 cm/s)"
 
 #. Cutebot Pro library block
+#, fuzzy
 msgid "CBPro speed of _ wheel (cm/s)"
-msgstr ""
+msgstr "CBPro zjisti rychlost kola _ (cm/s)"
 
 #. Cutebot Pro library block
 msgid "CBPro stop wheel _"
-msgstr ""
+msgstr "CBPro zastav kolo _"
 
 #. Cutebot Pro library block
 msgid "CBPro stop all"
-msgstr ""
+msgstr "CBPro zastav vše"
 
 #. Cutebot Pro library block
 msgid "CBPro move _ (-255 to 255 cm)"
-msgstr ""
+msgstr "CBPro posuň o _ cm (-255 až 255)"
 
 #. Cutebot Pro library block
 msgid "CBPro turn _ degrees"
-msgstr ""
+msgstr "CBPro otoč o _ °"
 
 #. Cutebot Pro library block
 msgid "CBPro set headlight _ to _"
-msgstr ""
+msgstr "CBPro nastav _ přední světlo na _"
 
 #. Cutebot Pro library block
 msgid "CBPro set NeoPixel _ to _"
-msgstr ""
+msgstr "CBPro nastav NeoPixel _ na _"
 
 #. Cutebot Pro library block
 msgid "CBPro distance (cm)"
-msgstr ""
+msgstr "CBPro vzdálenost (cm)"
 
 #. Cutebot Pro library block
 msgid "CBPro tracking state is (L - - R) _ _ _ _"
-msgstr ""
+msgstr "CBPro je stav senzorů čáry _ _ _ _ (L - - R)"
 
 #. Cutebot Pro library block
+#, fuzzy
 msgid "CBPro tracking state"
-msgstr ""
+msgstr "CBPro stav senzorů čáry"
 
 #. Cutebot Pro library block
+#, fuzzy
 msgid "CBPro tracking offset"
-msgstr ""
+msgstr "CBPro offset senzorů čáry"
 
 #. Cutebot Pro library block
 msgid "CBPro IR code received?"
-msgstr ""
+msgstr "CBPro přijat IR kód ?"
 
 #. Cutebot Pro library block
 msgid "CBPro IR code"
-msgstr ""
+msgstr "CBPro IR kód"
 
 #. Cutebot Pro library block
+#, fuzzy
 msgid "CBPro set _ servo _ angle to _ deg"
-msgstr ""
+msgstr "CBPro nastav servo _ _ na úhel _ °"
 
 #. Cutebot Pro library block
 msgid "CBPro servo _ speed to _ (-100 to 100)"
-msgstr ""
+msgstr "CBPro nastav servo _ na rychlost _ % (-100 až 100)"
 
 #. Cutebot Pro library block
 msgid "CBPro set external motor power to _ (-100 to 100)"
-msgstr ""
+msgstr "CBPro nastav výkon externího motoru na _ % (-100-100)"
 
 #. Cutebot Pro library block
 msgid "CBPro stop external motor"
-msgstr ""
+msgstr "CBPro zastav externí motor"
 
 #. Cutebot Pro library block
 msgid "CBPro version"
-msgstr ""
+msgstr "CBPro verze"
 
 #. Wukong robot library label
 msgid "Wukong"
@@ -4600,15 +4604,15 @@ msgstr "pro tisk (200%)"
 
 #. Block selection right-click context menu
 msgid "duplicate selection"
-msgstr "duplikovat vybrané"
+msgstr "duplikovat výběr"
 
 #. Block selection right-click context menu
 msgid "drag selection"
-msgstr "přetáhnout vybrané"
+msgstr "přetáhnout výběr"
 
 #. Block selection right-click context menu
 msgid "delete selection"
-msgstr "smazat vybrané"
+msgstr "smazat výběr"
 
 #. Settings menu option
 msgid "about..."
@@ -7480,3 +7484,295 @@ msgstr "Planet X"
 #. Library name
 msgid "Nezha ESP32 Motor"
 msgstr "Nezha ESP32 motor"
+
+#. In MicroBlocks IDE project open
+msgid "URL?"
+msgstr "URL ?"
+
+#. In MicroBlocks IDE project save
+msgid "Untitled"
+msgstr "Bez názvu"
+
+#. In MicroBlocks IDE project open
+msgid "Open from URL"
+msgstr "Otevřít z URL"
+
+#. MicroBlocks IDE error message.
+msgid "Installing firmware on this board needs WebUSB, which only Chrome and Edge support. You can still program the board from this browser once it has MicroBlocks firmware."
+msgstr ""
+"Instalace firmware na tuto desku vyžaduje WebUSB podporovaný pouze "
+"prohlížeči Chrome a Edge. Mikropočítač můžete programovat z tohoto "
+"prohlížeče poté co do něj nainstalujete MicroBlocks firmware."
+
+#. MicroBlocks IDE error message.
+msgid "Could not open serial port"
+msgstr "Nelze otevřít sériový port"
+
+#. MicroBlocks IDE error message.
+msgid "Close any other program or browser tab using the board, then try again."
+msgstr ""
+"Zavřete ostatní programy nebo záložky prohlížeče pracující s mikropočítačem "
+"a pak zkuste znovu."
+
+#. Confirmation window
+msgid "Restore unsaved work?"
+msgstr "Obnovit neuložený projekt?"
+
+#. Scripting area right-click context menu
+msgid "paste all scripts from clipboard"
+msgstr "načíst všechny bloky ze schránky"
+
+#. Block selection right-click context menu
+msgid "run selected"
+msgstr "spustit vybrané bloky"
+
+#. Block selection right-click context menu
+msgid "stop selected"
+msgstr "zastavit vybrané bloky"
+
+#. Block selection right-click context menu
+msgid "toggle selected"
+msgstr "přepnout výběr"
+
+#. Block selection right-click context menu
+msgid "copy selection"
+msgstr "kopírovat výběr"
+
+#. MicroBlocks IDE information
+msgid "Installing firmware on this board is not supported yet in this version of MicroBlocks"
+msgstr ""
+"Instalace firmware do tohoto mikropočítače / desky není v této verzi "
+"MicroBlocks zatím podporována"
+
+#. MicroBlocks IDE information. Firmware install
+msgid "When the NeoPixels turn off"
+msgstr "Když NeoPixely zhasnou"
+
+#. MicroBlocks IDE information
+msgid "reconnect to the board by clicking the \"Connect\" button."
+msgstr "znovu připojte mikropočítač / desku tlačítkem \"Připojit\"."
+
+#. IDE confirmation message; opening serial port for firmware update
+msgid "Open port?"
+msgstr "Otevřít port ?"
+
+#. Load Library window shortcut option
+msgid "Libraries"
+msgstr "Knihovny"
+
+#. Load project window title
+msgid "Load Project"
+msgstr "Načíst projekt"
+
+#. MicroBlocks IDE information
+msgid "MicroBlocks hit an error, so the last thing it was doing may not have finished. Your project is still open: check that it looks right before you save it."
+msgstr ""
+"V MicroBlocks došlo k chybě takže poslední akce kterou prováděl nebyla "
+"dokončena. Projekt je stále otevřený: zkontrolujte jeho stav před uložením."
+
+#. MicroBlocks IDE error message.
+msgid "Program is too large to store on board."
+msgstr "Program je příliš velký a nelze jej uložit do mikropočítače / na desku."
+
+#. MicroBlocks IDE error message.
+msgid "This browser does not support WebBluetooth."
+msgstr "Tento prohlížeč nepodporuje WebBluetooth."
+
+#. MicroBlocks IDE information
+#, fuzzy
+msgid "Blocks and functions of %1 that this library does not define:"
+msgstr "Bloky a funkce %1 které nejsou v této knihovně definovány:"
+
+#. MicroBlocks IDE information
+#, fuzzy
+msgid "Blocks and functions of %1 that differ in this library:"
+msgstr "Bloky a funkce %1 které jsou v této knihovně odlišné:"
+
+#. MicroBlocks IDE error message.
+#, fuzzy
+msgid "Could not read: "
+msgstr "Nemohu najít/přečíst: "
+
+#. MicroBlocks IDE error message.
+#, fuzzy
+msgid "No library found in: "
+msgstr "Knihovna nenalezena v: "
+
+#. MicroBlocks IDE information. Firmware install
+msgid "Press the reset button on the board twice before proceeding."
+msgstr "Stiskněte dvakrát tlačítko reset na desce než budete pokračovat."
+
+#. MicroBlocks IDE information. Firmware install
+#, fuzzy
+msgid "Press the reset button on the board twice before proceeding. The NeoPixels should turn green."
+msgstr ""
+"Stiskněte dvakrát tlačítko reset na desce než budete pokračovat. Neopixely "
+"by se měly rozsvítit zeleně."
+
+#. MicroBlocks IDE error message.. Firmware install
+msgid "Could not find the firmware file %1."
+msgstr "Nelze najít soubor firmware %1."
+
+#. MicroBlocks IDE error message.. Firmware install
+#, fuzzy
+msgid "Could not find firmware files at"
+msgstr "Nelze najít soubory firmware na"
+
+#. MicroBlocks IDE information. Firmware install
+#, fuzzy
+msgid "The firmware file will be saved to your downloads folder."
+msgstr "Soubor firmware bude uložen do vašeho adresáře pro stahování."
+
+#. MicroBlocks IDE information. End erasing flash
+msgid "Done"
+msgstr "Hotovo"
+
+#. MicroBlocks IDE information. Module update
+msgid "%1 replaces %2"
+msgstr "%1 nahrazuje %2"
+
+#. Library name
+msgid "Distance (HC-SR04)"
+msgstr "Vzdálenost (HC-SR04)"
+
+#. Library name
+#, fuzzy
+msgid "Sound Primitives"
+msgstr "Zvuk - základy"
+
+#. New library window title
+msgid "Library name?"
+msgstr "Název knihovny ?"
+
+#. Load library from URL window title
+msgid "Library URL?"
+msgstr "URL knihovny ?"
+
+#. Block variable rename window title
+msgid "Variable Name?"
+msgstr "Jméno proměnné ?"
+
+#. MicroBlocks IDE message
+msgid "Erasing Flash..."
+msgstr "Probíhá mazání Flash ..."
+
+#, fuzzy
+msgid "Input name"
+msgstr "Zadej jméno"
+
+#. MicroBlocks IDE information message
+msgid "Error"
+msgstr "Chyba"
+
+#. Defined in filebrowser.js as a label. Appears in Load Project and Load Library windows
+msgid "Shortcuts"
+msgstr "Zkratky"
+
+#. Defined in libraryinfo.js as a label
+#, fuzzy
+msgid "None"
+msgstr "Nic"
+
+#. Button in Load Library window
+msgid "New Library"
+msgstr "Nová knihovna"
+
+#. MicroBlocks IDE. Script right-click context menu
+msgid "Show call tree"
+msgstr "Ukázat strom volání"
+
+#. Nezha ESP32 Motor library choice
+msgid "low"
+msgstr "nízká"
+
+#. Nezha ESP32 Motor library choice
+msgid "medium"
+msgstr "střední"
+
+#. Nezha ESP32 Motor library choice
+msgid "high"
+msgstr "vysoká"
+
+#. Nezha ESP32 Motor library choice
+msgid "mm"
+msgstr "mm"
+
+#. Nezha ESP32 Motor library choice
+msgid "counterclockwise"
+msgstr "proti směru hodinových ručiček"
+
+#. Nezha ESP32 Motor library choice
+msgid "shortest path"
+msgstr "nejkratší cesta"
+
+#. Nezha ESP32 Motor library choice
+msgid "no wait"
+msgstr "bez čekání"
+
+#. Nezha ESP32 Motor library choice
+msgid "wait until done"
+msgstr "čekej dokud se nedokončí"
+
+#. Nezha ESP32 Motor library block
+msgid "read motor _ absolute angle (degrees)"
+msgstr "přečti absolutní úhel (°) motoru _"
+
+#. Nezha ESP32 Motor library block
+msgid "read motor _ speed (degrees/sec)"
+msgstr "přečti rychlost motoru _ (°/sec)"
+
+#. Nezha ESP32 Motor library block
+msgid "read motor _ relative angle (degrees)"
+msgstr "přečti relativní úhel (°) motoru _"
+
+#. Nezha ESP32 Motor library block
+msgid "turn motor _ speed _ % direction _ to absolute angle _"
+msgstr "otoč motor _ rychlostí _ % ve směru _ do úhlu _ °"
+
+#. Nezha ESP32 Motor library block
+msgid "turn motor _ speed _ % direction _ for _ _"
+msgstr "roztoč motor _ rychlostí _ % ve směru _ po _ _"
+
+#. Nezha ESP32 Motor library block
+msgid "reset motor _ position"
+msgstr "vynuluj pozici motoru _"
+
+#. Nezha ESP32 Motor library block
+#, fuzzy
+msgid "drive robot at _ % speed _ with _ acceleration for _ _"
+msgstr "robot jeď na _ % rychlost _ s akcelerací _ po _ _"
+
+#. Nezha ESP32 Motor library block
+#, fuzzy
+msgid "run robot left wheel speed _ % right wheel speed _ %"
+msgstr "robot levé kolo rychlost _ % pravé kolo rychlost _ %"
+
+#. Nezha ESP32 Motor library block
+#, fuzzy
+msgid "set robot left wheel _ right wheel _"
+msgstr "nastav robota - pravé kolo _ levé kolo _"
+
+#. Nezha ESP32 Motor library block
+msgid "set robot wheel diameter _ mm"
+msgstr "nastav průměr kola robota na _ mm"
+
+#. Nezha ESP32 Motor library block
+msgid "stop robot"
+msgstr "zastav robota"
+
+#. Nezha ESP32 Motor library block
+#, fuzzy
+msgid "turn robot at _ % speed with _ acceleration by _ degrees"
+msgstr "otoč robota rychlostí _ % s akcelerací _ o úhel _ °"
+
+#. Nezha ESP32 Motor library block
+msgid "start motor _ speed _ % direction _"
+msgstr "spusť motor _ rychlostí _ % ve směru _"
+
+#. Nezha ESP32 Motor library block
+msgid "stop motor _"
+msgstr "zastav motor _"
+
+#. MicroBlocks IDE. Script right-click context menu
+msgid "show call tree"
+msgstr "ukázat strom volání"

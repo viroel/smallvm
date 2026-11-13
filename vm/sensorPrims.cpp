@@ -2542,10 +2542,10 @@ OBJ primMagneticField(int argCount, OBJ *args) {
 	#elif defined(ARDUINO_BBC_MICROBIT) || defined(ARDUINO_CALLIOPE_MINI) || \
 			defined(ARDUINO_NRF52840_CLUE) || defined(ARDUINO_SINOBIT)
 		readMagMicrobitV1CalliopeClue(buf);
-		processMessage(); // process messages now
+		taskSleep(-1); // let the VM handle messages once this task yields, not mid-primitive
 	#elif defined(ARDUINO_BBC_MICROBIT_V2) || defined(CALLIOPE_V3)
 		readMagMicrobitV2(buf);
-		processMessage(); // process messages now
+		taskSleep(-1);
 	#else
 		return zeroObj;
 	#endif

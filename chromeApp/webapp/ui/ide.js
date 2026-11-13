@@ -172,9 +172,9 @@ IDE.populateTopBar = function (container) {
 		'ide.downloadProgress',
 		(e) => {
 			let colors = [
-				['lightgreen', 'var(--color-blue-grey-850)'],
-				['green', 'var(--color-blue-grey-850)'],
-				['darkgreen', 'var(--color-blue-grey-850)']
+				['var(--color-boolean-green)', 'var(--color-blue-grey-850)'],
+				['var(--color-boolean-green)', 'var(--color-blue-grey-850)'],
+				['var(--color-boolean-green)', 'var(--color-blue-grey-850)']
 			];
 			if (typeof e.detail.value != 'object') { return; }
 			let phase = e.detail.value[0];
@@ -380,6 +380,18 @@ document.addEventListener('scripts.redoAvailable', e => {
 	}
 });
 
+// Connection and other states
+document.addEventListener(
+	'board.connected',
+	(e) => {
+		if (IDE.element == null) return; // IDE not yet initialized
+		if (e.detail.value) {
+			IDE.element.classList.add('--is-connected');
+		} else {
+			IDE.element.classList.remove('--is-connected');
+		}
+	}
+);
 
 // Dark Mode
 document.addEventListener('preference.darkMode', e => {

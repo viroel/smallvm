@@ -107,6 +107,9 @@ static void flashUserLED() {
 }
 
 extern "C" void consolePrint(const char *s) {
+	// Note: on micro:bit v2 and Calliope V3 (non-BLE), serialWrite() puts UART0 in UARTE mode,
+	// where Serial.print() writes a register UARTE mode does not have, so it is not safe there.
+	// Nothing calls this on those boards today.
 	Serial.println(s);
 }
 
@@ -631,6 +634,38 @@ static int serialWrite(uint8 *buf, int count) {
 	return sent;
 }
 
+#elif (defined(ARDUINO_BBC_MICROBIT_V2) || defined(CALLIOPE_V3)) && !defined(BLE_IDE)
+
+// The nRF5 Arduino core's Serial.write() has no transmit buffer: it waits for each byte to leave
+// the UART (87 usecs at 115200 baud), so a 40-byte message stalls the VM for 3.5 msecs. Instead,
+// switch UART0 to UARTE mode and send with EasyDMA, as serialPrims.cpp does for UARTE1, and
+// return at once. Bytes are copied to ideTxBuf because outBuf can change during the transfer.
+// Receive still goes through the core's interrupt handler, which reads the legacy RXD register;
+// that register is not in the UARTE register map but works, as it has for UARTE1 in serialPrims.cpp.
+// Once UARTE mode is on, Serial.write() must not be used on UART0 (see consolePrint).
+
+static uint8 ideTxBuf[256];
+static int ideTxActive = false; // a DMA transfer was started and its ENDTX not yet seen
+
+static int serialWrite(uint8 *buf, int count) {
+	if (NRF_UARTE0->ENABLE != UARTE_ENABLE_ENABLE_Enabled) {
+		// first call, or Serial.begin() has run since (see restartSerial())
+		NRF_UARTE0->ENABLE = UARTE_ENABLE_ENABLE_Enabled;
+		ideTxActive = false;
+	}
+	if (ideTxActive && !NRF_UARTE0->EVENTS_ENDTX) return 0; // last transfer is still in progress
+	if (count <= 0) return 0;
+	if (count > (int) sizeof(ideTxBuf)) count = sizeof(ideTxBuf);
+
+	memcpy(ideTxBuf, buf, count);
+	NRF_UARTE0->EVENTS_ENDTX = 0;
+	NRF_UARTE0->TXD.PTR = (uint32_t) ideTxBuf;
+	NRF_UARTE0->TXD.MAXCNT = count;
+	NRF_UARTE0->TASKS_STARTTX = 1;
+	ideTxActive = true;
+	return count;
+}
+
 #else
 
 static int serialWrite(uint8 *buf, int count) { return Serial.write(buf, count); }
@@ -715,6 +750,12 @@ void BLE_resumeAdvertising() { }
 void restartSerial() {
 	// Needed to work around a micro:bit issue that Serial can lock up during Flash compaction.
 
+#if (defined(ARDUINO_BBC_MICROBIT_V2) || defined(CALLIOPE_V3)) && !defined(BLE_IDE)
+	// let a DMA transfer in progress finish; serialWrite() re-enables UARTE mode
+	uint32 start = microsecs();
+	while (ideTxActive && !NRF_UARTE0->EVENTS_ENDTX &&
+		((microsecs() - start) < 30000)) { }
+#endif
 	Serial.end();
 	Serial.begin(115200);
 }

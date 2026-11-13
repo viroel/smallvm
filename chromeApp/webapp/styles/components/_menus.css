@@ -156,6 +156,86 @@
 }
 
 
+.menu__button-color {
+	height: var(--space-16);
+	min-width: max-content;
+
+	display: flex;
+	gap: var(--space-8);
+	align-items: center;
+
+	font-size: var(--fontSize-14);
+	letter-spacing: 0.025em;
+
+	.menu__button-color-sample {
+		width: var(--space-32);
+		height: var(--space-16);
+
+		border: 1px solid var(--color-black);
+		border-radius: var(--borderRadius-max);
+
+		&.--output {
+			background-color: var(--color-blocks-output);
+			border-color: var(--color-blocks-output-border);
+		}
+
+		&.--input {
+			background-color: var(--color-blocks-input);
+			border-color: var(--color-blocks-input-border);
+		}
+
+		&.--pins {
+			background-color: var(--color-blocks-pins);
+			border-color: var(--color-blocks-pins-border);
+		}
+
+		&.--comm {
+			background-color: var(--color-blocks-comm);
+			border-color: var(--color-blocks-comm-border);
+		}
+
+		&.--control {
+			background-color: var(--color-blocks-control);
+			border-color: var(--color-blocks-control-border);
+		}
+
+		&.--operators {
+			background-color: var(--color-blocks-operators);
+			border-color: var(--color-blocks-operators-border);
+		}
+
+		&.--variables {
+			background-color: var(--color-blocks-variables);
+			border-color: var(--color-blocks-variables-border);
+		}
+
+		&.--output {
+			background-color: var(--color-blocks-output);
+			border-color: var(--color-blocks-output-border);
+		}
+
+		&.--data {
+			background-color: var(--color-blocks-data);
+			border-color: var(--color-blocks-data-border);
+		}
+
+		&.--my-blocks {
+			background-color: var(--color-blocks-myBlocks);
+			border-color: var(--color-blocks-myBlocks-border);
+		}
+
+		&.--generic {
+			background-color: var(--color-blue-grey-400);
+			border-color: var(--color-blue-grey-700);
+		}
+	}
+
+	l- {
+		display: block;
+	}
+}
+
+
 
 
 
@@ -175,15 +255,5 @@
 
 	.--context-menu & {
 		border-color: var(--color-blue-grey-100);
-	}
-}
-
-/* MARC: DESTROY THIS */
-.menu__button .category--color-item {
-	display: flex;
-	gap: 1em;
-	.color--rectangle {
-		width: 42px;
-		height: 20px;
 	}
 }

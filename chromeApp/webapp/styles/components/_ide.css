@@ -63,9 +63,9 @@
 		display: block;
 		height: var(--space-48);
 
-		position: absolute;
+		position: fixed;
 		right: 0;
-		bottom: 0;
+		bottom: var(--space-32);
 		left: 0;
 
 		background: linear-gradient(rgba(0,0,0,0), var(--color-blue-grey-850));

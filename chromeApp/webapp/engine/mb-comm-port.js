@@ -121,10 +121,18 @@ class MB_CommPort {
 		if (!this.serialPort) return; // user cancelled
 		const opened = await this.serialPort.open({ baudRate: 115200 })
 			.then(() => true)
-			.catch((e) => { window.alert(e); return false; });
+			.catch((e) => { this.reportOpenFailure(e); return false; });
 		if (!opened) { this.serialPort = null; return; }
 		this.serialReader = this.serialPort.readable.getReader();
 		this.serialReadLoop();
+	}
+
+	reportOpenFailure(e) {
+		// The browser reports a port held by another program or tab as a NetworkError.
+		const msg = (e.name === 'NetworkError') ?
+			localized('Close any other program or browser tab using the board, then try again.') : String(e);
+		MB_editor.inform(msg, localized('Could not open serial port'));
+		this.openFailed = true; // the user has been told why
 	}
 
 	async serialDisconnect() {
@@ -265,16 +273,16 @@ class MB_CommPort {
 		// and the bare-Node seam connects to it with no DOM at all.
 		if ((this.boardieListener == null) && ('undefined' != typeof window)) {
 			this.boardieListener = (event) => {
-				// Only the frame this port connected to, and only a frame that
-				// has a message in it: gpSupport.js handleMessage gates on the
-				// same first byte, and every MicroBlocks message starts with
-				// one that is not zero.
+				// Only bytes from the frame this port connected to. A post is a slice
+				// of Boardie's output buffer, not a whole message, so a message can be
+				// split over two posts and the second can start with any byte, zero
+				// included.
 				const frame = this.boardieFrame;
 				if (frame == null) return;
 				if (event.source && frame.contentWindow &&
 					(event.source !== frame.contentWindow)) return;
 				const msg = event.data;
-				if ((msg instanceof Uint8Array) && msg.length && msg[0]) {
+				if ((msg instanceof Uint8Array) && msg.length) {
 					this.inputBuffers.push(msg);
 				}
 			};

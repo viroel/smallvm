@@ -1,4 +1,4 @@
-module 'Nezha Pro'
+module 'Nezha Pro' Output
 author MicroBlocks
 version 1 2 
 choices nezhaPro_turnStyle 'nezhaPro;by shortest path' clockwise 'counter-clockwise' 

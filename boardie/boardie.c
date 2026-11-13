@@ -155,6 +155,15 @@ void initSound() {
 	});
 };
 
+// Random Seed
+
+static void initRandomSeed() {
+	// Seed the random number generator so each start gives a different sequence, as on a board.
+	srand(EM_ASM_INT({
+		return crypto.getRandomValues(new Uint32Array(1))[0];
+	}));
+}
+
 // System Functions
 
 const char * boardType() {
@@ -253,6 +262,7 @@ int main(int argc, char *argv[]) {
 	initMessageService();
 	initKeyboardHandler();
 	initSound();
+	initRandomSeed();
 
 	syncFiles();
 

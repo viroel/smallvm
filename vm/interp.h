@@ -94,6 +94,7 @@ typedef struct {
 	uint8 status; // MicroBlocksTaskStatus_t, stored as a byte
 	uint8 taskChunkIndex; // chunk index of the top-level stack for this task
 	uint8 currentChunkIndex; // chunk index when inside a function
+	uint8 startID; // new on every start; 0 when the task is cleared
 	uint32 wakeTime;
 	OBJ code;
 	int ip; // ip offset in code

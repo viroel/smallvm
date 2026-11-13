@@ -1,6 +1,7 @@
 TODO
 ====
 
+
 [x] Crear un TODO en català perquè no l'entengui ningú més
 [x] Afegir classe a blocs alternatius del menu contextual de blocs
 [x] Estilitzar ↑↑↑ perquè siguin d'una mida raonable
@@ -17,11 +18,10 @@ TODO
 [ ] Nat? Revisar: windowButtons.setAttribute('data-undraggable', true); (a buttons)
 [ ] Nat: Moviment estrany del canvas al col·lapsar i expandir
 [ ] Considerar un sol component per a controls de zoom (scripts pane, graph window)
-[ ] Kram + Nat: Estilar progress
 [ ] Kram + Nat: Netejar imatges no usades
 [ ] Kram: Unificar els arxius CSS en un sol import
 [ ] Kram: Botó de biblioteca tallat en català: ( Afegeix una bibliotec )
-[ ] Kram: Gradient de left panel mal posicionat
+[x] Kram: Gradient de left panel mal posicionat
 
 
 Windows
@@ -29,6 +29,9 @@ Windows
 [x] Windows: Quan fas el primer resize es lia un pollastre
 [ ] Windows: Alçada mínima d'acord als continguts (moltes no han de ser adaptables)
 [x] Nat: About -> Fer microblocks.fun clicable
+[ ] Al clicar en una finestra ha de passar a primer pla
+[ ] Scrollbars as CSS variable to keep consistency
+
 
 Opció?
 - Decidir dues o tres amplades estàndard de finestra (small, medium, large)
@@ -45,6 +48,7 @@ Spinner
 =======
 [ ] Do not switch browser tabs label
 [ ] Make ESC work
+[ ] Windows appear on top of the overlay loader window
 
 
 Menus
@@ -54,3 +58,5 @@ Menus
 [ ] My Blocks -> Context menu: Show and Hide, or just a check?
 [ ] Blocks -> Context menu: Show and Hide, or just a check?
 [x] Glitch, al clicar al menú fa un joc estrany amb el ✔
+[ ] Show and Hide Boardie instead Open and Close
+[ ] Kram: Estilar progress diferent

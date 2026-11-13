@@ -249,6 +249,8 @@ void initTasks() {
 	taskCount = 0;
 }
 
+static uint8 lastStartID = 0;
+
 void startTaskForChunk(uint8 chunkIndex) {
 	// Start a task for the given chunk, if there is not one already.
 
@@ -271,6 +273,8 @@ void startTaskForChunk(uint8 chunkIndex) {
 
 	memset(&tasks[i], 0, sizeof(Task));
 	tasks[i].status = running;
+	if (0 == ++lastStartID) lastStartID = 1; // 0 is reserved for a cleared task
+	tasks[i].startID = lastStartID;
 	tasks[i].taskChunkIndex = chunkIndex;
 	tasks[i].currentChunkIndex = chunkIndex;
 	tasks[i].code = chunks[chunkIndex].code;
@@ -370,6 +374,7 @@ extern OBJ lastBroadcast;
 void startReceiversOfBroadcast(char *msg, int byteCount) {
 	// Start tasks for chunks with hat blocks matching the given broadcast if not already running.
 
+	// save the last broadcast message
 	lastBroadcast = newStringFromBytes(msg, byteCount);
 	for (int i = 0; i < MAX_CHUNKS; i++) {
 		int chunkType = chunks[i].chunkType;
@@ -808,9 +813,9 @@ void outputString(const char *s) {
 	waitForOutbufBytes(byteCount + 50);
 	sendMessage(outputValueMsg, 255, (byteCount + 1), data);
 
-	// wait for string to be sent:
-	while (ideConnected() && (OUTBUF_BYTES() > 0)) {
-		sendData(); // should eventually create enough room for bytesNeeded
+	int debug = false; // // to debug VM crashes, change to true to force output before proceeding
+	while (debug && ideConnected() && (OUTBUF_BYTES() > 0)) {
+		sendData(); // send data until entire string is sent
 	}
 }
 
@@ -886,16 +891,13 @@ static void sendVersionString(int chunkIndex) {
 }
 
 void sendBroadcastToIDE(char *s, int len) {
+	taskSleep(1); // yield even when not connected to IDE. Also avoid Boardie lockup
+	if (!ideConnected()) { return; }
 	int spaceNeeded = len + 50; // leave room for header and a few other messages
 	if (!hasOutputSpace(spaceNeeded)) {
-		if (!ideConnected()) {
-			return; // apparently not connected to IDE
-		} else {
-			waitForOutbufBytes(spaceNeeded);
-		}
+		waitForOutbufBytes(spaceNeeded);
 	}
 	sendMessage(broadcastMsg, 0, len, s);
-	taskSleep(1); // avoid Boardie lockup
 }
 
 void sendSayForChunk(char *s, int len, uint8 chunkIndex) {

@@ -225,10 +225,11 @@
 					// Started first, so the IDE keeps running while a link's project asks a question.
 					requestAnimationFrame(loop);
 					// Before a link's project, so the work a crash left behind is offered first.
-					if (MB_editor.autosave) await MB_editor.autosave.start();
+					// Restored work stands in for the link, which may be a different project.
+					const restored = MB_editor.autosave && (await MB_editor.autosave.start());
 					try {
 						// A link the page was opened with.
-						await MB_editor.importFromURL(location.href);
+						if (!restored) await MB_editor.importFromURL(location.href);
 					} catch (error) {
 						// The IDE still runs: a link nobody can open is not a dead page.
 						console.error('Could not open this link:', error);

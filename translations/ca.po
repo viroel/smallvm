@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: interest@microblocks.fun\n"
 "POT-Creation-Date: 2024-10-30 07:10+0200\n"
-"PO-Revision-Date: 2026-11-01 18:39+0000\n"
+"PO-Revision-Date: 2026-11-10 11:02+0000\n"
 "Last-Translator: Josep Ferràndiz <josep.ferrandiz@gmail.com>\n"
 "Language-Team: Catalan <https://hosted.weblate.org/projects/microblocks/ide/"
 "ca/>\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.11.dev0\n"
+"X-Generator: Weblate 2026.11.2.dev0\n"
 
 #. "Output" blocks category label
 msgid "cat;Output"
@@ -9036,7 +9036,7 @@ msgstr "esborra el bloc obsolet..."
 
 #. Block right-click context menu
 msgid "add to library"
-msgstr "Afegeix a la biblioteca"
+msgstr "afegeix a la biblioteca"
 
 #. Block in Comm category
 msgid "rx pin _ tx pin _"
@@ -9613,3 +9613,456 @@ msgstr "Planet X Sense Fils"
 #. Library name
 msgid "Planet X Support"
 msgstr "Planet X Suport"
+
+#. PU Robot library block
+msgid "PU robot trim left foot _ left leg _ right foot _ right leg _ head yaw _ head pitch _"
+msgstr ""
+"PU robot ajusta peu esquerre _ cama esquerra _ peu dret _ cama dreta _ #BR# "
+"gir horitzontal del cap _ inclinació vertical del cap _"
+
+#. In MicroBlocks IDE project save
+msgid "Untitled"
+msgstr "Sense títol"
+
+#. In MicroBlocks IDE project open
+msgid "Open from URL"
+msgstr "Obre des d'una URL"
+
+#. In MicroBlocks IDE project open
+msgid "URL?"
+msgstr "URL?"
+
+#. MicroBlocks IDE error message.
+msgid "Installing firmware on this board needs WebUSB, which only Chrome and Edge support. You can still program the board from this browser once it has MicroBlocks firmware."
+msgstr ""
+"Per instal·lar el firmware en aquesta placa cal utilitzar WebUSB, que només "
+"és compatible amb Chrome i Edge. Un cop instal·lat el firmware de "
+"MicroBlocks, podràs programar la placa des d'aquest navegador."
+
+#. MicroBlocks IDE error message.
+msgid "Could not open serial port"
+msgstr "No s'ha pogut obrir el port sèrie"
+
+#. MicroBlocks IDE error message.
+msgid "Close any other program or browser tab using the board, then try again."
+msgstr ""
+"Tanca qualsevol altre programa o pestanya del navegador que estigui "
+"utilitzant la placa i torna-ho a provar."
+
+#. Confirmation window
+msgid "Restore unsaved work?"
+msgstr "Vols recuperar els canvis no desats?"
+
+#. Scripting area right-click context menu
+msgid "paste all scripts from clipboard"
+msgstr "enganxa tots els programes del porta-retalls"
+
+#. Block selection right-click context menu
+msgid "copy selection"
+msgstr "copia la selecció"
+
+#. Block selection right-click context menu
+msgid "run selected"
+msgstr "executa la selecció"
+
+#. Block selection right-click context menu
+msgid "stop selected"
+msgstr "atura la selecció"
+
+#. Block selection right-click context menu
+msgid "toggle selected"
+msgstr "commuta la selecció"
+
+#. MicroBlocks IDE information
+msgid "Installing firmware on this board is not supported yet in this version of MicroBlocks"
+msgstr ""
+"El firmware d'aquesta placa no és compatible amb aquesta versió de "
+"MicroBlocks"
+
+#. MicroBlocks IDE information. Firmware install
+msgid "When the NeoPixels turn off"
+msgstr "Quan s'apaguin els NeoPíxels"
+
+#. MicroBlocks IDE information
+msgid "reconnect to the board by clicking the \"Connect\" button."
+msgstr "Torna a connectar la placa fent clic al botó \"Connecta\"."
+
+#. IDE confirmation message; opening serial port for firmware update
+msgid "Open port?"
+msgstr "Voleu obrir el port sèrie?"
+
+#. Load Library window shortcut option
+msgid "Libraries"
+msgstr "Biblioteca"
+
+#. Load project window title
+msgid "Load Project"
+msgstr "Carrega el Projecte"
+
+#. MicroBlocks IDE information
+msgid "MicroBlocks hit an error, so the last thing it was doing may not have finished. Your project is still open: check that it looks right before you save it."
+msgstr ""
+"MicroBlocks ha detectat un error i és possible que l'última operació no "
+"s'hagi completat. El projecte continua obert. Comprova que tot sigui "
+"correcte abans de desar-lo."
+
+#. MicroBlocks IDE error message.
+msgid "Program is too large to store on board."
+msgstr "El programa és massa gran per desar-lo a la placa."
+
+#. MicroBlocks IDE error message.
+msgid "This browser does not support WebBluetooth."
+msgstr "Aquest navegador no és compatible amb WebBluetooth."
+
+#. MicroBlocks IDE information
+msgid "Blocks and functions of %1 that this library does not define:"
+msgstr "Blocs i funcions de %1 que aquesta biblioteca no defineix:"
+
+#. MicroBlocks IDE information
+msgid "Blocks and functions of %1 that differ in this library:"
+msgstr "Blocs i funcions de %1 que són diferents en aquesta biblioteca:"
+
+#. MicroBlocks IDE error message.
+msgid "Could not read: "
+msgstr "No s'ha pogut llegir: "
+
+#. MicroBlocks IDE error message.
+msgid "No library found in: "
+msgstr "No s'ha trobat cap biblioteca a: "
+
+#. MicroBlocks IDE information. Firmware install
+msgid "Press the reset button on the board twice before proceeding."
+msgstr "Prem dues vegades el botó de reinici de la placa abans de continuar."
+
+#. MicroBlocks IDE information. Firmware install
+msgid "Press the reset button on the board twice before proceeding. The NeoPixels should turn green."
+msgstr ""
+"Prem dues vegades el botó de reinici de la placa abans de continuar. Els "
+"NeoPíxels s'haurien d'il·luminar de color verd."
+
+#. MicroBlocks IDE error message.. Firmware install
+msgid "Could not find the firmware file %1."
+msgstr "No s'ha pogut trobar el fitxer de firmware %1."
+
+#. MicroBlocks IDE error message.. Firmware install
+msgid "Could not find firmware files at"
+msgstr "No s'han pogut trobar els fitxers de firmware a"
+
+#. MicroBlocks IDE information. Firmware install
+msgid "The firmware file will be saved to your downloads folder."
+msgstr "El fitxer de firmware es desarà a la carpeta de baixades."
+
+#. MicroBlocks IDE information. End erasing flash
+msgid "Done"
+msgstr "Fet"
+
+#. MicroBlocks IDE information. Module update
+msgid "%1 replaces %2"
+msgstr "%1 substitueix %2"
+
+#. Library name
+msgid "Distance (HC-SR04)"
+msgstr "Distància (HC-SR04)"
+
+#. Library name
+msgid "Sound Primitives"
+msgstr "Primitives de So"
+
+#. New library window title
+msgid "Library name?"
+msgstr "Nom de la biblioteca?"
+
+#. Load library from URL window title
+msgid "Library URL?"
+msgstr "URL de la Biblioteca?"
+
+#. Block variable rename window title
+msgid "Variable Name?"
+msgstr "Nom de la Variable?"
+
+#. MicroBlocks IDE message
+msgid "Erasing Flash..."
+msgstr "Esborrant la memòria Flash..."
+
+msgid "Input name"
+msgstr "Nom de l'entrada"
+
+#. MicroBlocks IDE information message
+msgid "Error"
+msgstr "Error"
+
+#. Defined in filebrowser.js as a label. Appears in Load Project and Load Library windows
+msgid "Shortcuts"
+msgstr "Dreceres"
+
+#. Defined in libraryinfo.js as a label
+msgid "None"
+msgstr "Cap"
+
+#. Button in Load Library window
+msgid "New Library"
+msgstr "Nova Biblioteca"
+
+#. MicroBlocks IDE. Script right-click context menu
+msgid "show call tree"
+msgstr "mostra l'arbre de crides"
+
+#. PU Robot library name
+msgid "PU Robot"
+msgstr "PU Robot"
+
+#. PU Robot menu option
+msgid "pu;left eye"
+msgstr "ull esquerre"
+
+#. PU Robot menu option
+msgid "pu;right eye"
+msgstr "ull dret"
+
+#. PU Robot menu option
+msgid "pu;both eyes"
+msgstr "ambdós ulls"
+
+#. PU Robot menu option
+msgid "pu;joystick button"
+msgstr "botó del joystick"
+
+#. PU Robot menu option
+msgid "B1"
+msgstr "B1"
+
+#. PU Robot menu option
+msgid "B2"
+msgstr "B2"
+
+#. PU Robot menu option
+msgid "B3"
+msgstr "B3"
+
+#. PU Robot menu option
+msgid "B4"
+msgstr "B4"
+
+#. PU Robot menu option
+msgid "A"
+msgstr "A"
+
+#. PU Robot menu option
+msgid "pu;touch"
+msgstr "tàctil"
+
+#. PU Robot menu option
+msgid "cm"
+msgstr "cm"
+
+#. PU Robot menu option
+msgid "inch"
+msgstr "polzades"
+
+#. PU Robot menu option
+msgid "pu;all"
+msgstr "tots"
+
+#. PU Robot menu option
+msgid "pu;left foot"
+msgstr "peu esquerre"
+
+#. PU Robot menu option
+msgid "pu;left leg"
+msgstr "cama esquerra"
+
+#. PU Robot menu option
+msgid "pu;right foot"
+msgstr "peu dret"
+
+#. PU Robot menu option
+msgid "pu;right leg"
+msgstr "cama dreta"
+
+#. PU Robot menu option
+msgid "pu;head yaw"
+msgstr "gir del cap"
+
+#. PU Robot menu option
+msgid "pu;head pitch"
+msgstr "inclinació del cap"
+
+#. PU Robot menu option
+msgid "pu;forward"
+msgstr "endavant"
+
+#. PU Robot menu option
+msgid "pu;backward"
+msgstr "endarrere"
+
+#. PU Robot menu option
+msgid "pu;side left"
+msgstr "lateralment cap a l'esquerra"
+
+#. PU Robot menu option
+msgid "pu;side right"
+msgstr "lateralment a la dreta"
+
+#. PU Robot menu option
+msgid "pu;turn left"
+msgstr "gira a l'esquerra"
+
+#. PU Robot menu option
+msgid "pu;turn right"
+msgstr "gira a la dreta"
+
+#. PU Robot menu option
+msgid "pu;greet"
+msgstr "saluda"
+
+#. PU Robot menu option
+msgid "pu;rest"
+msgstr "descansa"
+
+#. PU Robot menu option
+msgid "pu;explore"
+msgstr "explora"
+
+#. PU Robot menu option
+msgid "pu;jump"
+msgstr "salta"
+
+#. PU Robot menu option
+msgid "pu;kick"
+msgstr "xuta"
+
+#. PU Robot menu option
+msgid "pu;dance"
+msgstr "balla"
+
+#. PU Robot library block
+msgid "PU robot initialize"
+msgstr "PU robot inicialitza"
+
+#. PU Robot library block
+msgid "PU robot radio group _"
+msgstr "PU robot grup de ràdio _"
+
+#. PU Robot library block
+msgid "PU robot action _"
+msgstr "PU robot acció _"
+
+#. PU Robot library block
+msgid "PU robot move _"
+msgstr "PU robot mou-te _"
+
+#. PU Robot library block
+msgid "for _ steps speed _ (1-10)"
+msgstr "_ passos a velocitat _ (1-10)"
+
+#. PU Robot library block
+msgid "PU robot stop"
+msgstr "PU robot atura't"
+
+#. PU Robot library block
+msgid "in neutral pose _"
+msgstr "en posició de descans _"
+
+#. PU Robot library block
+msgid "PU robot set _ servo to _ degrees"
+msgstr "PU robot posa el servo _ a _ graus"
+
+#. PU Robot library block
+msgid "PU robot eyes left _ right _"
+msgstr "PU robot ulls esquerra _ dret _"
+
+#. PU Robot library block
+msgid "PU robot set _ brightness _ (0-100)%"
+msgstr "PU robot _ brillantor _ (0-100)%"
+
+#. PU Robot library block
+msgid "PU robot ambience light _ color _"
+msgstr "PU robot llum ambiental _ color _"
+
+#. PU Robot library block
+msgid "PU robot clear ambience lights"
+msgstr "PU robot apaga els llums ambientals"
+
+#. PU Robot library block
+msgid "PU robot distance in _"
+msgstr "PU robot distància en _"
+
+#. PU Robot library block
+msgid "PU robot body roll (degrees)"
+msgstr "PU robot inclinació lateral del cos (graus)"
+
+#. PU Robot library block
+msgid "PU robot body pitch (degrees)"
+msgstr "PU robot inclinació del cos (graus)"
+
+#. PU Robot library block
+msgid "PU robot controller joystick _ (-100 to 100)"
+msgstr "PU robot joystick del comandament _ (-100 a 100)"
+
+#. PU Robot library block
+msgid "PU robot controller acceleration _"
+msgstr "PU robot acceleració _ del comandament"
+
+#. PU Robot library block
+msgid "PU robot _ received?"
+msgstr "PU robot s'ha rebut _ ?"
+
+#. PU Robot library block
+msgid "PU robot move to pose _ speed _ (1-10)"
+msgstr "PU robot mou-te a la posició _ a velocitat _ (1-10)"
+
+#. PU Robot library block
+msgid "PU robot calibration pose"
+msgstr "PU robot posició de calibratge"
+
+#. PU Controller library name
+msgid "PU Controller"
+msgstr "PU Comandament"
+
+#. PU Controller library block
+msgid "PU controller radio group _"
+msgstr "PU comand grup de ràdio _"
+
+#. PU Controller library block
+msgid "PU controller automatic send _"
+msgstr "PU comand enviament automàtic _"
+
+#. PU Controller library block
+msgid "PU controller get pressed button"
+msgstr "PU comand botó premut"
+
+#. PU Controller library block
+msgid "return index _"
+msgstr "retorna l'índex _"
+
+#. PU Controller library block
+msgid "PU controller joystick _ (-100 to 100)"
+msgstr "PU comand posició _ del joystick (-100 a 100)"
+
+#. PU Controller library block
+msgid "PU controller _ pressed?"
+msgstr "PU comand s'ha premut _ ?"
+
+#. PU Controller library block
+msgid "PU controller acceleration _"
+msgstr "PU comand acceleració _"
+
+#. PU Controller library block
+msgid "PU controller send joystick _"
+msgstr "PU comand envia la posició _ del joystick"
+
+#. PU Controller library block
+msgid "PU controller send acceleration _"
+msgstr "PU comand envia l'acceleració _"
+
+#. PU Controller library block
+msgid "PU controller send button _"
+msgstr "PU comand envia el botó _"
+
+#. PU Controller library block
+msgid "PU controller send name _ value _"
+msgstr "PU comand envia el parell nom _ valor _"
+
+#. PU Controller library default value (puControllerSendValue)
+msgid "name"
+msgstr "nom"

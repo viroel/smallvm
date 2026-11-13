@@ -356,7 +356,7 @@ static void serialWriteSync(uint8 *buf, int bytesToWrite) {
 				updateMicrobitDisplay(); // update display while sending to avoid flicker
 			#endif
 			checkButtons();
-			processMessage();
+			captureIncomingBytes();
 			delay(1);
 		}
 	}
@@ -454,16 +454,20 @@ static OBJ primSerialWrite(int argCount, OBJ *args) {
 		serialWriteSync((uint8 *) &FIELD(arg, 0), BYTES(arg));
 	} else if (IS_TYPE(arg, ListType)) { // list
 		int listCount = obj2int(FIELD(arg, 0));
+		if (listCount > TX_BUF_SIZE) return fail(serialWriteTooBig);
 		for (int i = 1; i <= listCount; i++) {
 			OBJ item = FIELD(arg, i);
 			if (isInt(item)) {
 				int byteValue = obj2int(item);
-				if (byteValue > 255) return fail(byteOutOfRange);
+				if ((byteValue & 255) != byteValue) return fail(byteOutOfRange);
 				uint8 oneByte = byteValue;
 				serialWriteSync(&oneByte, 1);
+			} else {
+				return fail(needsListOfIntegers);
 			}
 		}
 	}
+	taskSleep(-1); // let the VM handle messages once this task yields
 	return falseObj;
 }
 

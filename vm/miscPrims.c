@@ -518,6 +518,19 @@ static OBJ primLaunchCodeSnapshot(int argCount, OBJ *args) {
 	return falseObj;
 }
 
+static OBJ primInterpolate(int argCount, OBJ *args) {
+	if (argCount < 3) return fail(notEnoughArguments);
+	if (!isInt(args[0]) || !isInt(args[1]) || !isInt(args[2])) return fail(needsIntegerError);
+
+	int start = obj2int(args[0]);
+	int end = obj2int(args[1]);
+	int percent = obj2int(args[2]);
+	if (percent <= 0) return args[0]; // return start
+	if (percent >= 100) return args[1]; // return end
+
+	return int2obj((percent * (end - start)) / 100);
+}
+
 static OBJ primDUELinkPID(int argCount, OBJ *args) {
 	return int2obj(*((uint32 *) 0x1FFF7004) & 0xFFFFFF);
 }
@@ -765,6 +778,7 @@ static OBJ primDUESetDate(int argCount, OBJ *args) {
 // Primitives
 
 static PrimEntry entries[] = {
+	{"interpolate", primInterpolate}, // first in primitive list to maximize dispatch speed
 	{"sqrt", primIntSqrt},
 	{"sin", primIntSine},
 	{"version", primVersion},

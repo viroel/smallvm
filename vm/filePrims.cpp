@@ -285,7 +285,7 @@ static OBJ primAppendLine(int argCount, OBJ *args) {
 		fileEntry[i].file.flush();
 		if (oldPos != oldSize) file.seek(oldPos, SeekSet); // reset position for reading
 	}
-	processMessage();
+	taskSleep(-1); // let the VM handle messages once this task yields, not mid-primitive
 	return falseObj;
 }
 
@@ -307,7 +307,7 @@ static OBJ primAppendBytes(int argCount, OBJ *args) {
 		f.write((uint8 *) s, strlen(s));
 	}
 	f.flush();
-	processMessage();
+	taskSleep(-1);
 	return falseObj;
 }
 

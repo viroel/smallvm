@@ -24,8 +24,11 @@
 
 // RECENT is a threshold for waking up tasks waiting on timers
 // The timer can be up to this many usecs past the wakeup time.
+// It must exceed the longest time a primitive can block the VM, or a waiting task
+// is not woken until the clock wraps (~71.6 minutes). It must also stay well under
+// 2^32 usecs minus the longest wait (waitMillis allows 60 minutes).
 
-#define RECENT 10000000
+#define RECENT 60000000
 
 // Interpreter State
 
@@ -139,8 +142,7 @@ OBJ lastBroadcast = zeroObj; // Note: This variable must be processed by the gar
 static void primSendBroadcast(int argCount, OBJ *args) {
 	// Variadic broadcast; all args are concatenated into printBuffer.
 	printArgs(argCount, args, false, false);
-	// save the last broadcasted message
-	lastBroadcast = newStringFromBytes(printBuffer, printBufferByteCount);
+	// startReceiversOfBroadcast already saves the last broadcasted message
 	startReceiversOfBroadcast(printBuffer, printBufferByteCount);
 	sendBroadcastToIDE(printBuffer, printBufferByteCount);
 }
@@ -453,6 +455,10 @@ static void interpDebug(int ip, int cmd, int arg, int sp) {
 	goto *jumpTable[CMD(op)]; \
 }
 
+// A primitive that handles messages may stop this task, or stop it and reuse its slot
+// for a new start. Then leave runTask without touching the task.
+#define RETURN_IF_TASK_REPLACED() { if (task->startID != startID) { errorCode = noError; return; } }
+
 // Macro for debugging stack errors
 #define SHOW_SP(s) { \
 	outputString(s); \
@@ -604,6 +610,7 @@ static void runTask(Task *task) {
 	};
 
 	// Restore task state
+	uint8 startID = task->startID;
 	ip = (int16 *) task->code + task->ip;
 	sp = task->stack + task->sp;
 	fp = task->stack + task->fp;
@@ -808,11 +815,13 @@ static void runTask(Task *task) {
 	returnResult_op:
 		tmpObj = *(sp - 1); // return value
 		if (fp == task->stack) { // not in a function call
-			if (!hasOutputSpace(bytesForObject(tmpObj) + 100)) { // leave room for other messages
-				ip--; // retry when task is resumed
-				goto suspend;
+			if (ideConnected()) {
+				if (!hasOutputSpace(bytesForObject(tmpObj) + 100)) { // leave room for other messages
+					ip--; // retry when task is resumed
+					goto suspend;
+				}
+				sendTaskReturnValue(task->taskChunkIndex, tmpObj);
 			}
-			sendTaskReturnValue(task->taskChunkIndex, tmpObj);
 			task->status = unusedTask;
 			goto suspend;
 		}
@@ -1310,6 +1319,7 @@ static void runTask(Task *task) {
 		ip++; // skip second instruction word
 		arg = arg & 0xFF; // argument count
 		doPrimitiveCall(tmp, obj2str(tmpObj), arg, sp - arg);
+		RETURN_IF_TASK_REPLACED();
 		POP_ARGS_COMMAND();
 		DISPATCH();
 	reporterPrimitive_op:
@@ -1317,7 +1327,9 @@ static void runTask(Task *task) {
 		tmpObj = (OBJ) (ip + (*ip & 0x3FF)); // primitive name object
 		ip++; // skip second instruction word
 		arg = arg & 0xFF; // argument count
-		*(sp - arg) = doPrimitiveCall(tmp, obj2str(tmpObj), arg, sp - arg);
+		tmpObj = doPrimitiveCall(tmp, obj2str(tmpObj), arg, sp - arg);
+		RETURN_IF_TASK_REPLACED();
+		*(sp - arg) = tmpObj;
 		POP_ARGS_REPORTER();
 		DISPATCH();
 
@@ -1358,6 +1370,7 @@ static void runTask(Task *task) {
 				} else { // callee is a named primitive (i.e. a pointer to a C function)
 					tmpObj = ((PrimitiveFunction) callee)(paramCount, sp - paramCount); // call the primitive
 					tempGCRoot = NULL; // clear tempGCRoot in case it was used
+					RETURN_IF_TASK_REPLACED();
 					sp -= paramCount;
 					*sp++ = tmpObj; // push primitive return value
 					DISPATCH();
@@ -1500,9 +1513,9 @@ void vmLoop() {
 			}
 		}
 		if (taskSleepUSecs) {
-			// if any task called taskSleep(), do VM background tasks sooner
+			// if any task called taskSleep(), do VM background tasks right away
 			taskSleepUSecs = 0;
-			count = (count < 5000) ? count : 5000;
+			count = 0;
 		}
 	}
 }

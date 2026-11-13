@@ -3,8 +3,8 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: interest@microblocks.fun\n"
 "POT-Creation-Date: 2024-10-28 16:43+0200\n"
-"PO-Revision-Date: 2026-10-31 11:51+0000\n"
-"Last-Translator: Ralf Krause <ralf.krause@users.noreply.hosted.weblate.org>\n"
+"PO-Revision-Date: 2026-11-09 13:10+0000\n"
+"Last-Translator: Josep Ferràndiz <josep.ferrandiz@gmail.com>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/microblocks/ide/"
 "de/>\n"
 "Language: de\n"
@@ -12,7 +12,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.11.dev0\n"
+"X-Generator: Weblate 2026.11.2.dev0\n"
 
 #. Name of data type, as in the dropdown menu in the ( (123) is a ( number v ) ) block
 msgid "number"
@@ -6755,7 +6755,7 @@ msgstr "#SVG#wave-noise Gate _"
 msgid "Reconnect to the board by clicking the \"Connect\" button."
 msgstr ""
 "Verbinde MicroBlocks neu mit dem Board. Klicke dafür auf die Taste "
-"\"verbinden\"."
+"\"Verbinden\"."
 
 #. Analog Synthesis library block
 msgid "set frequency ramp from _ % to _ % for gate _"
@@ -9749,3 +9749,464 @@ msgstr "Nezha"
 #. Library folder
 msgid "folder;Planet X"
 msgstr "Planet X"
+
+#. PU Robot library name
+msgid "PU Robot"
+msgstr "PU Robot"
+
+#. PU Robot menu option
+msgid "pu;left eye"
+msgstr "links"
+
+#. PU Robot menu option
+msgid "pu;right eye"
+msgstr "rechts"
+
+#. PU Robot menu option
+msgid "pu;both eyes"
+msgstr "beide"
+
+#. PU Robot menu option
+msgid "pu;joystick button"
+msgstr "Joystick-Taste"
+
+#. PU Robot menu option
+msgid "B1"
+msgstr "B1"
+
+#. PU Robot menu option
+msgid "B2"
+msgstr "B2"
+
+#. PU Robot menu option
+msgid "B3"
+msgstr "B3"
+
+#. PU Robot menu option
+msgid "B4"
+msgstr "B4"
+
+#. PU Robot menu option
+msgid "A"
+msgstr "A"
+
+#. PU Robot menu option
+msgid "pu;touch"
+msgstr "Berührung"
+
+#. PU Robot menu option
+msgid "cm"
+msgstr "cm"
+
+#. PU Robot menu option
+msgid "inch"
+msgstr "inch"
+
+#. PU Robot menu option
+msgid "pu;all"
+msgstr "alle"
+
+#. PU Robot menu option
+msgid "pu;left foot"
+msgstr "linker Fuß"
+
+#. PU Robot menu option
+msgid "pu;left leg"
+msgstr "linkes Bein"
+
+#. PU Robot menu option
+msgid "pu;right foot"
+msgstr "rechter Fuß"
+
+#. PU Robot menu option
+msgid "pu;right leg"
+msgstr "rechtes Bein"
+
+#. PU Robot menu option
+msgid "pu;head yaw"
+msgstr "Kopfdrehung"
+
+#. PU Robot menu option
+msgid "pu;head pitch"
+msgstr "Kopfneigung"
+
+#. PU Robot menu option
+msgid "pu;forward"
+msgstr "vorwärts"
+
+#. PU Robot menu option
+msgid "pu;backward"
+msgstr "rückwärts"
+
+#. PU Robot menu option
+msgid "pu;side left"
+msgstr "seitwärts links"
+
+#. PU Robot menu option
+msgid "pu;side right"
+msgstr "seitwärts rechts"
+
+#. PU Robot menu option
+msgid "pu;turn left"
+msgstr "drehe links"
+
+#. PU Robot menu option
+msgid "pu;turn right"
+msgstr "drehe rechts"
+
+#. PU Robot menu option
+msgid "pu;greet"
+msgstr "Grüßen"
+
+#. PU Robot menu option
+msgid "pu;rest"
+msgstr "Ausruhen"
+
+#. PU Robot menu option
+msgid "pu;explore"
+msgstr "Erkunden"
+
+#. PU Robot menu option
+msgid "pu;jump"
+msgstr "Springen"
+
+#. PU Robot menu option
+msgid "pu;kick"
+msgstr "Treten"
+
+#. PU Robot menu option
+msgid "pu;dance"
+msgstr "Tanzen"
+
+#. PU Robot library block
+msgid "PU robot initialize"
+msgstr "PU Robot initialisiere"
+
+#. PU Robot library block
+msgid "PU robot radio group _"
+msgstr "PU Robot Radiogruppe _"
+
+#. PU Robot library block
+msgid "PU robot action _"
+msgstr "PU Robot Aktion _"
+
+#. PU Robot library block
+msgid "PU robot move _"
+msgstr "PU Robot bewege _"
+
+#. PU Robot library block
+msgid "for _ steps speed _ (1-10)"
+msgstr "Schritte _ Tempo _ (1-10)"
+
+#. PU Robot library block
+msgid "PU robot stop"
+msgstr "PU Robot stoppe"
+
+#. PU Robot library block
+msgid "in neutral pose _"
+msgstr "in neutraler Haltung _"
+
+#. PU Robot library block
+msgid "PU robot set _ servo to _ degrees"
+msgstr "PU Robot setze Servo _ auf Winkel _ °"
+
+#. PU Robot library block
+msgid "PU robot eyes left _ right _"
+msgstr "PU Robot Auge links _ Auge rechts _"
+
+#. PU Robot library block
+msgid "PU robot set _ brightness _ (0-100)%"
+msgstr "PU Robot setze Auge _ Helligkeit _ % (0-100)"
+
+#. PU Robot library block
+msgid "PU robot ambience light _ color _"
+msgstr "PU Robot setze Effektlicht _ Farbe _"
+
+#. PU Robot library block
+msgid "PU robot clear ambience lights"
+msgstr "PU Robot lösche alle Effektlichter"
+
+#. PU Robot library block
+msgid "PU robot distance in _"
+msgstr "PU Robot Entfernung in _"
+
+#. PU Robot library block
+msgid "PU robot body roll (degrees)"
+msgstr "PU Robot Körperdrehung"
+
+#. PU Robot library block
+msgid "PU robot body pitch (degrees)"
+msgstr "PU Robot Körperneigung"
+
+#. PU Robot library block
+msgid "PU robot controller joystick _ (-100 to 100)"
+msgstr "PU Robot-Controller Joystick _ (-100 bis 100)"
+
+#. PU Robot library block
+msgid "PU robot controller acceleration _"
+msgstr "PU Robot-Controller Beschleunigung _"
+
+#. PU Robot library block
+msgid "PU robot _ received?"
+msgstr "PU Robot _ empfangen?"
+
+#. PU Robot library block
+msgid "PU robot move to pose _ speed _ (1-10)"
+msgstr "PU Robot bewege zur Haltung _ Tempo _ (1-10)"
+
+#. PU Robot library block
+msgid "PU robot trim left foot _ left leg _ right foot _ right leg _ head yaw _ head pitch _"
+msgstr ""
+"PU Robot setze linken Fuß _ linkes Bein _ rechten Fuß _ rechtes Bein _ "
+"Kopfdrehung _ Kopfneigung _"
+
+#. PU Robot library block
+msgid "PU robot calibration pose"
+msgstr "PU Robot Grundhaltung"
+
+#. PU Controller library name
+msgid "PU Controller"
+msgstr "PU Controller"
+
+#. PU Controller library block
+msgid "PU controller radio group _"
+msgstr "PU Controller Radiogruppe _"
+
+#. PU Controller library block
+msgid "PU controller automatic send _"
+msgstr "PU Controller automatisch senden _"
+
+#. PU Controller library block
+msgid "PU controller get pressed button"
+msgstr "PU Controller lies gedrückte Taste"
+
+#. PU Controller library block
+msgid "return index _"
+msgstr "als Index _"
+
+#. PU Controller library block
+msgid "PU controller joystick _ (-100 to 100)"
+msgstr "PU Controller Joystick _ (-100 bis 100)"
+
+#. PU Controller library block
+msgid "PU controller _ pressed?"
+msgstr "PU Controller _ gedrückt?"
+
+#. PU Controller library block
+msgid "PU controller acceleration _"
+msgstr "PU Controller Beschleunigung _"
+
+#. PU Controller library block
+msgid "PU controller send joystick _"
+msgstr "PU Controller sende Joystick _"
+
+#. PU Controller library block
+msgid "PU controller send acceleration _"
+msgstr "PU Controller sende Beschleunigung _"
+
+#. PU Controller library block
+msgid "PU controller send button _"
+msgstr "PU Controller sende Taste _"
+
+#. PU Controller library block
+msgid "PU controller send name _ value _"
+msgstr "PU Controller sende Name _ Wert _"
+
+#. PU Controller library default value (puControllerSendValue)
+msgid "name"
+msgstr "Name"
+
+#. In MicroBlocks IDE project save
+msgid "Untitled"
+msgstr "Unbenannt"
+
+#. In MicroBlocks IDE project open
+msgid "Open from URL"
+msgstr "Öffnen von URL"
+
+#. In MicroBlocks IDE project open
+msgid "URL?"
+msgstr "URL?"
+
+#. MicroBlocks IDE error message.
+msgid "Installing firmware on this board needs WebUSB, which only Chrome and Edge support. You can still program the board from this browser once it has MicroBlocks firmware."
+msgstr ""
+"Für die Installation der Firmware auf diesem Board wird WebUSB benötigt, das "
+"nur von Chrome und Edge unterstützt wird. Sobald die MicroBlocks-Firmware "
+"installiert ist, kann das Board jedoch weiterhin über diesen Browser "
+"programmiert werden."
+
+#. MicroBlocks IDE error message.
+msgid "Could not open serial port"
+msgstr "Serielle Schnittstelle konnte nicht geöffnet werden"
+
+#. MicroBlocks IDE error message.
+msgid "Close any other program or browser tab using the board, then try again."
+msgstr ""
+"Schließen Sie alle anderen Programme oder Browser-Tabs, die Sie über das "
+"Menü verwenden, und versuchen Sie es dann erneut."
+
+#. Confirmation window
+msgid "Restore unsaved work?"
+msgstr "Nicht gespeicherte Arbeit wiederherstellen?"
+
+#. Scripting area right-click context menu
+msgid "paste all scripts from clipboard"
+msgstr "füge alle Skripte aus der Zwischenablage ein"
+
+#. Block selection right-click context menu
+msgid "copy selection"
+msgstr "kopiere Auswahl"
+
+#. Block selection right-click context menu
+msgid "run selected"
+msgstr "führe Auswahl aus"
+
+#. Block selection right-click context menu
+msgid "stop selected"
+msgstr "stoppe Auswahl"
+
+#. Block selection right-click context menu
+msgid "toggle selected"
+msgstr "schalte Auswahl um"
+
+#. IDE confirmation message; opening serial port for firmware update
+msgid "Open port?"
+msgstr "Port öffnen?"
+
+#. Load Library window shortcut option
+msgid "Libraries"
+msgstr "Bibliotheken"
+
+#. Load project window title
+msgid "Load Project"
+msgstr "Lade Projekt"
+
+#. MicroBlocks IDE information
+msgid "MicroBlocks hit an error, so the last thing it was doing may not have finished. Your project is still open: check that it looks right before you save it."
+msgstr ""
+"Bei MicroBlocks ist ein Fehler aufgetreten und der zuletzt ausgeführte "
+"Vorgang wurde möglicherweise nicht abgeschlossen. Dein Projekt ist noch "
+"geöffnet: Überprüfe es, bevor du es speicherst."
+
+#. MicroBlocks IDE information
+msgid "Installing firmware on this board is not supported yet in this version of MicroBlocks"
+msgstr ""
+"Die Installation von Firmware auf diesem Board wird in dieser Version von "
+"MicroBlocks noch nicht unterstützt."
+
+#. MicroBlocks IDE information. Firmware install
+msgid "When the NeoPixels turn off"
+msgstr "Wenn die NeoPixels sich ausschalten"
+
+#. MicroBlocks IDE information
+msgid "reconnect to the board by clicking the \"Connect\" button."
+msgstr ""
+"Verbinde MicroBlocks neu mit dem Board. Klicke dafür auf die Taste "
+"\"Verbinden\"."
+
+#. MicroBlocks IDE error message.
+msgid "Program is too large to store on board."
+msgstr "Das Programm ist zu groß, um es auf dem Board zu speichern."
+
+#. MicroBlocks IDE error message.
+msgid "This browser does not support WebBluetooth."
+msgstr "Dieser Browser unterstützt kein WebBluetooth."
+
+#. MicroBlocks IDE information
+msgid "Blocks and functions of %1 that this library does not define:"
+msgstr "Blöcke und Funktionen von %1, die diese Bibliothek nicht definiert:"
+
+#. MicroBlocks IDE information
+msgid "Blocks and functions of %1 that differ in this library:"
+msgstr ""
+"Blöcke und Funktionen von %1, die sich in dieser Bibliothek unterscheiden:"
+
+#. MicroBlocks IDE error message.
+msgid "Could not read: "
+msgstr "Konnte nicht lesen: "
+
+#. MicroBlocks IDE error message.
+msgid "No library found in: "
+msgstr "Keine Bibliothek gefunden in: "
+
+#. MicroBlocks IDE information. Firmware install
+msgid "Press the reset button on the board twice before proceeding."
+msgstr "Drücke zweimal die Reset-Taste auf dem Board, bevor du weitermachst."
+
+#. MicroBlocks IDE information. Firmware install
+msgid "Press the reset button on the board twice before proceeding. The NeoPixels should turn green."
+msgstr ""
+"Drücke zweimal die Reset-Taste auf dem Board, bevor du weitermachst. Die "
+"NeoPixel sollten grün werden."
+
+#. MicroBlocks IDE error message.. Firmware install
+msgid "Could not find the firmware file %1."
+msgstr "Die Firmware-Datei %1 konnte nicht gefunden werden."
+
+#. MicroBlocks IDE error message.. Firmware install
+msgid "Could not find firmware files at"
+msgstr "Die Firmware-Dateien konnten nicht gefunden werden unter"
+
+#. MicroBlocks IDE information. Firmware install
+msgid "The firmware file will be saved to your downloads folder."
+msgstr "Die Firmware-Datei wird in deinem Download-Verzeichnis gespeichert."
+
+#. MicroBlocks IDE information. End erasing flash
+msgid "Done"
+msgstr "Fertig"
+
+#. MicroBlocks IDE information. Module update
+msgid "%1 replaces %2"
+msgstr "%1 ersetzt %2"
+
+#. Library name
+msgid "Distance (HC-SR04)"
+msgstr "Entfernung (HC-SR04)"
+
+#. Library name
+msgid "Sound Primitives"
+msgstr "Sound Primitives"
+
+#. New library window title
+msgid "Library name?"
+msgstr "Bibliotheksname?"
+
+#. Load library from URL window title
+msgid "Library URL?"
+msgstr "Biblotheks-URL?"
+
+#. Block variable rename window title
+msgid "Variable Name?"
+msgstr "Variablenname?"
+
+#. MicroBlocks IDE message
+msgid "Erasing Flash..."
+msgstr "Lösche Flash …"
+
+msgid "Input name"
+msgstr "Eingabename"
+
+#. MicroBlocks IDE information message
+msgid "Error"
+msgstr "Fehler"
+
+#. Defined in filebrowser.js as a label. Appears in Load Project and Load Library windows
+msgid "Shortcuts"
+msgstr "Kurzbefehle"
+
+#. Defined in libraryinfo.js as a label
+msgid "None"
+msgstr "Keine"
+
+#. Button in Load Library window
+msgid "New Library"
+msgstr "Neue Bibliothek"
+
+#. MicroBlocks IDE. Script right-click context menu
+msgid "Show call tree"
+msgstr "Zeige Aufrufbaum"
+
+#. MicroBlocks IDE. Script right-click context menu
+msgid "show call tree"
+msgstr "zeige Aufrufbaum"

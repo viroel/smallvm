@@ -38,7 +38,7 @@
 // update (forward) references of objects that move during compaction and object resizing.
 
 #if defined(NRF51)
-	#define OBJSTORE_BYTES 1048
+	#define OBJSTORE_BYTES 1032
 #elif defined(ARDUINO_BBC_MICROBIT_V2) || defined(ARDUINO_CALLIOPE_MINI_V3)
 	#define OBJSTORE_BYTES 45000
 #elif defined(ARDUINO_NRF52_PRIMO)
@@ -49,6 +49,8 @@
 	#define OBJSTORE_BYTES 11000
 #elif defined(HAS_CAMERA)
 	#define OBJSTORE_BYTES 230000 // will be allocated from PSRAM
+#elif defined(NEZHA_ESP32)
+	#define OBJSTORE_BYTES 40000 // reduced from 64000
 #elif defined(ESP32_S2)
 	#define OBJSTORE_BYTES 12000 // https test: 20000 fails, 16000 fails
 #elif defined(ESP32_C3)
@@ -80,8 +82,6 @@
 	// max that compiles for all boards is 16886 (17624 NodeMCU)
 #endif
 
-#define OBJSTORE_WORDS ((OBJSTORE_BYTES / 4) + 4)
-
 #if defined(ARDUINO_ARCH_ESP32)
 	static OBJ *objstore = NULL; // allocated from heap on ESP32
 
@@ -90,11 +90,12 @@
 		return heap_caps_get_total_size(MALLOC_CAP_SPIRAM) > 0;
 	}
 #else
-	static OBJ objstore[OBJSTORE_WORDS];
+	static OBJ objstore[((OBJSTORE_BYTES / 4) + 4)];
 
 	int hasPSRAM() { return false; }
 #endif
 
+static int objStoreWords = ((OBJSTORE_BYTES / 4) + 4);
 static OBJ memStart = NULL;
 static OBJ memEnd = NULL;
 static OBJ freeChunk = NULL;
@@ -111,14 +112,23 @@ void memInit() {
 		vmPanic("MicroBlocks expects int, int*, and float to all be 32-bits");
 	}
 
+	if (objStoreWords > 65525) objStoreWords = 65525; // maximum object store size
+
 	#if defined(ARDUINO_ARCH_ESP32)
-		objstore = (OBJ *) heap_caps_malloc(4 * OBJSTORE_WORDS, MALLOC_CAP_INTERNAL);
+		#if defined(MB_USE_PSRAM_OBJECT_STORE)
+			// Attempt to allocate objectstore from PSRAM
+			objstore = (OBJ *) heap_caps_malloc(4 * objStoreWords, MALLOC_CAP_SPIRAM);
+		#endif
+		if (!objstore) {
+			// Failed to allocate from PSRAM; try allocating from internal RAM
+			objstore = (OBJ *) heap_caps_malloc(4 * objStoreWords, MALLOC_CAP_INTERNAL);
+		}
 		if (!objstore) vmPanic("ESP32 could not allocate objectstore");
 	#endif
 
 	// initialize object heap memory
 	memStart = (OBJ) objstore;
-	memEnd = (OBJ) (objstore + OBJSTORE_WORDS);
+	memEnd = (OBJ) (objstore + objStoreWords);
 	memClear();
 }
 
@@ -130,11 +140,11 @@ void memClear() {
 	lastBroadcast = zeroObj;
 
 	// zero objectstore memory (not essential)
-	memset(objstore, 0, 4 * OBJSTORE_WORDS);
+	memset(objstore, 0, 4 * objStoreWords);
 
 	// create the free chunk (prefixed by a forwarding word)
 	objstore[0] = (OBJ) 0; // forwarding word
-	objstore[1] = (OBJ) HEADER(FREE_CHUNK, OBJSTORE_WORDS - 2); // free chunk
+	objstore[1] = (OBJ) HEADER(FREE_CHUNK, objStoreWords - 2); // free chunk
 	freeChunk = (OBJ) &objstore[1];
 }
 
@@ -282,7 +292,7 @@ void dumpObjectStore() {
 	char s[100];
 
 	outputString("Object store:");
-	uint32 *end = (uint32 *) &objstore[OBJSTORE_WORDS];
+	uint32 *end = (uint32 *) &objstore[objStoreWords];
 	uint32 *next = (uint32 *) objstore + 1;
 	uint32 *base = (uint32 *) objstore;
 	while (next < end) {
@@ -333,7 +343,7 @@ void clearForwardingFields() {
 	// Set all forwarding fields to zero. This may not be needed if we maintain the invariant
 	// that forward fields are zero except during garbage collection or forwarding operations.
 
-	uint32 *end = (uint32 *) &objstore[OBJSTORE_WORDS];
+	uint32 *end = (uint32 *) &objstore[objStoreWords];
 	uint32 *next = (uint32 *) objstore + 1;
 	while (next < end) {
 		*(next - 1) = 0; // clear forwarding field
@@ -369,7 +379,7 @@ static void forwardRoots(void) {
 void applyForwarding() {
 	// Update all forwarded references.
 
-	uint32 *end = (uint32 *) &objstore[OBJSTORE_WORDS];
+	uint32 *end = (uint32 *) &objstore[objStoreWords];
 	uint32 *next = (uint32 *) objstore + 1;
 	while (next < end) {
 		if (TYPE(next) > BinaryObjectTypes) { // non-free chunk with OBJ fields (not a string)
@@ -457,7 +467,7 @@ static void markRoots(void) {
 void sweep() {
 	// Scan object memory and set the forwarding fields of surviving objects that will move.
 
-	uint32 *end = (uint32 *) &objstore[OBJSTORE_WORDS];
+	uint32 *end = (uint32 *) &objstore[objStoreWords];
 	uint32 *next = (uint32 *) objstore + 1;
 	uint32 *dst = next;
 	while (next < end) {
@@ -478,7 +488,7 @@ void compact() {
 	// Consolidate free space into a single free chunk.
 
 	uint32 *next = (uint32 *) objstore + 1;
-	uint32 *end = (uint32 *) &objstore[OBJSTORE_WORDS];
+	uint32 *end = (uint32 *) &objstore[objStoreWords];
 	uint32 *dst = next;
 	while (next < end) {
 		uint32 wordCount = WORDS(next);

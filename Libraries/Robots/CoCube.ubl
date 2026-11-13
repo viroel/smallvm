@@ -1,7 +1,7 @@
 module CoCube
 author 'Liang Shuai'
-version 2 23
-depends Tone Display TFT '_Motors/PID' 'Robots/CoCube Module' '_Graphics and Displays/8 Bit Graphics' 
+version 2 24 
+depends Tone 'LED Display' TFT '_Motors/PID' 'Robots/CoCube Module' '_Graphics and Displays/8 Bit Graphics' 
 tags 'cocube robot' 
 choices cocube_rotate_Menu 'cocube;left' 'cocube;right' 
 choices cocube_emoji_Menu happy naughty 'star-struck' kiss laughing neutral smug crying sleeping awkward shocked nerdy cool scared angry cold hot nauseated vomiting dizzy 
@@ -32,7 +32,7 @@ v2.18 Fix "_cocube_move_flag" variable missing
 v2.21 Add "CoCube track target" function
 v2.23 Stop PID before direct turns; stop positioning moves off mat or after 30 seconds; pace PID updates; honor cancellation during braking and reset PID after a stop
 '
-variables _cocube_set_right_speed _cocube_set_left_speed _cocube_error_angle _cocube_pid_flag _cocube_error_distance _cocube_error_y _cocube_error_x _cocube_target_angle _cocube_move_flag _cocube_target_x _cocube_target_y _cocube_target_speed _cocube_stop_id
+variables _cocube_set_right_speed _cocube_set_left_speed _cocube_error_angle _cocube_pid_flag _cocube_error_distance _cocube_error_y _cocube_error_x _cocube_target_angle _cocube_move_flag _cocube_target_x _cocube_target_y _cocube_target_speed _cocube_stop_id 
 
   spec ' ' 'CoCube move for msecs' 'move _ at _ speed (0-50) for _ msecs' 'menu.cocube_move_Menu num num' 'cocube;forward' 40 1000
   spec ' ' 'CoCube rotate for msecs' 'rotate _ at _ speed (0-50) for _ msecs' 'menu.cocube_rotate_Menu num num' 'cocube;left' 30 1000
@@ -157,9 +157,7 @@ to 'CoCube move to' target_x target_y speed {
   _cocube_move_flag = (booleanConstant true)
   '_cocube_calculate_distance_error target_x _ target_y _' target_x target_y
   if (_cocube_error_distance > 3) {
-    if (not ('CoCube point towards' target_x target_y speed)) {
-      return
-    }
+    if (not ('CoCube point towards' target_x target_y speed)) {return}
     _cocube_move_flag = (booleanConstant true)
     repeatUntil (_cocube_error_distance < 3) {
       if (or (not ('CoCube on the mat')) ((millisSince start_time) >= 30000)) {
@@ -454,9 +452,7 @@ to '_cocube_track_target' {
   _cocube_move_flag = (booleanConstant true)
   '_cocube_calculate_distance_error target_x _ target_y _' _cocube_target_x _cocube_target_y
   if (_cocube_error_distance > 3) {
-    if (not ('CoCube point towards' _cocube_target_x _cocube_target_y _cocube_target_speed)) {
-      return
-    }
+    if (not ('CoCube point towards' _cocube_target_x _cocube_target_y _cocube_target_speed)) {return}
     _cocube_move_flag = (booleanConstant true)
     repeatUntil (_cocube_error_distance < 3) {
       if (or (not ('CoCube on the mat')) ((millisSince start_time) >= 30000)) {
@@ -479,3 +475,4 @@ to '_cocube_track_target' {
   }
   _cocube_move_flag = (booleanConstant false)
 }
+

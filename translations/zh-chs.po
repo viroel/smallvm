@@ -3,8 +3,9 @@ msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: interest@microblocks.fun\n"
 "POT-Creation-Date: 2024-10-28 11:46+0200\n"
-"PO-Revision-Date: 2026-10-20 15:02+0000\n"
-"Last-Translator: Sam McHardy <sammchardy@users.noreply.hosted.weblate.org>\n"
+"PO-Revision-Date: 2026-11-05 02:51+0000\n"
+"Last-Translator: Shuai Liang <robot-dreamer@users.noreply.hosted.weblate.org>"
+"\n"
 "Language-Team: Chinese (Simplified Han script) <https://hosted.weblate.org/"
 "projects/microblocks/ide/zh_Hans/>\n"
 "Language: zh-chs\n"
@@ -12,7 +13,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 2026.11.dev0\n"
+"X-Generator: Weblate 2026.11.1.dev0\n"
 
 #. Block in Control category
 msgid "by _"
@@ -4169,7 +4170,8 @@ msgstr "[l] 改变颜色，或嵌入报告类积木。"
 
 #. String in file picker and library dialogs
 msgid "If you are adding a library that's built into MicroBlocks, you can just enter its name."
-msgstr "如果要添加的库，已经内置在 MicroBlocks，只需输入它的名称(英文)即可，如 "
+msgstr ""
+"如果要添加的库，已经内置在 MicroBlocks，只需输入它的名称（英文）即可，如 "
 "NeoPixel 。"
 
 #. Tip Bar label or text (at the bottom of the IDE, gives info on the currently hovered element)
@@ -6571,3 +6573,195 @@ msgstr "组件"
 #. CoCube library block
 msgid "wheels brake"
 msgstr "电机刹车"
+
+#. In MicroBlocks IDE project save
+msgid "Untitled"
+msgstr "无标题"
+
+#. In MicroBlocks IDE project open
+msgid "Open from URL"
+msgstr "从 URL 打开"
+
+#. In MicroBlocks IDE project open
+msgid "URL?"
+msgstr "URL?"
+
+#. MicroBlocks IDE error message.
+msgid "Installing firmware on this board needs WebUSB, which only Chrome and Edge support. You can still program the board from this browser once it has MicroBlocks firmware."
+msgstr ""
+"在此开发板上安装固件需要使用 WebUSB，该功能仅 Chrome 和 Edge 浏览器支持。一旦"
+"开发板中安装了 MicroBlocks 固件，你便可直接通过浏览器对其进行编程。"
+
+#. MicroBlocks IDE error message.
+msgid "Close any other program or browser tab using the board, then try again."
+msgstr "关闭使用该电路板的任何其他程序或浏览器标签页，然后重试。"
+
+#. Confirmation window
+msgid "Restore unsaved work?"
+msgstr "恢复未保存的工作？"
+
+#. Scripting area right-click context menu
+msgid "paste all scripts from clipboard"
+msgstr "粘贴剪贴板中的所有脚本"
+
+#. Block selection right-click context menu
+msgid "copy selection"
+msgstr "复制选择的积木"
+
+#. Block selection right-click context menu
+msgid "run selected"
+msgstr "运行选择的积木"
+
+#. Block selection right-click context menu
+#, fuzzy
+msgid "stop selected"
+msgstr "停止选择的积木"
+
+#. Block selection right-click context menu
+msgid "toggle selected"
+msgstr "切换选择的积木"
+
+#. MicroBlocks IDE error message.
+msgid "Could not open serial port"
+msgstr "无法打开串口"
+
+#. MicroBlocks IDE information. Firmware install
+msgid "When the NeoPixels turn off"
+msgstr "NeoPixels 关闭时"
+
+#. MicroBlocks IDE information
+msgid "Installing firmware on this board is not supported yet in this version of MicroBlocks"
+msgstr "此版本的 MicroBlocks 尚不支持在此开发板上安装固件"
+
+#. Button in Load Library window
+msgid "New Library"
+msgstr "新建积木库"
+
+#. Load Library window shortcut option
+msgid "Libraries"
+msgstr "积木库"
+
+#. MicroBlocks IDE message
+msgid "Erasing Flash..."
+msgstr "擦除闪存"
+
+#. IDE confirmation message; opening serial port for firmware update
+msgid "Open port?"
+msgstr "打开串口？"
+
+#. Load project window title
+msgid "Load Project"
+msgstr "加载项目"
+
+#. MicroBlocks IDE information
+msgid "MicroBlocks hit an error, so the last thing it was doing may not have finished. Your project is still open: check that it looks right before you save it."
+msgstr ""
+"MicroBlocks 出现错误，因此它正在执行的最后一个操作可能尚未完成。您的项目仍处"
+"于打开状态：请在保存之前检查其是否正常。"
+
+#. MicroBlocks IDE information
+msgid "reconnect to the board by clicking the \"Connect\" button."
+msgstr "点击“连接”按钮重新连接到设备。"
+
+#. MicroBlocks IDE error message.
+msgid "Program is too large to store on board."
+msgstr "程序体积太大，无法存储在设备上。"
+
+#. MicroBlocks IDE error message.
+msgid "This browser does not support WebBluetooth."
+msgstr "此浏览器不支持 WebBluetooth。"
+
+#. MicroBlocks IDE information
+msgid "Blocks and functions of %1 that this library does not define:"
+msgstr "此库未定义的 %1 代码块和函数："
+
+#. MicroBlocks IDE information
+msgid "Blocks and functions of %1 that differ in this library:"
+msgstr "此库中与 %1 不同的代码块和函数："
+
+#. MicroBlocks IDE error message.
+msgid "Could not read: "
+msgstr "无法读取： "
+
+#. MicroBlocks IDE error message.
+msgid "No library found in: "
+msgstr "未找到库： "
+
+#. MicroBlocks IDE information. Firmware install
+msgid "Press the reset button on the board twice before proceeding."
+msgstr "在继续操作之前，请先按两次电路板上的复位按钮。"
+
+#. MicroBlocks IDE information. Firmware install
+msgid "Press the reset button on the board twice before proceeding. The NeoPixels should turn green."
+msgstr "请先按两次电路板上的复位按钮，然后再继续操作。NeoPixels 灯珠应该会变成绿色。"
+
+#. MicroBlocks IDE error message.. Firmware install
+msgid "Could not find the firmware file %1."
+msgstr "找不到固件文件 %1。"
+
+#. MicroBlocks IDE error message.. Firmware install
+msgid "Could not find firmware files at"
+msgstr "找不到固件文件，在"
+
+#. MicroBlocks IDE information. Firmware install
+msgid "The firmware file will be saved to your downloads folder."
+msgstr "固件文件将保存到您的下载文件夹中。"
+
+#. MicroBlocks IDE information. End erasing flash
+msgid "Done"
+msgstr "完成"
+
+#. MicroBlocks IDE information. Module update
+msgid "%1 replaces %2"
+msgstr "%1 替换 %2"
+
+#. Library name
+msgid "Distance (HC-SR04)"
+msgstr "距离 (HC-SR04)"
+
+#. New library window title
+msgid "Library name?"
+msgstr "积木库名称？"
+
+#. Load library from URL window title
+msgid "Library URL?"
+msgstr "积木库 URL？"
+
+#. Block variable rename window title
+msgid "Variable Name?"
+msgstr "变量名称？"
+
+msgid "Input name"
+msgstr "输入名称"
+
+#. MicroBlocks IDE information message
+msgid "Error"
+msgstr "错误"
+
+#. Defined in filebrowser.js as a label. Appears in Load Project and Load Library windows
+msgid "Shortcuts"
+msgstr "快捷方式"
+
+#. Variable rename error message
+msgid "That name is already in use."
+msgstr "该名称已被使用。"
+
+#. Block right-click context menu
+msgid "delete obsolete block..."
+msgstr "删除过时的代码块…"
+
+#. Add library error message
+msgid "A library with that name is already in the project. Remove it first to make a new one."
+msgstr "项目中已存在同名库。请先将其删除，然后再创建一个新的库。"
+
+#. Firmware install download failure
+msgid "Could not download"
+msgstr "无法下载"
+
+#. Firmware install by URL dialog
+msgid "ESP32 firmware URL?"
+msgstr "ESP32固件网址？"
+
+#. Block right-click context menu
+msgid "add to library"
+msgstr "添加到库"

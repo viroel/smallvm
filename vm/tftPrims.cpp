@@ -1388,6 +1388,9 @@ void tftSetHugePixel(int x, int y, int state) {
 			UPDATE_DISPLAY();
 		}
 		return;
+	#elif defined(HAS_LED_MATRIX)
+		// do nothing on boards with built-in TFT display
+		return;
 	#endif
 	int minDimension, xInset = 0, yInset = 0;
 	if (tft->width() > tft->height()) {
@@ -1413,6 +1416,9 @@ void tftSetHugePixelBits(int bits) {
 	#if defined(PICO_ED)
 		display.clearDisplayBuffer();
 		display.showMicroBitPixels(bits, 1, 1);
+		return;
+	#elif defined(HAS_LED_MATRIX)
+		// do nothing on boards with built-in TFT display
 		return;
 	#endif
 	if (0 == bits) {

@@ -9,7 +9,7 @@
 	inset: 0;
 	z-index: var(--zindex-aboveMenu);
 
-	background-color: rgba(from var(--color-blue-grey-850) r g b / 0.98);
+	background-color: rgba(from var(--color-blue-grey-850) r g b / 0.92);
 
 	&.--is-active {
 		display: grid;

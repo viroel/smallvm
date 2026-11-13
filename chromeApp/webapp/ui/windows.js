@@ -67,10 +67,8 @@ class FloatingWindow extends HTMLElement {
 
 		if (descriptor.body) {
 			if (typeof descriptor.body == 'string') {
-				windowBody.classList.add('--text');
 				windowBody.innerHTML = descriptor.body;
 			} else if (typeof descriptor.body == 'object') { // assume DOM element
-				windowBody.classList.add('--object');
 				windowBody.append(descriptor.body);
 			}
 		}
@@ -183,7 +181,7 @@ class FloatingWindow extends HTMLElement {
 		// first button is always the OK button
 		let defaultButton = this.querySelector('.window__buttons button');
 		this.onkeydown = (e) => {
-			if (e.key == 'Enter' && defaultButton) {
+			if (e.key == 'Enter' && defaultButton && e.target.tagName != 'TEXTAREA') {
 				defaultButton.click();
 				e.preventDefault();
 			} else if (e.key == 'Escape') {
@@ -307,7 +305,7 @@ FloatingWindow.inform = function (title, text, onAccept) {
 		buttons: [{ label: 'Ok', action: onAccept ?? (()=>{}), closesWindow: true }],
 		width: 320,
 		resizable: false,
-		className: 'inform'
+		className: '--inform'
 	});
 	win.popUp();
 	return win;
@@ -325,7 +323,7 @@ FloatingWindow.confirm =
 		],
 		width: 320,
 		resizable: false,
-		className: 'confirm'
+		className: '--confirm'
 	});
 	win.popUp();
 	return win;
@@ -348,9 +346,10 @@ FloatingWindow.prompt =
 			{ label: 'Ok', action: onAccept, closesWindow: true },
 			{ label: 'Cancel', action: onCancel, closesWindow: true }
 		],
+		width: 320,
 		input: inputDescriptor,
 		resizable: true,
-		className: 'prompt'
+		className: '--prompt'
 	});
 	win.popUp();
 	return win;
@@ -363,7 +362,7 @@ FloatingWindow.workspace = function(title, text) {
 		title: title ?? 'Workspace',
 		body: textarea,
 		resizable: true,
-		className: 'workspace'
+		className: '--workspace'
 	});
 	win.popUp();
 	// we can't know the scroll height until the window has popped up.

@@ -162,12 +162,6 @@ Menus.project = {
 			}
 		},
 		{
-			label: 'Open from URL',
-			action: () => { GP.apiCall('project.openFromURL'); },
-			// Served by the Javascript engine only; the GP IDE has no such endpoint.
-			hidden: () => { return typeof MB_editor == 'undefined'; }
-		},
-		{
 			label: 'Open from board',
 			action: () => { GP.apiCall('board.retrieveProject'); }
 		},

@@ -529,7 +529,7 @@ static void flashWriteData(int *dst, int wordCount, uint8 *src) {
 	#elif defined(ESP32_S3) || defined(ESP32_C3)
 		#define USE_CODE_FILE true
 		#define HALF_SPACE (60 * 1024)
-	#elif defined(ARDUINO_ARCH_ESP32) || defined(GNUBLOCKS)
+	#elif defined(ARDUINO_ARCH_ESP32) || defined(GNUBLOCKS) || defined(ARDUINO_WEACT)
 		#define USE_CODE_FILE true
 		#define HALF_SPACE (48 * 1024)
 	#elif defined(ARDUINO_ARCH_RP2040)

@@ -1,6 +1,6 @@
 module 'Analog Synthesis' Operators
 author MicroBlocks
-version 2 3 
+version 2 4 
 description 'Generate analog waves that you can output to a DAC or analog pin to produce sound.
 
 You can create your own instruments by adding waves together, and you can define envelopes for gates and trigger them at will, or create sound textures by mixing waves.
@@ -34,6 +34,12 @@ variables _asynth_trigger_active _asynth_trigger_times _asynth_frequencies _asyn
   space
   spec ' ' '_asynth init' '_asynth init'
   spec 'r' '_asynth MIDI to freq' '_asynth MIDI note _ to frequency' 'auto' 60
+  spec 'r' '_asynth gate period' '_asynth gate period _' 'auto' 1
+  spec 'r' '_asynth sin period' '_asynth sin period _ _' 'auto auto' 2273 10000
+  spec 'r' '_asynth square period' '_asynth square period _ _' 'auto auto' 2273 10000
+  spec 'r' '_asynth tri period' '_asynth tri period _ _' 'auto auto' 2273 10000
+  spec 'r' '_asynth saw period' '_asynth saw period _ _' 'auto auto' 2273 10000
+  spec 'r' '_asynth noise period' '_asynth noise period _ _' 'auto auto' 2273 10000
   spec ' ' '_arp play MIDI note' '_arp play MIDI note _ for _ on channel _ volume _' 'auto auto auto auto' 60 500 1 127
   spec ' ' 'asynth start playing MIDI key' 'start playing MIDI key _ on gate _ amplitude _' 'auto auto auto' 60 1 10000
   spec ' ' 'asynth stop playing MIDI key' 'stop playing MIDI gate _' 'auto' 1
@@ -59,9 +65,9 @@ to '_asynth MIDI to freq' key {
     repeat octave {
       freq = (freq * 2)
     }
-    return (freq / 1000)
+    return freq
   } else {
-    return 10000
+    return 10000000
   }
 }
 
@@ -134,7 +140,7 @@ to 'asynth gate amplitude' gate {
 
 to 'asynth gate frequency' gate {
   '_asynth init'
-  local 'base' (at gate _asynth_frequencies)
+  local 'base' ((at gate _asynth_frequencies) / 1000)
   if ((at gate _asynth_ramp_starts) == -1) {
     return base
   }
@@ -149,6 +155,18 @@ to 'asynth gate frequency' gate {
   return freq
 }
 
+to '_asynth gate period' gate {
+  comment 'Period in usecs from the frequency in mHz, so low notes keep their fraction of a Hz.'
+  if ((at gate _asynth_ramp_starts) == -1) {
+    local 'mHz' (at gate _asynth_frequencies)
+    if (mHz < 1000) {return 0}
+    return (1000000000 / mHz)
+  }
+  local 'freq' ('asynth gate frequency' gate)
+  if (freq < 1) {return 0}
+  return (1000000 / freq)
+}
+
 to 'asynth kill MIDI key' gate {
   atPut gate _asynth_trigger_active (booleanConstant false)
   atPut gate _asynth_holds 0
@@ -156,13 +174,18 @@ to 'asynth kill MIDI key' gate {
 
 to 'asynth noise' freq amp {
   if (amp < 1) {return 0}
-  return (ifExpression (((microsOp) % (1000000 / (maximum 1 freq))) < 100) (random (0 - amp) amp) 0)
+  return ('_asynth noise period' (1000000 / (maximum 1 freq)) amp)
+}
+
+to '_asynth noise period' ms amp {
+  if (amp < 1) {return 0}
+  return (ifExpression (((microsOp) % (ifExpression (ms < 1) 1000000 ms)) < 100) (random (0 - amp) amp) 0)
 }
 
 to 'asynth noise gate' gate {
   '_asynth init'
   if (at gate _asynth_trigger_active) {
-    return ('asynth noise' ('asynth gate frequency' gate) ('asynth gate amplitude' gate))
+    return ('_asynth noise period' ('_asynth gate period' gate) ('asynth gate amplitude' gate))
   }
   return 0
 }
@@ -181,45 +204,54 @@ to 'asynth ramp' start end gate {
 
 to 'asynth saw' freq amp {
   if (or (amp < 1) (freq < 1)) {return 0}
-  local 'ms' (1000000 / freq)
+  return ('_asynth saw period' (1000000 / freq) amp)
+}
+
+to '_asynth saw period' ms amp {
+  if (or (amp < 1) (ms < 1)) {return 0}
   return ((((2 * amp) * ((microsOp) % ms)) / ms) - amp)
 }
 
 to 'asynth saw gate' gate {
   '_asynth init'
   if (at gate _asynth_trigger_active) {
-    return ('asynth saw' ('asynth gate frequency' gate) ('asynth gate amplitude' gate))
+    return ('_asynth saw period' ('_asynth gate period' gate) ('asynth gate amplitude' gate))
   }
   return 0
 }
 
 to 'asynth sin' freq amp {
   if (or (amp < 1) (freq < 1)) {return 0}
-  local 'ms' (1000000 / freq)
+  return ('_asynth sin period' (1000000 / freq) amp)
+}
+
+to '_asynth sin period' ms amp {
+  if (or (amp < 1) (ms < 1)) {return 0}
   return (((2 * amp) * ('[misc:sin]' ((3600 * ((microsOp) % ms)) / (ms / 10)))) >> 15)
 }
 
 to 'asynth sin gate' gate {
   '_asynth init'
   if (at gate _asynth_trigger_active) {
-    return ('asynth sin' ('asynth gate frequency' gate) ('asynth gate amplitude' gate))
+    return ('_asynth sin period' ('_asynth gate period' gate) ('asynth gate amplitude' gate))
   }
   return 0
 }
 
 to 'asynth square' freq amp {
   if (or (amp < 1) (freq < 1)) {return 0}
-  local 'ms' (1000000 / freq)
-  if (ms < 1) {
-    return 0
-  }
+  return ('_asynth square period' (1000000 / freq) amp)
+}
+
+to '_asynth square period' ms amp {
+  if (or (amp < 1) (ms < 1)) {return 0}
   return (ifExpression (((microsOp) % ms) > (ms / 2)) amp (0 - amp))
 }
 
 to 'asynth square gate' gate {
   '_asynth init'
   if (at gate _asynth_trigger_active) {
-    return ('asynth square' ('asynth gate frequency' gate) ('asynth gate amplitude' gate))
+    return ('_asynth square period' ('_asynth gate period' gate) ('asynth gate amplitude' gate))
   }
   return 0
 }
@@ -234,7 +266,7 @@ to 'asynth start playing MIDI key' key gate amp {
   atPut gate _asynth_frequencies base
   atPut gate _asynth_trigger_times (millisOp)
   atPut gate _asynth_trigger_active (booleanConstant true)
-  atPut gate _asynth_ramp_frequencies ((base * (at gate _asynth_ramp_starts)) / 100)
+  atPut gate _asynth_ramp_frequencies (((base / 1000) * (at gate _asynth_ramp_starts)) / 100)
 }
 
 to 'asynth stop playing MIDI key' gate {
@@ -245,14 +277,18 @@ to 'asynth stop playing MIDI key' gate {
 
 to 'asynth tri' freq amp {
   if (or (amp < 1) (freq < 1)) {return 0}
-  local 'ms' (1000000 / freq)
+  return ('_asynth tri period' (1000000 / freq) amp)
+}
+
+to '_asynth tri period' ms amp {
+  if (or (amp < 1) (ms < 1)) {return 0}
   return ((((4 * amp) * (absoluteValue (((microsOp) % ms) - (ms / 2)))) / ms) - amp)
 }
 
 to 'asynth tri gate' gate {
   '_asynth init'
   if (at gate _asynth_trigger_active) {
-    return ('asynth tri' ('asynth gate frequency' gate) ('asynth gate amplitude' gate))
+    return ('_asynth tri period' ('_asynth gate period' gate) ('asynth gate amplitude' gate))
   }
   return 0
 }
@@ -269,7 +305,7 @@ to 'asynth trigger gate' key ms gate amp {
   atPut gate _asynth_frequencies base
   atPut gate _asynth_trigger_times (millisOp)
   atPut gate _asynth_trigger_active (booleanConstant true)
-  atPut gate _asynth_ramp_frequencies ((base * (at gate _asynth_ramp_starts)) / 100)
+  atPut gate _asynth_ramp_frequencies (((base / 1000) * (at gate _asynth_ramp_starts)) / 100)
   waitMillis (ms - ((millisOp) - start))
 }
 

@@ -7101,6 +7101,18 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
+#. In MicroBlocks IDE project save
+msgid "Untitled"
+msgstr ""
+
+#. In MicroBlocks IDE project open
+msgid "Open from URL"
+msgstr ""
+
+#. In MicroBlocks IDE project open
+msgid "URL?"
+msgstr ""
+
 #. In MicroBlocks IDE connection menu
 msgid "Connect"
 msgstr ""
@@ -7203,6 +7215,18 @@ msgstr ""
 msgid "The board is not responding."
 msgstr ""
 
+#. MicroBlocks IDE error message.
+msgid "Installing firmware on this board needs WebUSB, which only Chrome and Edge support. You can still program the board from this browser once it has MicroBlocks firmware."
+msgstr ""
+
+#. MicroBlocks IDE error message.
+msgid "Could not open serial port"
+msgstr ""
+
+#. MicroBlocks IDE error message.
+msgid "Close any other program or browser tab using the board, then try again."
+msgstr ""
+
 #. MicroBlocks IDE information
 msgid "Try to Install MicroBlocks on the board?"
 msgstr ""
@@ -7237,6 +7261,10 @@ msgstr ""
 
 #. Confirmation window
 msgid "Discard current project?"
+msgstr ""
+
+#. Confirmation window
+msgid "Restore unsaved work?"
 msgstr ""
 
 #. Scripting area right-click context menu
@@ -7284,6 +7312,10 @@ msgid "paste script from clipboard"
 msgstr ""
 
 #. Scripting area right-click context menu
+msgid "paste all scripts from clipboard"
+msgstr ""
+
+#. Scripting area right-click context menu
 msgid "save a picture of all visible scripts"
 msgstr ""
 
@@ -7308,6 +7340,10 @@ msgid "printable (200%)"
 msgstr ""
 
 #. Block selection right-click context menu
+msgid "copy selection"
+msgstr ""
+
+#. Block selection right-click context menu
 msgid "duplicate selection"
 msgstr ""
 
@@ -7317,6 +7353,18 @@ msgstr ""
 
 #. Block selection right-click context menu
 msgid "delete selection"
+msgstr ""
+
+#. Block selection right-click context menu
+msgid "run selected"
+msgstr ""
+
+#. Block selection right-click context menu
+msgid "stop selected"
+msgstr ""
+
+#. Block selection right-click context menu
+msgid "toggle selected"
 msgstr ""
 
 #. Settings menu option
@@ -7460,7 +7508,19 @@ msgid "Firmware Installed"
 msgstr ""
 
 #. MicroBlocks IDE information
+msgid "Installing firmware on this board is not supported yet in this version of MicroBlocks"
+msgstr ""
+
+#. MicroBlocks IDE information
 msgid "Reconnect to the board by clicking the \"Connect\" button."
+msgstr ""
+
+#. MicroBlocks IDE information. Firmware install
+msgid "When the NeoPixels turn off"
+msgstr ""
+
+#. MicroBlocks IDE information
+msgid "reconnect to the board by clicking the \"Connect\" button."
 msgstr ""
 
 #. MicroBlocks IDE information
@@ -7882,6 +7942,125 @@ msgstr ""
 
 #. Window title
 msgid "Confirm"
+msgstr ""
+
+#. IDE confirmation message; opening serial port for firmware update
+msgid "Open port?"
+msgstr ""
+
+#. Load Library window shortcut option
+msgid "Libraries"
+msgstr ""
+
+#. Load library window title
+msgid "Load Library"
+msgstr ""
+
+#. Load project window title
+msgid "Load Project"
+msgstr ""
+
+#. MicroBlocks IDE information
+msgid "MicroBlocks hit an error, so the last thing it was doing may not have finished. Your project is still open: check that it looks right before you save it."
+msgstr ""
+
+#. MicroBlocks IDE error message.
+msgid "Program is too large to store on board."
+msgstr ""
+
+#. MicroBlocks IDE error message.
+msgid "This browser does not support WebBluetooth."
+msgstr ""
+
+#. MicroBlocks IDE information
+msgid "Blocks and functions of %1 that this library does not define:"
+msgstr ""
+
+#. MicroBlocks IDE information
+msgid "Blocks and functions of %1 that differ in this library:"
+msgstr ""
+
+#. MicroBlocks IDE error message.
+msgid "Could not read: "
+msgstr ""
+
+#. MicroBlocks IDE error message.
+msgid "No library found in: "
+msgstr ""
+
+#. MicroBlocks IDE information. Firmware install
+msgid "Press the reset button on the board twice before proceeding."
+msgstr ""
+
+#. MicroBlocks IDE information. Firmware install
+msgid "Press the reset button on the board twice before proceeding. The NeoPixels should turn green."
+msgstr ""
+
+#. MicroBlocks IDE error message.. Firmware install
+msgid "Could not find the firmware file %1."
+msgstr ""
+
+#. MicroBlocks IDE error message.. Firmware install
+msgid "Could not find firmware files at"
+msgstr ""
+
+#. MicroBlocks IDE information. Firmware install
+msgid "The firmware file will be saved to your downloads folder."
+msgstr ""
+
+#. MicroBlocks IDE information. End erasing flash
+msgid "Done"
+msgstr ""
+
+#. MicroBlocks IDE information. Module update
+msgid "%1 replaces %2"
+msgstr ""
+
+#. Library name
+msgid "Distance (HC-SR04)"
+msgstr ""
+
+#. Library name
+msgid "Sound Primitives"
+msgstr ""
+
+#. New library window title
+msgid "Library name?"
+msgstr ""
+
+#. Load library from URL window title
+msgid "Library URL?"
+msgstr ""
+
+#. Block variable rename window title
+msgid "Variable Name?"
+msgstr ""
+
+#. MicroBlocks IDE message
+msgid "Erasing Flash..."
+msgstr ""
+
+msgid "Input name"
+msgstr ""
+
+#. MicroBlocks IDE information message
+msgid "Error"
+msgstr ""
+
+#. Defined in filebrowser.js as a label. Appears in Load Project and Load Library windows
+msgid "Shortcuts"
+msgstr ""
+
+#. Defined in libraryinfo.js as a label
+msgid "None"
+msgstr ""
+
+#. Button in Load Library window
+msgid "New Library"
+msgstr ""
+
+#. MicroBlocks IDE. Script right-click context menu
+msgid "show call tree"
 msgstr ""
 
 #. Examples folder
@@ -9382,10 +9561,6 @@ msgstr ""
 
 #. PU Robot menu option
 msgid "A"
-msgstr ""
-
-#. PU Robot menu option
-msgid "B"
 msgstr ""
 
 #. PU Robot menu option

@@ -1787,6 +1787,15 @@ BlockMorph.prototype.chromeMenu = function () {
 		items.push('-');
 	}
 
+	if (this.selector == '[display:mbDisplay]') {
+		items.push(['clear', () => {
+			this.childThatIsA(MicroBitDisplaySlotMorph).display =
+				(new Array(25)).fill(false);
+			this.rerender();
+		}, 'set all LEDs off']);
+		items.push('-');
+	}
+
 	items.push(['duplicate', () => {
 		var dup = copy();
 		if (isCommand && dup.nextBlock()) dup.nextBlock().destroy();
@@ -2844,16 +2853,18 @@ BlockMorph.prototype.alternateBlockColor = function () {
 	var clr = this.colorFor(this.category);
 
 	if (this.color.eq(clr)) {
-		this.setColor(
-			this.zebraContrast < 0 ? clr.darker(Math.abs(this.zebraContrast))
-				: clr.lighter(this.zebraContrast),
-			this.hasLabels() // silently
-		);
+		this.setColor(this.zebraColorFor(clr), this.hasLabels()); // silently
 	} else {
 		this.setColor(clr, this.hasLabels()); // silently
 	}
 	this.fixLabelColor();
 	this.fixChildrensBlockColor(true); // has issues if not forced
+};
+
+BlockMorph.prototype.zebraColorFor = function (clr) {
+	// the shade of clr for a reporter nested in a block of the same colour
+	return this.zebraContrast < 0 ? clr.darker(Math.abs(this.zebraContrast))
+		: clr.lighter(this.zebraContrast);
 };
 
 BlockMorph.prototype.fixLabelColor = function () {
@@ -3030,15 +3041,47 @@ HandMorph.prototype.grab = function (aMorph) {
 		isScripts = (aMorph instanceof BlockMorph) || (aMorph instanceof SelectedScriptsMorph);
 	// Picking up a block ends a selection, before the hand takes its picture.
 	if (wasEmpty && (aMorph instanceof BlockMorph)) MB_editor.scripts.cancelSelection();
-	// A reporter is held just inside its top-left, wherever it was pressed.
-	var inset = wasEmpty && (aMorph instanceof ReporterBlockMorph), origin = inset && aMorph.situation();
-	if (inset) aMorph.setPosition(this.position().subtract(10 * blockScale()));
+	// A reporter is held just inside its top-left, wherever it was pressed, and glides there.
+	var inset = wasEmpty && (aMorph instanceof ReporterBlockMorph), origin = inset && aMorph.situation(),
+		pressed = inset && aMorph.position();
+	if (inset) aMorph.setPosition(this.reporterCorner());
 	this.grabWithoutTellingChrome(aMorph);
 	if (inset && (aMorph.parent === this)) this.grabOrigin = origin; // slide back to where it lay
 	if (wasEmpty && isScripts && (aMorph.parent === this)) {
 		this.takePicture(aMorph);
 		fireIDEEvent('dragstart');
 	}
+	if (inset && (aMorph.parent === this)) this.glideToCorner(aMorph, pressed.subtract(aMorph.position()));
+};
+
+HandMorph.prototype.reporterCorner = function () {
+	// Where a held reporter's top-left goes: the pointer is just inside it.
+	return this.position().subtract(10 * blockScale());
+};
+
+HandMorph.prototype.glideMsecs = 150;
+
+HandMorph.prototype.glideToCorner = function (aMorph, offset) {
+	// Ease the held reporter from offset, relative to the corner, to the corner. Its drop
+	// target is the slot under it wherever it has got to; a drop or another grab ends the glide.
+	var hand = this, glide;
+	if (this.glide) this.glide.isActive = false;
+	this.glide = null;
+	if (offset.eq(ZERO)) return;
+	glide = new Animation(k => { // k goes from 1 to 0, easing out
+		if (aMorph.parent !== hand) {
+			glide.isActive = false;
+			return;
+		}
+		var delta = hand.reporterCorner().add(offset.multiplyBy(k).round()).subtract(aMorph.position());
+		hand.changed();
+		aMorph.moveBy(delta);
+		hand.cachedFullBounds = hand.cachedFullBounds.translateBy(delta);
+		hand.changed();
+	}, () => 1, -1, this.glideMsecs, 'cubic_in');
+	glide.setter(1);
+	this.glide = glide;
+	this.world.animations.push(glide);
 };
 
 // The hand's picture of what it holds, taken at the world's zoom, as a running script's
@@ -3110,17 +3153,30 @@ HandMorph.prototype.processMouseDownWithoutShift = HandMorph.prototype.processMo
 HandMorph.prototype.processMouseDown = function (event) {
 	this.shiftKey = !!(event && event.shiftKey);
 	this.ctrlPress = !!(event && event.ctrlKey && (event.button === 0));
+	if (event instanceof MouseEvent) this.fingerDown = false; // a touchscreen laptop can mix the two
+	var longPress = this.fingerDown && event && (event.button === 2) && !(event instanceof MouseEvent);
+	if (longPress && this.touchAim) {
+		this.setPosition(this.position().subtract(this.touchAim.divideBy(ZOOM)));
+		this.touchAim = null;
+	}
 	MB_editor.removeResultBubbles(); // a click anywhere takes the board's values away
 	this.processMouseDownWithoutShift(event);
+	if (longPress) {
+		// remember what the long press opened a menu for, to grab it if the finger moves on
+		this.touchHeld = {morph: this.morphToGrab, position: this.grabPosition};
+	}
 };
 
 HandMorph.prototype.processMouseMoveWithoutCopying = HandMorph.prototype.processMouseMove;
 HandMorph.prototype.processMouseMove = function (event) {
 	var threshold = MorphicPreferences.grabThreshold;
 	// morphic's own test is a straight-line distance in world units, which grow with
-	// the block size; answer it here instead (a touch keeps morphic's test)
+	// the block size; answer it here instead, in screen pixels for a mouse and from
+	// the touch slop for a finger
 	if (this.grabPosition && (event instanceof MouseEvent)) {
 		MorphicPreferences.grabThreshold = this.movedPastGrabThreshold(event, threshold) ? -1 : Infinity;
+	} else if (this.grabPosition && this.fingerDown) {
+		MorphicPreferences.grabThreshold = this.touchMoved ? -1 : Infinity;
 	}
 	try {
 		this.processMouseMoveCopyingWithCtrl(event);
@@ -3136,6 +3192,172 @@ HandMorph.prototype.movedPastGrabThreshold = function (event, threshold) {
 		dx = event.pageX - canvas.x - (this.grabPosition.x * ZOOM),
 		dy = event.pageY - canvas.y - (this.grabPosition.y * ZOOM);
 	return Math.round(Math.max(Math.abs(dx), Math.abs(dy))) > threshold;
+};
+
+// A finger lands with some jitter, so a touch becomes a drag only once it has
+// moved touchSlop CSS pixels from where it went down, whatever the block size.
+// It stops being a long press (a right click after 350 ms) sooner, at
+// touchHoldSlop, so a slow drag is not taken for a hold.
+HandMorph.prototype.touchSlop = 8;
+HandMorph.prototype.touchHoldSlop = 4;
+
+HandMorph.prototype.processTouchStartWithoutSlop = HandMorph.prototype.processTouchStart;
+HandMorph.prototype.processTouchStart = function (event) {
+	if (event.touches.length === 1) {
+		this.fingerDown = true;
+		this.touchMoved = false;
+		this.touchStartPage = new Point(event.touches[0].pageX, event.touches[0].pageY);
+		this.touchHeld = null;
+		this.touchAim = this.touchAimFor(event.touches[0]);
+	}
+	this.processTouchStartWithoutSlop(event);
+};
+
+HandMorph.prototype.processTouchMove = function (event) {
+	var touch = event.touches[0], distance;
+	MorphicPreferences.isTouchDevice = true;
+	if ((event.touches.length !== 1) || !this.touchStartPage) return;
+	if (!this.touchMoved) {
+		distance = this.touchStartPage.distanceTo(new Point(touch.pageX, touch.pageY));
+		if (distance > this.touchHoldSlop) clearInterval(this.touchHoldTimeout);
+		if (distance <= this.touchSlop) return;
+		this.touchMoved = true;
+		if (this.touchHeld) {
+			this.grabAfterLongPress();
+		} else if (this.touchScrollsPalette(touch)) {
+			this.scrollInsteadOfGrabbing();
+		}
+	}
+	this.processMouseMove(this.touchPoint(touch));
+};
+
+// On a palette block a mostly vertical swipe scrolls the palette, and a sideways
+// drag pulls the block out. A drag after a long press pulls it out whichever way.
+HandMorph.prototype.touchScrollsPalette = function (touch) {
+	var block = this.morphToGrab,
+		palette = (typeof MB_editor !== 'undefined') && MB_editor.palette;
+	return !!block && block.isTemplate && (this.mouseButton === 'left') && !!palette &&
+		(block.parentThatIsA(ScrollFrameMorph) === palette) &&
+		(palette.contents.height() > palette.height()) &&
+		(Math.abs(touch.pageY - this.touchStartPage.y) > Math.abs(touch.pageX - this.touchStartPage.x));
+};
+
+HandMorph.prototype.grabAfterLongPress = function () {
+	// A finger that moves on after a long press closes the menu and takes the block
+	// it was on, as a long press then a drag does on a phone's home screen.
+	var held = this.touchHeld.morph, position = this.touchHeld.position;
+	this.touchHeld = null;
+	if (!held || !(held.isDraggable || held.isTemplate)) return;
+	if (this.world.activeMenu) this.world.activeMenu.destroy();
+	if (typeof Menus !== 'undefined') Menus.close();
+	this.mouseButton = 'left';
+	this.morphToGrab = held;
+	this.grabPosition = position;
+	this.clickTarget = null;
+};
+
+HandMorph.prototype.scrollInsteadOfGrabbing = function () {
+	var frame = this.morphToGrab.parentThatIsA(ScrollFrameMorph);
+	this.morphToGrab = null;
+	this.clickTarget = null; // the lift ends a scroll, not a click
+	frame.mouseDownLeft(this.grabPosition);
+};
+
+// Slots are smaller than a fingertip, so on touch a slot also takes a press
+// within a touchTarget CSS px square centred on it, when the press lands on a
+// command block's body or the empty scripting area. Labels, reporters and hat
+// blocks keep their presses, so blocks are still dragged by them, and a long
+// press is not aimed, so it opens the menu of what is under the finger.
+HandMorph.prototype.touchTarget = 44;
+
+HandMorph.prototype.touchAimFor = function (touch) {
+	var canvas = getDocumentPositionOf(this.world.worldCanvas),
+		pos = new Point(touch.pageX - canvas.x, touch.pageY - canvas.y).divideBy(ZOOM),
+		morph = this.world.topMorphAt(pos),
+		scripts = null,
+		slot,
+		b;
+	if (this.world.activeMenu || this.children.length) return null;
+	if (morph instanceof ScriptsMorph) scripts = morph;
+	if ((morph instanceof CommandBlockMorph) && !(morph instanceof HatBlockMorph) && !morph.isTemplate) {
+		scripts = morph.parentThatIsA(ScriptsMorph);
+	}
+	slot = scripts && this.slotNear(scripts, pos, this.touchTarget / ZOOM);
+	if (!slot) return null;
+	b = slot.bounds.insetBy(1);
+	return new Point(
+		Math.min(Math.max(pos.x, b.left()), b.right()) - pos.x,
+		Math.min(Math.max(pos.y, b.top()), b.bottom()) - pos.y
+	).multiplyBy(ZOOM);
+};
+
+HandMorph.prototype.slotNear = function (scripts, pos, size) {
+	// the input slot nearest pos whose size-wide square (or its own bounds, if larger) holds pos
+	var best = null, bestDistance = Infinity;
+	scripts.children.forEach((script) => {
+		if (!(script instanceof BlockMorph) || !script.fullBounds().expandBy(size).containsPoint(pos)) return;
+		script.allChildren().forEach((m) => {
+			var b, dx, dy, d;
+			if (!(m instanceof InputSlotMorph) || !m.isVisible) return;
+			b = m.bounds;
+			dx = Math.max(b.left() - pos.x, 0, pos.x - b.right());
+			dy = Math.max(b.top() - pos.y, 0, pos.y - b.bottom());
+			if ((dx > Math.max(0, size - b.width()) / 2) || (dy > Math.max(0, size - b.height()) / 2)) return;
+			d = Math.sqrt((dx * dx) + (dy * dy));
+			if (d < bestDistance) {
+				best = m;
+				bestDistance = d;
+			}
+		});
+	});
+	return best;
+};
+
+HandMorph.prototype.touchPointWithoutAim = HandMorph.prototype.touchPoint;
+HandMorph.prototype.touchPoint = function (touch) {
+	var point = this.touchPointWithoutAim(touch);
+	if (this.touchAim) {
+		point.pageX += this.touchAim.x;
+		point.pageY += this.touchAim.y;
+	}
+	return point;
+};
+
+HandMorph.prototype.processTouchEndWithoutSlop = HandMorph.prototype.processTouchEnd;
+HandMorph.prototype.processTouchEnd = function (event) {
+	try {
+		this.processTouchEndWithoutSlop(event);
+	} finally {
+		if (!event.touches || (event.touches.length === 0)) this.endTouch();
+	}
+};
+
+HandMorph.prototype.endTouch = function () {
+	this.fingerDown = false;
+	this.touchMoved = false;
+	this.touchStartPage = null;
+	this.touchAim = null;
+};
+
+// A cancelled touch (the browser or the system took the gesture) ends the press
+// with no click; a block being dragged is dropped where it is.
+HandMorph.prototype.processTouchCancel = function () {
+	clearInterval(this.touchHoldTimeout);
+	if (this.children.length) {
+		this.processMouseUp({button: 0});
+	} else {
+		this.mouseButton = null;
+		this.morphToGrab = null;
+		this.inputTarget = null;
+		this.clickTarget = null;
+	}
+	this.endTouch();
+};
+
+WorldMorph.prototype.initEventListenersWithoutTouchCancel = WorldMorph.prototype.initEventListeners;
+WorldMorph.prototype.initEventListeners = function () {
+	this.initEventListenersWithoutTouchCancel();
+	this.worldCanvas.addEventListener('touchcancel', () => this.hand.processTouchCancel(), false);
 };
 
 // morphic makes a press with Ctrl held a right click, whose menu opens on release.
@@ -4038,7 +4260,7 @@ ReporterBlockMorph.prototype.mouseClickLeft = function (pos) {
 ReporterBlockMorph.prototype.userRenameVariable = function () {
 	// Rename the variable a block such as 'for' or 'local' declares. Its uses keep
 	// the old name, and the board gets the changed script at the next step.
-	MB_editor.prompt('Variable Name?', this.blockSpec, 'line').then((newName) => {
+	MB_editor.prompt('New variable name?', this.blockSpec, 'line').then((newName) => {
 		if (!newName) return; // an empty or cancelled answer changes nothing
 		this.userSetSpec(newName);
 		this.scriptChanged();
@@ -4051,7 +4273,7 @@ ReporterBlockMorph.prototype.userRenameInput = function () {
 	// A name is in use when another input has it or the body uses it; a global the body never uses is free.
 	const def = this.parentThatIsA(BlockDefinitionMorph),
 		oldName = this.blockSpec;
-	MB_editor.prompt('Variable Name?', oldName, 'line').then((answer) => {
+	MB_editor.prompt('New variable name?', oldName, 'line').then((answer) => {
 		const newName = (answer || '').trim();
 		if (!newName || (newName === oldName)) return;
 		const hat = def.parentThatIsA(HatBlockMorph),
@@ -4398,7 +4620,12 @@ ScriptsMorph.prototype.contextMenu = function () {
 	if ((typeof Menus === 'undefined') || (world.currentKey === 16)) {
 		return ScriptsMorph.uber.contextMenu.call(this);
 	}
-	fireIDEEvent('context', Object.assign({ selector: 'scriptingArea' }, chromePoint(world)));
+	// Its paste items follow the browser's clipboard, which may have changed outside this
+	// page, so it shows once the read answers, unless another menu opened meanwhile.
+	const at = Object.assign({ selector: 'scriptingArea' }, chromePoint(world));
+	const shown = Menus.current();
+	const read = (navigator.clipboard && navigator.clipboard.readText) ? readGPClipboard() : Promise.resolve();
+	read.then(() => { if (Menus.current() === shown) fireIDEEvent('context', at); });
 	return chromeDrawnMenu;
 };
 
@@ -4687,11 +4914,15 @@ ScriptsMorph.prototype.hideSelectedDefinitions = function () {
 
 BlockMorph.prototype.showSelected = function (flag) {
 	// Tint every block of this script green, or put its colours back.
+	// A zebra shaded block takes the zebra shade of its category's tint, and
+	// the input pills of a definition's prototype keep their colour.
+	const tint = (clr) => clr.mixed(0.5, new Color(0, 255, 0));
 	this.allChildren().forEach((b) => {
-		if (!(b instanceof BlockMorph)) return;
+		if (!(b instanceof BlockMorph) || b.parentThatIsA(BlockDefinitionMorph)) return;
 		if (flag && !b.unselectedColor) {
+			const base = b.colorFor(b.category);
 			b.unselectedColor = b.color;
-			b.setColor(b.color.mixed(0.5, new Color(0, 255, 0)));
+			b.setColor(b.color.eq(b.zebraColorFor(base)) ? b.zebraColorFor(tint(base)) : tint(b.color));
 		} else if (!flag && b.unselectedColor) {
 			b.setColor(b.unselectedColor);
 			b.unselectedColor = null;
@@ -5624,7 +5855,9 @@ BlockSectionDefinitionMorph.prototype.hideDetails = function () {
 
 BlockSectionDefinitionMorph.prototype.fixLayout = function () {
 	// One row, centred vertically; a hidden part takes no room.
-	const gap = 5 / ZOOM; // 5 screen pixels at every block size
+	// 5 screen pixels at every block size. A picture's copy (whose parts resizeBlock
+	// gives a pixelsPerUnit) is laid out in image pixels, 10 apart at every export scale.
+	const gap = this.pixelsPerUnit ? 10 : 5 / ZOOM;
 	this.drawer.fixLayout();
 	const parts = this.elements().concat(this.drawer.isVisible ? [this.drawer] : []);
 	const height = Math.max(0, ...parts.map((m) => m.height()));

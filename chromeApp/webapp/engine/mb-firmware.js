@@ -316,10 +316,10 @@ MB_Firmware.flashVM = async function (boardName, eraseFlashFlag, vmData) {
 	// boot loader. boardName may instead be the name of the firmware file vmData came from.
 	MB_connection.disconnect(); // so the board's messages do not interfere with the install
 	this.showSpinner();
-	const port = await this.openESPPort();
-	if (!port) {
+	const port = new MB_CommPort();
+	if (!(await this.openESPPort(port))) {
 		fireIDEEvent('spinner.hide');
-		MB_editor.inform(localized('Could not open serial port'));
+		if (!port.openFailed) MB_editor.inform(localized('Could not open serial port'));
 		return;
 	}
 	this.showSpinner();
@@ -358,11 +358,10 @@ MB_Firmware.showSpinner = function () {
 		note: '(press ESC to cancel)', percent: 0 });
 }
 
-MB_Firmware.openESPPort = async function () {
-	// Answer an open MB_CommPort for the install, or null. Opening a port needs a
-	// user gesture, which the answer to this question provides.
-	if (!(await MB_editor.confirm(localized('Open port?')))) return null;
-	const port = new MB_CommPort();
+MB_Firmware.openESPPort = async function (port) {
+	// Open the given MB_CommPort for the install and answer whether it is open.
+	// Opening a port needs a user gesture, which the answer to this question provides.
+	if (!(await MB_editor.confirm(localized('Open port?')))) return false;
 	await port.serialConnect();
-	return port.isConnected() ? port : null;
+	return port.isConnected();
 }

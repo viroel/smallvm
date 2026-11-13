@@ -11,18 +11,18 @@
 
 class FileBrowser extends FloatingWindow {
 	constructor(anAction, defaultPath, extensionList) {
-		const contents = newDiv();
+		const contents = newDiv('window__browser');
 
 		if (typeof extensionList === 'string') { extensionList = [extensionList]; }
 		let forLibraries = (extensionList.includes('.ubl'));
-			
+
 		super({
-			title: 'Load ' + ( forLibraries ? 'Library' : 'Project'),
+			title: (forLibraries ? 'Add Library' : 'Open Project'),
 			body: contents,
 			minHeight: 400,
-			minWidth: 500,
+			minWidth: forLibraries ? 720 : 480,
 			resizable: true,
-			className: 'browser'
+			className: '--browser'
 		});
 
 		this.extensions = extensionList;
@@ -34,7 +34,7 @@ class FileBrowser extends FloatingWindow {
 		this.action = anAction;
 
 		this.folderTranslationPrefix = '';
-		
+
 		if (this.extensions &&
 				(this.extensions.includes('.ubl') ||
 					this.extensions.includes('.ubp') ||
@@ -112,35 +112,47 @@ class FileBrowser extends FloatingWindow {
 	}
 
 	bodyDiv() {
-		let div = newDiv('panel__container');
+		let div = newDiv('window__browser');
 		div.appendChild(this.sideDiv());
 		div.appendChild(this.mainDiv());
 		return div;
 	}
 
+	sideDiv() {
+		let div = newDiv('window__browser-sidebar');
+		div.appendChild(this.shortcuts());
+		if (this.forLibraries) {
+			div.appendChild(newButton('New Library', () => this.createLibrary()));
+		}
+		return div;
+	}
+
 	mainDiv() {
-		let div = newDiv('main'),
-			navigation = newDiv('navigation__container');
+		let div = newDiv('window__browser-main');
 
-		navigation.setAttribute('data-undraggable', true);
-		navigation.appendChild(this.navigationBar());
-		navigation.appendChild(this.navigator());
-
-		div.appendChild(navigation);
+		div.setAttribute('data-undraggable', true);
+		div.appendChild(this.folderName());
+		div.appendChild(this.navigator());
 		div.appendChild(this.buttons());
 		return div;
 	}
 
-	navigationBar() {
-		let div = newDiv('navigation__bar');
-		this.parentButton = Icon.forSelector('arrow-right--16x16');
-		this.parentButton.onclick = () => this.moveUpFolder();
-		this.folderReadout = newElement('h3');
+	folderName() {
+		// let div = newDiv('window__browser-folder-name');
+		// this.parentButton = Icon.forSelector('arrow-right--16x16');
+		// this.parentButton.onclick = () => this.moveUpFolder();
+		// this.folderReadout = newElement('h3', 'window__browser-folder-name');
+		// this.folderReadout.appendChild(newLabel('MicroBlocks'));
+		// this.parentButton.classList.add('button-rounded');
+		// div.appendChild(this.parentButton);
+		// div.appendChild(this.folderReadout);
+
+		// this.folderReadout = newElement('h3');
+
+		this.folderReadout = newElement('h3', 'window__browser-folder-name');
 		this.folderReadout.appendChild(newLabel('MicroBlocks'));
-		this.parentButton.classList.add('button-rounded');
-		div.appendChild(this.parentButton);
-		div.appendChild(this.folderReadout);
-		return div;
+
+		return this.folderReadout;
 	}
 
 	moveUpFolder() {
@@ -150,15 +162,15 @@ class FileBrowser extends FloatingWindow {
 	}
 
 	navigator() {
-		let div = newDiv('navigation__panel');
-		this.fileListView = newDiv('navigation__list');
+		let div = newDiv('window__browser-navigator');
+		this.fileListView = newDiv('window__browser-files');
 
 		div.appendChild(this.fileListView);
 
 		if (this.forLibraries) {
 			// keep track of HTTP fetches so the latest one wins
 			this.requestCount = 0;
-			this.libraryDescriptionView = newDiv('description');
+			this.libraryDescriptionView = newDiv('window__browser-description');
 			div.appendChild(this.libraryDescriptionView);
 		}
 		return div;
@@ -185,7 +197,7 @@ class FileBrowser extends FloatingWindow {
 		const result = [];
 		if (this.topDir != this.currentDir) {
 			// add a fake folder that brings you one level up
-			result.push(['🡨','..',true]);
+			result.push(['..','..',true]);
 		}
 		for (const dir of dirs.sort(MB_FilePicker.caseInsensitiveOrder)) {
 			if (!dir.startsWith('.')) {
@@ -229,23 +241,25 @@ class FileBrowser extends FloatingWindow {
 			this.currentDir.slice(this.currentDir.lastIndexOf('/') + 1)
 		);
 
-		const below =
-			this.currentDir.startsWith(this.topDir) &&
-				(this.currentDir.length > this.topDir.length);
-		this.parentButton.disabled = !below;
-		if (below) {
-			this.parentButton.classList.remove('--is-disabled');
-		} else {
-			this.parentButton.classList.add('--is-disabled');
-		}
-
 		let list = newElement('ul');
 		this.fileListView.replaceChildren(list);
 		this.folderContents().forEach(entry => {
 			let item = newElement('li');
-			if (entry[2]) { //isFolder
-				item.appendChild(Icon.forSelector('folder-open--16x16'));
+
+			if (entry[2]) { // isFolder
+				let icon = 'folder-open--16x16';
+				let classname = '--folder';
+
+				// Path is directory up
+				if (entry[1] == '..') {
+					icon = 'arrow-90deg-up--16x16';
+					classname = '--folder-up';
+				}
+
+				item.classList.add(classname);
+				item.appendChild(Icon.forSelector(icon, 'span'));
 			}
+
 			item.appendChild(newLabel(isString(entry) ? entry : entry[0]));
 			item.onclick = () => this.fileOrFolderSelected(entry, false);
 			item.ondblclick = () => this.fileOrFolderDoubleClicked(entry);
@@ -325,7 +339,14 @@ class FileBrowser extends FloatingWindow {
 		this.clearLibraryFields();
 		let lib = this.library;
 		[
-			{ label: 'Description', content: marked.parse(lib.description) },
+			{
+				label: 'Description',
+				content:
+					marked.parse(lib.description).replace(
+						/<a /g,
+						'<a target="_blank" '
+					)
+			},
 			{ label: 'Author', content: newLabel(lib.author) },
 			{ label: 'Version', content: newLabel(lib.version.join('.')) },
 			{
@@ -335,18 +356,23 @@ class FileBrowser extends FloatingWindow {
 					'None'
 			}
 		].forEach(each => {
-			let title = newElement('span', 'field-name');
+			let field = newDiv('window__browser-description-field');
+
+			let title = newElement('h4', 'window__browser-description-field-title');
 			title.appendChild(newLabel(each.label));
-			this.libraryDescriptionView.appendChild(title);
-			let value = newElement('span', 'field-value');
-			value.classList.add('__field_' + each.label.toLowerCase());
+			field.appendChild(title);
+
+			let value = newElement('div', 'window__browser-description-field-value');
+			value.classList.add('--' + each.label.toLowerCase());
 			if (typeof each.content == 'string') {
 				value.innerHTML = each.content;
 			} else {
 				// assume DOM element
 				value.appendChild(each.content);
 			}
-			this.libraryDescriptionView.appendChild(value);
+			field.appendChild(value);
+
+			this.libraryDescriptionView.appendChild(field);
 		});
 	}
 
@@ -358,18 +384,9 @@ class FileBrowser extends FloatingWindow {
 		return div;
 	}
 
-	sideDiv() {
-		let div = newDiv('sidebar');
-		div.appendChild(this.shortcuts());
-		if (this.forLibraries) {
-			div.appendChild(newButton('New Library', () => this.createLibrary()));
-		}
-		return div;
-	}
-
 	shortcuts() {
-		let div = newDiv('shortcuts'),
-			title = document.createElement('span'),
+		let div = newDiv('window__browser-shortcuts', 'nav'),
+			title = document.createElement('h3'),
 			list = document.createElement('ul');
 
 		title.appendChild(newLabel('Shortcuts'));
