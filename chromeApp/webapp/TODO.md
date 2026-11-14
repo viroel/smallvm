@@ -22,6 +22,7 @@ TODO
 [ ] Kram: Unificar els arxius CSS en un sol import
 [ ] Kram: Botó de biblioteca tallat en català: ( Afegeix una bibliotec )
 [x] Kram: Gradient de left panel mal posicionat
+[ ] Kram: Dark mode shadows aren't noticeable enough
 
 
 Windows
