@@ -1,7 +1,7 @@
 module 'Nezha ESP32' Output
 author 'Elecfreaks Team'
 version 1 5 
-depends 'SmartIoT Space' _Microphone 
+depends 'SmartIoT Space' _Microphone Widgets 
 tags nezha esp32 onboard button rgb display sound gyro 
 choices nezha32_portMenu J1 J2 J3 J4 
 choices nezha32_pressReleaseMenu pressed released 

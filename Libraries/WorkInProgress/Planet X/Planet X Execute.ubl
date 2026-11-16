@@ -1,11 +1,23 @@
 module 'Planet X Execute' Control
 author 'Elecfreaks Team'
-version 2 4
+version 3 1
 depends '_Planet X Support' 
 choices planetXMP3Action play stop 'next track' 'previous track' pause 
+choices planetXAirPumpDuration '1' '2' '3' '4' '5'
 description 'laser
 WIKI:
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05013
+
+air pump
+Runs for 1-5 seconds and waits for completion; other tasks keep running.
+Each port waits 1 second after a run or completed off before starting again.
+Other tasks can stop the pump and cancel both the run and pending starts.
+A switches the pump at fixed full output; B controls the valve (HIGH open, LOW closed).
+Only an explicit off opens the valve for 100 ms and waits for it to close.
+Expiry only stops the pump. Starts on a busy port wait for it and its cooldown.
+Duration is now seconds: reselect 1-5 in projects using older millisecond values.
+Power input was removed in 3.1. Starting uses digital HIGH without a PWM channel.
+Old fourth power arguments are ignored, including zero. Use explicit off to stop.
 
 fan
 WIKI (motorFan):
@@ -23,11 +35,13 @@ The Planet X MP3 and ESP8266 WiFi modules cannot be used at the same time.
 Reinitialize the corresponding module when switching between them.
 WIKI:
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05038'
-variables _planetX_mp3Pin 
+variables _planetX_mp3Pin _planetX_airPumpStates
 
   spec ' ' 'planetX_laserSwitch' 'laser module _ turn _' 'menu.planetXPort bool' 'J1' true
   space
   spec ' ' 'planetX_motorFanSwitch' 'fan _ turn _ : speed _ %' 'menu.planetXPort bool num' 'J1' false 100
+  space
+  spec ' ' 'planetX_airPump' 'air pump module _ turn _ : duration _ seconds' 'menu.planetXPort bool menu.planetXAirPumpDuration' 'J1' false '1'
   space
   spec ' ' 'planetX_ledSwitch' 'LED _ turn _ : brightness _ %' 'menu.planetXPort bool num' 'J1' true 100
   space
@@ -37,11 +51,20 @@ variables _planetX_mp3Pin
   spec ' ' 'planetX_mp3PlayTrack' 'MP3 play track _ : repeat _' 'num bool' 1 false
   spec ' ' 'planetX_mp3LoopFolder' 'MP3 loop folder _' 'num' 1
   spec ' ' 'planetX_mp3Execute' 'MP3 execute _' 'menu.planetXMP3Action' 'play'
+  space
   spec ' ' '_planetX_mp3Ensure' '_planetX_mp3Ensure'
   spec ' ' '_planetX_mp3OpenPort' '_planetX_mp3OpenPort _' 'auto' 'J1'
   spec ' ' '_planetX_mp3Send' '_planetX_mp3Send _ _ _' 'auto auto auto' 0 0 0
   spec ' ' '_planetX_ledBrightness' '_planetX_ledBrightness _ _ _' 'auto auto auto' 0 0 0
   spec ' ' '_planetX_motorFan' '_planetX_motorFan _ _ _' 'auto auto auto' 0 0 0
+  spec 'r' '_planetX_airPumpEntry' '_planetX_airPumpEntry _' 'auto' 'J1'
+  spec ' ' '_planetX_airPumpOn' '_planetX_airPumpOn _ _' 'auto auto' 0 1000
+  spec ' ' '_planetX_airPumpOff' '_planetX_airPumpOff _' 'auto' 0
+  spec ' ' '_planetX_airPumpFinish' '_planetX_airPumpFinish _' 'auto' 0
+  spec ' ' '_planetX_airPumpStop' '_planetX_airPumpStop _' 'auto' 0
+  spec ' ' '_planetX_airPumpRun' '_planetX_airPumpRun _' 'auto' 0
+  spec ' ' '_planetX_airPumpLoop' '_planetX_airPumpLoop'
+  spec ' ' '_planetX_airPumpPoll' '_planetX_airPumpPoll'
 
 to '_planetX_ledBrightness' port on optionalBrightness {
   local 'brightness' (argOrDefault 3 100)
@@ -64,6 +87,121 @@ to '_planetX_motorFan' port on optionalSpeed {
   } else {
     analogWriteOp pin 0
     digitalWriteOp pin false
+  }
+}
+
+to planetX_airPump port on optionalDuration {
+  local 'entry' ('_planetX_airPumpEntry' port)
+  comment 'Starts one worker if needed, including after stop-all. Waiting below yields only this caller.'
+  sendBroadcast '_planetX_airPumpLoop'
+  if (not on) {
+    '_planetX_airPumpOff' entry
+    return
+  }
+  local 'seconds' (argOrDefault 3 '1')
+  local 'duration' ('[data:find]' seconds ('[data:makeList]' 1 2 3 4 5))
+  if (duration < 1) {
+    duration = ('[data:find]' seconds ('[data:makeList]' '1' '2' '3' '4' '5'))
+  }
+  comment 'Reject old millisecond values and other invalid choices without starting or interrupting a run.'
+  if (duration < 1) {return}
+  '_planetX_airPumpOn' entry (1000 * duration)
+}
+
+to '_planetX_airPumpEntry' port {
+  local 'pin' ('_planetX_jPortPin' port 'A')
+  local 'valve' ('_planetX_jPortPin' port 'B')
+  local 'index' ('[data:find]' port ('[data:makeList]' 'J1' 'J2' 'J3' 'J4'))
+  comment 'Use fresh 3.0 state rather than reusing the older seven-field port entries.'
+  if (_planetX_airPumpStates == 0) {_planetX_airPumpStates = (newList 4 0)}
+  local 'entry' (at index _planetX_airPumpStates)
+  if (entry == 0) {
+    comment 'Entry: A, B, mode (0 idle, 1 running, 2 venting), operation start, duration, cooldown start, cooling, cancel token, run token.'
+    entry = ('[data:makeList]' pin valve 0 0 0 0 false 0 0)
+    atPut index _planetX_airPumpStates entry
+  }
+  return entry
+}
+
+to '_planetX_airPumpOn' entry duration {
+  local 'cancel' (at 8 entry)
+  repeatUntil (or (cancel != (at 8 entry)) (and ((at 3 entry) == 0) (or (not (at 7 entry)) ((millisSince (at 6 entry)) >= 1000)))) {
+    waitMillis 10
+  }
+  if (cancel != (at 8 entry)) {return}
+  comment 'No yield between claiming this idle port and starting the output.'
+  local 'run' ('[data:newByteArray]' 1 0)
+  atPut 9 entry run
+  atPut 7 entry false
+  digitalWriteOp (at 2 entry) false
+  '_planetX_airPumpRun' (at 1 entry)
+  atPut 4 entry (millisOp)
+  atPut 5 entry duration
+  atPut 3 entry 1
+  repeatUntil (or (run != (at 9 entry)) ((at 3 entry) != 1)) {
+    waitMillis 10
+  }
+}
+
+to '_planetX_airPumpOff' entry {
+  comment 'Fresh identity tokens invalidate all prior active and waiting starts, even if this caller is delayed.'
+  local 'cancel' ('[data:newByteArray]' 1 0)
+  atPut 8 entry cancel
+  atPut 9 entry cancel
+  '_planetX_airPumpStop' (at 1 entry)
+  digitalWriteOp (at 2 entry) true
+  atPut 4 entry (millisOp)
+  atPut 5 entry 100
+  atPut 3 entry 2
+  comment 'Repeated off extends venting; all off callers wait until the valve has closed.'
+  repeatUntil ((at 3 entry) != 2) {
+    waitMillis 10
+  }
+}
+
+to '_planetX_airPumpFinish' entry {
+  comment 'Called once per completed operation. The next start waits; this caller need not wait for the cooldown.'
+  atPut 6 entry (millisOp)
+  atPut 7 entry true
+  atPut 3 entry 0
+}
+
+to '_planetX_airPumpStop' pin {
+  analogWriteOp pin 0
+  digitalWriteOp pin false
+}
+
+to '_planetX_airPumpRun' pin {
+  digitalWriteOp pin true
+}
+
+to '_planetX_airPumpLoop' {
+  forever {
+    '_planetX_airPumpPoll'
+    waitMillis 1
+  }
+}
+
+to '_planetX_airPumpPoll' {
+  if (_planetX_airPumpStates == 0) {return}
+  for entry _planetX_airPumpStates {
+    if (entry != 0) {
+      if ((at 3 entry) == 0) {
+        if (at 7 entry) {
+          if ((millisSince (at 6 entry)) >= 1000) {atPut 7 entry false}
+        }
+      } else {
+        if ((millisSince (at 4 entry)) >= (at 5 entry)) {
+          comment 'No yield between checking this operation and finishing it.'
+          if ((at 3 entry) == 2) {
+            digitalWriteOp (at 2 entry) false
+          } else {
+            '_planetX_airPumpStop' (at 1 entry)
+          }
+          '_planetX_airPumpFinish' entry
+        }
+      }
+    }
   }
 }
 
