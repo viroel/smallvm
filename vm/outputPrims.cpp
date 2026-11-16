@@ -1089,7 +1089,13 @@ static void IRAM_ATTR sendNeoPixelData(int val) { // ESP8266
 	interrupts();
 }
 
-#elif defined(ARDUINO_ARCH_ESP32) && !defined(ESP32_C3)
+#elif defined(ARDUINO_ARCH_ESP32_DISABLED) && !defined(ESP32_C3)
+
+// This code is disabled because unblockable radio interrupts from BLE mess up the
+// timing. One symptom is that zero bits become one bits causing random Neopixels
+// to light up even when writing zero RGB values. Very easy to reproduce on a
+// board with built-in NeoPixels such as the microSTEAMaker board.
+// The RMT-based code below avoids that issue.
 
 static void initNeoPixelPin(int pinNum) { // ESP32
 	if ((pinNum < 0) || (pinNum >= pinCount())) {
@@ -1156,12 +1162,10 @@ static void IRAM_ATTR sendNeoPixelData(int val) { // ESP32
 			DELAY_CYCLES(213);
 		}
 	}
-// José: If your NeoPanel still glitches, try uncommenting this:
-//	DELAY_CYCLES(200);
 	asm volatile ("wsr %0, ps; rsync" :: "r" (oldIRQ));
 }
 
-#elif defined(ARDUINO_ARCH_ESP32_RMT) || defined(ESP32_C3)
+#elif defined(ARDUINO_ARCH_ESP32) || defined(ESP32_C3)
 
 #include "driver/rmt.h"
 
