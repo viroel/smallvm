@@ -337,6 +337,15 @@ class MB_Editor {
 		this.removeResultBubbles(); // they sit on the world, not in the pane
 	}
 
+	scrollScriptsToTopLeft() {
+		// Before a project's scripts are added: they are placed from the pane's
+		// top-left, so the pane must be back at the frame's top-left to show them.
+		const frame = this.scriptsFrame, pane = this.scriptsPane();
+		pane.setPosition(frame.topLeft());
+		pane.adjustBounds();
+		frame.adjustScrollBars();
+	}
+
 	addBlockToScriptsAt(b, x, y) {
 		// Add the given block to the scripts pane at the given position.
 		// x and y are relative to the pane, which is what updateProject records.
@@ -2690,6 +2699,7 @@ class MB_Editor {
 		this.projectName = null;
 		MB_connection.setCodeManager(this.codeManager);
 		this.removeAllScripts();
+		this.scrollScriptsToTopLeft();
 		this.updateProjectProperties();
 
 		// Replacing the project erases what the board still holds. Answered rather
@@ -3067,6 +3077,7 @@ class MB_Editor {
 			// Without clearProject the old scripts stay on screen, and the next save keeps them.
 			if (!clearFirst) {
 				MB_editor.removeAllScripts();
+				MB_editor.scrollScriptsToTopLeft();
 				if (MB_editor.autosave) MB_editor.autosave.replaced(); // as clearProject does
 			}
 			MB_editor.saveNeeded = false; // don't save scripts while project is loading, as GP does
