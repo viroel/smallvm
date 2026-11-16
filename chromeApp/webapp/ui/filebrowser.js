@@ -120,7 +120,7 @@ class FileBrowser extends FloatingWindow {
 
 	sideDiv() {
 		let div = newDiv('window__browser-sidebar');
-		div.appendChild(this.shortcuts());
+		div.appendChild(this.locations());
 		if (this.forLibraries) {
 			div.appendChild(newButton('New Library', () => this.createLibrary()));
 		}
@@ -384,12 +384,12 @@ class FileBrowser extends FloatingWindow {
 		return div;
 	}
 
-	shortcuts() {
-		let div = newDiv('window__browser-shortcuts', 'nav'),
+	locations() {
+		let div = newDiv('window__browser-locations', 'nav'),
 			title = document.createElement('h3'),
 			list = document.createElement('ul');
 
-		title.appendChild(newLabel('Shortcuts'));
+		title.appendChild(newLabel('Locations'));
 
 		[
 			this.forLibraries ? 'Libraries' : 'Examples',

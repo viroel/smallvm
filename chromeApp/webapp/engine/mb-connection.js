@@ -659,7 +659,9 @@ class MB_Connection {
 		} else if (firstByte === 251) { // long message
 			if (this.recvBuf.length < 5) return false; // incomplete length field
 			const bodyBytes = (this.recvBuf[4] << 8) | this.recvBuf[3];
-			if (bodyBytes >= 1024) {
+			// the CRCs of all chunks come in one message of five bytes per chunk
+			const maxBody = (this.recvBuf[1] === this.msgNameToID('allCRCsMsg')) ? (5 * 255) : 1023;
+			if (bodyBytes > maxBody) {
 				console.log('Serial error, length:', bodyBytes);
 				this.discardMessage();
 				return true;

@@ -142,8 +142,8 @@ OBJ lastBroadcast = zeroObj; // Note: This variable must be processed by the gar
 static void primSendBroadcast(int argCount, OBJ *args) {
 	// Variadic broadcast; all args are concatenated into printBuffer.
 	printArgs(argCount, args, false, false);
-	// startReceiversOfBroadcast already saves the last broadcasted message
-	startReceiversOfBroadcast(printBuffer, printBufferByteCount);
+	// startReceiversOfBroadcastInternal saves the last broadcasted message
+	startReceiversOfBroadcastInternal(printBuffer, printBufferByteCount);
 	sendBroadcastToIDE(printBuffer, printBufferByteCount);
 }
 

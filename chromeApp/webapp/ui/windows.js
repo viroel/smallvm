@@ -39,7 +39,12 @@ class FloatingWindow extends HTMLElement {
 		this.target = descriptor.target;
 
 		if (descriptor.id) { this.id = descriptor.id; }
-		if (descriptor.className) { this.classList.add(descriptor.className); }
+		if (descriptor.className) {
+			let classes = Array.isArray(descriptor.className)
+				? descriptor.className : [descriptor.className];
+
+			this.classList.add(...classes);
+		}
 
 		// Window Top
 		if (typeof descriptor.title == 'string') {

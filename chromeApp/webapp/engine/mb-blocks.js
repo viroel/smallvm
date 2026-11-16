@@ -1740,8 +1740,12 @@ BlockMorph.prototype.showDevView = function (view) {
 	// Open a window showing this block's instructions, compiled bytes or call tree.
 	// Inside a definition, that is the function's.
 	var top = this.topBlock(),
-		compiler = new MB_Compiler(MB_editor.project, MB_editor.codeManager),
-		text = compiler[view](top.isFunctionDefinition() ? top.functionDefinition : this),
+		inPalette = !(top.parent instanceof ScriptsMorph),
+		compiler;
+	// number the functions as a download would, so the view shows the chunk IDs the board gets
+	MB_editor.codeManager.assignFunctionIDs(MB_editor.project.unusedFunctions(inPalette ? top : null));
+	compiler = new MB_Compiler(MB_editor.project, MB_editor.codeManager);
+	var text = compiler[view](top.isFunctionDefinition() ? top.functionDefinition : this),
 		win = {
 			showInstructions: {title: 'Instructions', width: 400},
 			showCompiledBytes: {title: 'Instruction Bytes', width: 220},

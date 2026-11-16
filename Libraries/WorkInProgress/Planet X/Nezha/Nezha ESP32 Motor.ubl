@@ -1,15 +1,15 @@
 module 'Nezha ESP32 Motor' Output
 author 'Elecfreaks Team'
-version 1 2 
-choices nezhaMotor_TurnMode seconds degrees turns 
-choices nezhaMotor_DriveMode seconds mm 
-choices nezhaMotor_TurnDirection clockwise counterclockwise 
-choices nezhaMotor_Port M1 M2 M3 M4 
-choices nezhaMotor_TurnDirectionEx clockwise counterclockwise 'shortest path' 
-choices nezhaMotor_DriveDirection forward backward 
-choices nezhaMotor_AccelLevel low medium high 
-choices nezhaMotor_PortEx M1 M2 M3 M4 All 
-choices nezhaMotor_WaitMode 'no wait' 'wait until done' 
+version 1 2
+choices nezhaMotor_TurnMode seconds degrees turns
+choices nezhaMotor_DriveMode seconds mm
+choices nezhaMotor_TurnDirection clockwise counterclockwise
+choices nezhaMotor_Port M1 M2 M3 M4
+choices nezhaMotor_TurnDirectionEx clockwise counterclockwise 'shortest path'
+choices nezhaMotor_DriveDirection forward backward
+choices nezhaMotor_AccelLevel low medium high
+choices nezhaMotor_PortEx M1 M2 M3 M4 All
+choices nezhaMotor_WaitMode 'no wait' 'wait until done'
 description 'Intelligent motor
 
 Vehicle motion control
@@ -38,7 +38,7 @@ Previously named Nezha ESP32 Sport'
   spec 'r' 'nezhaMotor_GetAbsoluteAngle' 'read motor _ absolute angle (degrees)' 'menu.nezhaMotor_Port' 'M1'
   spec 'r' 'nezhaMotor_GetRelativeAngle' 'read motor _ relative angle (degrees)' 'menu.nezhaMotor_Port' 'M1'
 
-to '_nezhaMotor_ParseAccelLevel' accel {
+to _nezhaMotor_ParseAccelLevel accel {
   if (accel == 'low') {
     return 0
   } (accel == 'medium') {
@@ -49,7 +49,7 @@ to '_nezhaMotor_ParseAccelLevel' accel {
   return 1
 }
 
-to '_nezhaMotor_ParseDriveDirection' dir {
+to _nezhaMotor_ParseDriveDirection dir {
   if (dir == 'forward') {
     return 0
   } (dir == 'backward') {
@@ -58,7 +58,7 @@ to '_nezhaMotor_ParseDriveDirection' dir {
   return 0
 }
 
-to '_nezhaMotor_ParseDriveMode' mode {
+to _nezhaMotor_ParseDriveMode mode {
   if (mode == 'seconds') {
     return 0
   } (mode == 'mm') {
@@ -69,7 +69,7 @@ to '_nezhaMotor_ParseDriveMode' mode {
   return 0
 }
 
-to '_nezhaMotor_ParsePortEx' port_name {
+to _nezhaMotor_ParsePortEx port_name {
   if (port_name == 'M2') {
     return 1
   } (port_name == 'M3') {
@@ -82,7 +82,7 @@ to '_nezhaMotor_ParsePortEx' port_name {
   return 0
 }
 
-to '_nezhaMotor_ParseTurnDirectionEx' dir {
+to _nezhaMotor_ParseTurnDirectionEx dir {
   if (dir == 'clockwise') {
     return 0
   } (dir == 'counterclockwise') {
@@ -93,7 +93,7 @@ to '_nezhaMotor_ParseTurnDirectionEx' dir {
   return 0
 }
 
-to '_nezhaMotor_ParseTurnMode' mode {
+to _nezhaMotor_ParseTurnMode mode {
   if (mode == 'seconds') {
     return 0
   } (mode == 'degrees') {
@@ -104,7 +104,7 @@ to '_nezhaMotor_ParseTurnMode' mode {
   return 0
 }
 
-to '_nezhaMotor_ParseWaitMode' mode {
+to _nezhaMotor_ParseWaitMode mode {
   if (mode == 'no wait') {
     return 0
   } (mode == 'wait until done') {
@@ -113,12 +113,12 @@ to '_nezhaMotor_ParseWaitMode' mode {
   return 1
 }
 
-to '_nezhaMotor_RoundDiv10' value {
+to _nezhaMotor_RoundDiv10 value {
   if (value >= 0) {return ((value + 5) / 10)}
   return ((value - 5) / 10)
 }
 
-to '_nezhaMotor_WaitForAngles' port_num targets absolute_angle {
+to _nezhaMotor_WaitForAngles port_num targets absolute_angle {
   local 'port_count' (size targets)
   local 'last_angles' (newList port_count)
   local 'same_counts' (newList port_count)
@@ -137,9 +137,9 @@ to '_nezhaMotor_WaitForAngles' port_num targets absolute_angle {
         }
         local 'current' 0
         if absolute_angle {
-          current = ('_nezhaMotor_RoundDiv10' ('[elfreaks:MotorGetAbsoluteAngleDeciDeg]' current_port))
+          current = (_nezhaMotor_RoundDiv10 ('[elfreaks:MotorGetAbsoluteAngleDeciDeg]' current_port))
         } else {
-          current = ('_nezhaMotor_RoundDiv10' ('[elfreaks:MotorGetRelativeAngleDeciDeg]' current_port))
+          current = (_nezhaMotor_RoundDiv10 ('[elfreaks:MotorGetRelativeAngleDeciDeg]' current_port))
         }
         if ((absoluteValue (current - (at i targets))) <= 1) {
           atPut i same_counts 10
@@ -163,15 +163,15 @@ to '_nezhaMotor_WaitForAngles' port_num targets absolute_angle {
 }
 
 to nezhaMotor_GetAbsoluteAngle port {
-  return ('_nezhaMotor_RoundDiv10' ('[elfreaks:MotorGetAbsoluteAngleDeciDeg]' ('_nezhaMotor_ParsePortEx' port)))
+  return (_nezhaMotor_RoundDiv10 ('[elfreaks:MotorGetAbsoluteAngleDeciDeg]' (_nezhaMotor_ParsePortEx port)))
 }
 
 to nezhaMotor_GetRelativeAngle port {
-  return ('_nezhaMotor_RoundDiv10' ('[elfreaks:MotorGetRelativeAngleDeciDeg]' ('_nezhaMotor_ParsePortEx' port)))
+  return (_nezhaMotor_RoundDiv10 ('[elfreaks:MotorGetRelativeAngleDeciDeg]' (_nezhaMotor_ParsePortEx port)))
 }
 
 to nezhaMotor_GetSpeed port {
-  return ('[elfreaks:MotorGetSpeed]' ('_nezhaMotor_ParsePortEx' port))
+  return ('[elfreaks:MotorGetSpeed]' (_nezhaMotor_ParsePortEx port))
 }
 
 to nezhaMotor_MoveAbsolute port speed turn_dir_ex value wait_mode {
@@ -181,9 +181,9 @@ to nezhaMotor_MoveAbsolute port speed turn_dir_ex value wait_mode {
     turn_dir_ex = value
     value = oldValue
   }
-  local 'wait' ('_nezhaMotor_ParseWaitMode' wait_mode)
-  local 'port_num' ('_nezhaMotor_ParsePortEx' port)
-  '[elfreaks:MotorMoveAbsolute]' port_num value speed ('_nezhaMotor_ParseTurnDirectionEx' turn_dir_ex)
+  local 'wait' (_nezhaMotor_ParseWaitMode wait_mode)
+  local 'port_num' (_nezhaMotor_ParsePortEx port)
+  '[elfreaks:MotorMoveAbsolute]' port_num value speed (_nezhaMotor_ParseTurnDirectionEx turn_dir_ex)
   if (wait == 1) {
     local 'port_count' 1
     if (port_num == 255) {
@@ -193,7 +193,7 @@ to nezhaMotor_MoveAbsolute port speed turn_dir_ex value wait_mode {
     for i port_count {
       atPut i targets value
     }
-    '_nezhaMotor_WaitForAngles' port_num targets true
+    _nezhaMotor_WaitForAngles port_num targets true
   }
 }
 
@@ -206,9 +206,9 @@ to nezhaMotor_MoveRelative port speed turn_dir value turn_mode wait_mode {
     value = oldValue
     turn_mode = oldMode
   }}
-  local 'wait' ('_nezhaMotor_ParseWaitMode' wait_mode)
-  local 'port_num' ('_nezhaMotor_ParsePortEx' port)
-  local 'turn_mode_num' ('_nezhaMotor_ParseTurnMode' turn_mode)
+  local 'wait' (_nezhaMotor_ParseWaitMode wait_mode)
+  local 'port_num' (_nezhaMotor_ParsePortEx port)
+  local 'turn_mode_num' (_nezhaMotor_ParseTurnMode turn_mode)
   if (turn_mode_num == 2) {
     turn_mode_num = 1
     value = (value * 360)
@@ -224,11 +224,11 @@ to nezhaMotor_MoveRelative port speed turn_dir value turn_mode wait_mode {
       if (port_num == 255) {
         current_port = (i - 1)
       }
-      local 'current' ('_nezhaMotor_RoundDiv10' ('[elfreaks:MotorGetRelativeAngleDeciDeg]' current_port))
+      local 'current' (_nezhaMotor_RoundDiv10 ('[elfreaks:MotorGetRelativeAngleDeciDeg]' current_port))
       atPut i targets (value + current)
     }
   }
-  '[elfreaks:MotorMoveRelative]' port_num value turn_mode_num speed ('_nezhaMotor_ParseTurnDirectionEx' turn_dir)
+  '[elfreaks:MotorMoveRelative]' port_num value turn_mode_num speed (_nezhaMotor_ParseTurnDirectionEx turn_dir)
   if (wait == 1) {
     if (turn_mode_num == 0) {
       waitMillis 100
@@ -249,14 +249,14 @@ to nezhaMotor_MoveRelative port speed turn_dir value turn_mode wait_mode {
         }
       }
     } else {
-      '_nezhaMotor_WaitForAngles' port_num targets false
+      _nezhaMotor_WaitForAngles port_num targets false
     }
   }
 }
 
 to nezhaMotor_Reset port {
   local 'count' 0
-  local 'port_num' ('_nezhaMotor_ParsePortEx' port)
+  local 'port_num' (_nezhaMotor_ParsePortEx port)
   '[elfreaks:MotorReset]' port_num
   local 'port_count' 1
   if (port_num == 255) {
@@ -270,7 +270,7 @@ to nezhaMotor_Reset port {
       if (port_num == 255) {
         current_port = (i - 1)
       }
-      if ((absoluteValue ('_nezhaMotor_RoundDiv10' ('[elfreaks:MotorGetRelativeAngleDeciDeg]' current_port))) > 1) {
+      if ((absoluteValue (_nezhaMotor_RoundDiv10 ('[elfreaks:MotorGetRelativeAngleDeciDeg]' current_port))) > 1) {
         reset_done = false
       }
     }
@@ -293,13 +293,13 @@ to nezhaMotor_RobotDriveStraight speed dir accel value mode wait_mode {
     value = oldValue
     mode = oldMode
   }
-  local 'wait' ('_nezhaMotor_ParseWaitMode' wait_mode)
-  local 'drive_mode_num' ('_nezhaMotor_ParseDriveMode' mode)
+  local 'wait' (_nezhaMotor_ParseWaitMode wait_mode)
+  local 'drive_mode_num' (_nezhaMotor_ParseDriveMode mode)
   if (drive_mode_num == 2) {
     drive_mode_num = 1
     value = (value * 10)
   }
-  local 'task_id' ('[elfreaks:RobotDriveStraight]' ('_nezhaMotor_ParseDriveDirection' dir) drive_mode_num ('_nezhaMotor_ParseAccelLevel' accel) speed value)
+  local 'task_id' ('[elfreaks:RobotDriveStraight]' (_nezhaMotor_ParseDriveDirection dir) drive_mode_num (_nezhaMotor_ParseAccelLevel accel) speed value)
   if (wait == 1) {
     repeatUntil (('[elfreaks:RobotIsIdle]' task_id) == 1) {
       waitMillis 10
@@ -308,7 +308,7 @@ to nezhaMotor_RobotDriveStraight speed dir accel value mode wait_mode {
 }
 
 to nezhaMotor_RobotGetYawDeciDeg {
-  return ('_nezhaMotor_RoundDiv10' ('[elfreaks:RobotGetYawDeciDeg]'))
+  return (_nezhaMotor_RoundDiv10 ('[elfreaks:RobotGetYawDeciDeg]'))
 }
 
 to nezhaMotor_RobotMove left_speed right_speed {
@@ -316,7 +316,7 @@ to nezhaMotor_RobotMove left_speed right_speed {
 }
 
 to nezhaMotor_RobotSetMotors left right {
-  '[elfreaks:RobotSetMotors]' ('_nezhaMotor_ParsePortEx' left) ('_nezhaMotor_ParsePortEx' right)
+  '[elfreaks:RobotSetMotors]' (_nezhaMotor_ParsePortEx left) (_nezhaMotor_ParsePortEx right)
 }
 
 to nezhaMotor_RobotSetWheelDiameter diameter {
@@ -334,8 +334,8 @@ to nezhaMotor_RobotTurnTo speed accel angle wait_mode {
     accel = angle
     angle = oldAngle
   }
-  local 'wait' ('_nezhaMotor_ParseWaitMode' wait_mode)
-  local 'task_id' ('[elfreaks:RobotTurnTo]' ('_nezhaMotor_ParseAccelLevel' accel) speed angle)
+  local 'wait' (_nezhaMotor_ParseWaitMode wait_mode)
+  local 'task_id' ('[elfreaks:RobotTurnTo]' (_nezhaMotor_ParseAccelLevel accel) speed angle)
   if (wait == 1) {
     repeatUntil (('[elfreaks:RobotIsIdle]' task_id) == 1) {
       waitMillis 10
@@ -344,10 +344,10 @@ to nezhaMotor_RobotTurnTo speed accel angle wait_mode {
 }
 
 to nezhaMotor_Start port speed turn_dir {
-  '[elfreaks:MotorStart]' ('_nezhaMotor_ParsePortEx' port) speed ('_nezhaMotor_ParseTurnDirectionEx' turn_dir)
+  '[elfreaks:MotorStart]' (_nezhaMotor_ParsePortEx port) speed (_nezhaMotor_ParseTurnDirectionEx turn_dir)
 }
 
 to nezhaMotor_Stop port {
-  '[elfreaks:MotorStop]' ('_nezhaMotor_ParsePortEx' port)
+  '[elfreaks:MotorStop]' (_nezhaMotor_ParsePortEx port)
 }
 

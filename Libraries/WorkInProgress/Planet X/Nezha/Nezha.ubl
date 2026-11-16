@@ -1,9 +1,9 @@
-module 'Nezha' Output
+module Nezha Output
 author 'wwj718 and MicroBlocks'
-version 1 3 
-choices nezhaAnalogPort J1 J2 
-choices nezhaServoType '180°' '270°' '360°' 
-choices nezhaPort J1 J2 J3 J4 
+version 1 3
+choices nezhaAnalogPort J1 J2
+choices nezhaServoType '180°' '270°' '360°'
+choices nezhaPort J1 J2 J3 J4
 description 'Library for the originalELECFREAKS Nezha micro:bit expansion board.
 https://www.elecfreaks.com/learn-en/microbitExtensionModule/nezha.html
 
@@ -35,7 +35,7 @@ This library supports all the components included in the Nezha Inventor Kit for 
   spec 'r' '_nezha_pinAForPort' '_Nezha pin A of _' 'menu.nezhaPort' 'J1'
   spec 'r' '_nezha_pinBForPort' '_Nezha pin B of _' 'menu.nezhaPort' 'J1'
 
-to '_nezha_pinAForPort' port {
+to _nezha_pinAForPort port {
   if (or ('J1' == port) (1 == port)) {
     return 1
   } (or ('J2' == port) (2 == port)) {
@@ -49,7 +49,7 @@ to '_nezha_pinAForPort' port {
   }
 }
 
-to '_nezha_pinBForPort' port {
+to _nezha_pinBForPort port {
   if (or ('J1' == port) (1 == port)) {
     return 8
   } (or ('J2' == port) (2 == port)) {
@@ -76,12 +76,12 @@ to nezha_beep freq msecs {
 }
 
 to nezha_crashSensor port {
-  return (not (digitalReadOp ('_nezha_pinBForPort' port)))
+  return (not (digitalReadOp (_nezha_pinBForPort port)))
 }
 
 to nezha_distance port {
-  local 'trig' ('_nezha_pinAForPort' port)
-  local 'ech' ('_nezha_pinBForPort' port)
+  local 'trig' (_nezha_pinAForPort port)
+  local 'ech' (_nezha_pinBForPort port)
   digitalWriteOp trig false
   waitMicros 2
   digitalWriteOp trig true
@@ -107,11 +107,11 @@ to nezha_distance port {
 }
 
 to nezha_lineSensor port leftSide rightSide {
-  return (and (leftSide == (not (digitalReadOp ('_nezha_pinAForPort' port)))) (rightSide == (not (digitalReadOp ('_nezha_pinBForPort' port)))))
+  return (and (leftSide == (not (digitalReadOp (_nezha_pinAForPort port)))) (rightSide == (not (digitalReadOp (_nezha_pinBForPort port)))))
 }
 
 to nezha_readAnalog port {
-  return (analogReadOp ('_nezha_pinAForPort' port))
+  return (analogReadOp (_nezha_pinAForPort port))
 }
 
 to nezha_setAllLEDs state optionalBrightness {
@@ -139,9 +139,9 @@ to nezha_setLED port state optionalBrightness {
     brightness = (maximum 0 (minimum optionalBrightness 100))
   }
   if (and (true == state) (brightness < 100)) {
-    analogWriteOp ('_nezha_pinAForPort' port) ('[misc:rescale]' brightness 0 100 0 1023)
+    analogWriteOp (_nezha_pinAForPort port) ('[misc:rescale]' brightness 0 100 0 1023)
   } else {
-    digitalWriteOp ('_nezha_pinAForPort' port) state
+    digitalWriteOp (_nezha_pinAForPort port) state
   }
 }
 
@@ -179,7 +179,7 @@ to nezha_soilMoisture port {
 Divide by 5 to get a range of roughly 14-100.
 Lower numbers indicate dryer soil.
 DIfferent pots will give different ranges.'
-  local 'result' ((1023 - (analogReadOp ('_nezha_pinAForPort' port))) / 5)
+  local 'result' ((1023 - (analogReadOp (_nezha_pinAForPort port))) / 5)
   return (minimum result 100)
 }
 
@@ -188,6 +188,6 @@ to nezha_stopMotor motorNum {
 }
 
 to nezha_trimPot port {
-  return (analogReadOp ('_nezha_pinAForPort' port))
+  return (analogReadOp (_nezha_pinAForPort port))
 }
 

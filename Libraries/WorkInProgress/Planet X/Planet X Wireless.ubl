@@ -1,27 +1,22 @@
-module 'Planet X Wireless' Control
+module 'Planet X Wireless' Comm
 author 'Elecfreaks Team'
-version 2 3
-depends '_Planet X Support' 
-tags wifi smartiot network http joystick i2c 
-choices planetXJoystickAxis RX RY LX LY 
-choices planetXJoystickButton '⬆' '⬇' '⬅' '➡' '▷' '☐' '𐤏' '⨉' L1 R1 L2 R2 SELECT START L3 R3 
+version 2 5
+depends '_Planet X Support'
+tags wifi smartiot network http joystick i2c
+choices planetXJoystickAxis RX RY LX LY
+choices planetXJoystickButton '⬆' '⬇' '⬅' '➡' '▷' '☐' '𐤏' '⨉' L1 R1 L2 R2 SELECT START L3 R3
 description 'ESP8266 WiFi
 Set the J port and module baud rate before using WiFi or SmartIoT.
+
 WiFi uses standard hardware serial on micro:bit V2 and Nezha ESP32.
-The Planet X MP3 and ESP8266 WiFi modules cannot be used at the same time.
-Reinitialize the corresponding module when switching between them.
-micro:bit V1 supports the I2C joystick, but not the bidirectional WiFi UART.
+micro:bit V1 does not the bidirectional WiFi UART.
+
 WIKI:
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05036
 
 SmartIoT
-
-I2C rocker
-WIKI (joystick):
-https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05068/'
-variables _planetX_wifiConnected _planetX_wifiLastResponse _planetX_smartiot_connected _planetX_smartiot_sendMsg _planetX_smartiot_lastSendTime _planetX_smartiot_switchListenFlag _planetX_smartiot_switchStatus _planetX_smartiot_switchKnown _planetX_smartiot_requestBusy _planetX_smartiot_switchOnEvent _planetX_smartiot_switchOffEvent _planetX_smartiot_host _planetX_smartiot_port _planetX_smartiot_token _planetX_smartiot_topic _planetX_smartiot_lastResponse 
-variables _planetX_wifiReady
-variables _planetX_joystickHasRequest _planetX_joystickLastRequest
+'
+variables _planetX_wifiConnected _planetX_wifiReady _planetX_wifiLastResponse _planetX_smartiot_connected _planetX_smartiot_sendMsg _planetX_smartiot_lastSendTime _planetX_smartiot_switchListenFlag _planetX_smartiot_switchStatus _planetX_smartiot_switchKnown _planetX_smartiot_requestBusy _planetX_smartiot_switchOnEvent _planetX_smartiot_switchOffEvent _planetX_smartiot_host _planetX_smartiot_port _planetX_smartiot_token _planetX_smartiot_topic _planetX_smartiot_lastResponse
 
   spec ' ' 'planetX_wifiInit' 'WiFi module set port _ baud rate _' 'menu.planetXPort num' 'J1' 115200
   spec ' ' 'planetX_wifiConnect' 'WiFi connect SSID _ password _' 'str str' 'your_ssid' 'your_password'
@@ -36,18 +31,11 @@ variables _planetX_joystickHasRequest _planetX_joystickLastRequest
   spec 'h' 'planetX_iotSwitchEvent' 'when SmartIoT switch is _' 'menu.planetXOnOff' 'on'
   spec 'r' 'planetX_smartIotSwitchState' 'SmartIoT switch is _' 'menu.planetXOnOff' 'on'
   space
-  spec 'r' 'planetX_joystickButton' 'joystick button _ is pressed' 'menu.planetXJoystickButton' '⬆'
-  spec 'r' 'planetX_joystickAnalog' 'joystick _ analog value' 'menu.planetXJoystickAxis' 'LX'
-  space
   spec 'r' '_planetX_wifiAppendRead' '_planetX_wifiAppendRead'
   spec 'r' '_planetX_wifiRequest' '_planetX_wifiRequest _ _ _' 'auto auto auto' 0 0 0
   spec 'r' '_planetX_wifiWaitFor' '_planetX_wifiWaitFor _ _' 'auto auto' 0 0
   spec 'r' '_planetX_wifiWriteAT' '_planetX_wifiWriteAT _' 'auto' 0
-  spec 'r' '_planetX_attentionCode' '_planetX_attentionCode _' 'auto' 0
-  spec 'r' '_planetX_attentionReadByte' '_planetX_attentionReadByte'
-  spec 'r' '_planetX_attentionRequest' '_planetX_attentionRequest _' 'auto' 0
-  spec 'r' '_planetX_attentionWaitReady' '_planetX_attentionWaitReady'
-  spec 'r' '_planetX_joystickAnalogCode' '_planetX_joystickAnalogCode _' 'auto' 0
+  space
   spec 'r' '_planetX_smartiotATCommand' '_planetX_smartiotATCommand _' 'auto' 0
   spec 'r' '_planetX_smartiotATRequest' '_planetX_smartiotATRequest _ _ _' 'auto auto auto' 0 0 0
   spec ' ' '_planetX_smartiotEnsureDefaults' '_planetX_smartiotEnsureDefaults'
@@ -56,80 +44,13 @@ variables _planetX_joystickHasRequest _planetX_joystickLastRequest
   spec ' ' '_planetX_smartiotSwitchLoop' '_planetX_smartiotSwitchLoop'
   spec ' ' '_planetX_smartiotUpdateSwitchFromResponse' '_planetX_smartiotUpdateSwitchFromResponse _ _' 'auto auto' 0 0
 
-to '_planetX_attentionCode' button {
-  if (button == '⬆') {return 5}
-  if (button == '⬇') {return 7}
-  if (button == '⬅') {return 8}
-  if (button == '➡') {return 6}
-  if (button == '▷') {return 13}
-  if (button == '☐') {return 16}
-  if (button == '𐤏') {return 14}
-  if (button == '⨉') {return 15}
-  if (button == 'L1') {return 11}
-  if (button == 'R1') {return 12}
-  if (button == 'L2') {return 9}
-  if (button == 'R2') {return 10}
-  if (button == 'SELECT') {return 1}
-  if (button == 'START') {return 4}
-  if (button == 'L3') {return 2}
-  if (button == 'R3') {return 3}
-  return 0
-}
-
-to '_planetX_attentionReadByte' {
-  local 'response' ('[data:newByteArray]' 1 0)
-  if (('[sensors:i2cRead]' 8 response) != 1) {
-    return -1
-  }
-  return (at 1 response)
-}
-
-to '_planetX_attentionRequest' command {
-  if (not ('_planetX_i2cAcquire')) {return -1}
-  local 'board' (boardType)
-  local 'pace' (or (board == 'micro:bit v2') (board == 'micro:bit'))
-  if (and pace _planetX_joystickHasRequest) {
-    comment 'A 10 ms gap improved sequential micro:bit reads in the hardware comparison. Recheck under the FIFO lock so parallel callers cannot bypass the gap.'
-    local 'remaining' (10 - (millisSince _planetX_joystickLastRequest))
-    if (remaining > 0) {waitMillis remaining}
-  }
-  '_planetX_i2cSetClock'
-  local 'value' -1
-  if ('_planetX_attentionWaitReady') {
-    '[sensors:i2cWrite]' 8 command
-    value = ('_planetX_attentionReadByte')
-  }
-  if pace {
-    _planetX_joystickLastRequest = (millisOp)
-    _planetX_joystickHasRequest = true
-  }
-  '_planetX_i2cRelease'
-  return value
-}
-
-to '_planetX_attentionWaitReady' {
-  local 'start' (millisOp)
-  repeatUntil (('_planetX_attentionReadByte') == 16) {
-    if ((millisSince start) >= 250) {return false}
-    waitMillis 1
-  }
-  return true
-}
-
-to '_planetX_joystickAnalogCode' axis {
-  if (axis == 'RX') {return 25}
-  if (axis == 'RY') {return 26}
-  if (axis == 'LY') {return 28}
-  return 27
-}
-
-to '_planetX_smartiotATCommand' path {
-  '_planetX_smartiotEnsureDefaults'
+to _planetX_smartiotATCommand path {
+  _planetX_smartiotEnsureDefaults
   return ('[data:join]' 'AT+HTTPCLIENT=2,0,"' _planetX_smartiot_host ':' _planetX_smartiot_port path '",,,1')
 }
 
-to '_planetX_smartiotATRequest' command responseKey timeoutMSecs {
-  '_planetX_wifiAppendRead'
+to _planetX_smartiotATRequest command responseKey timeoutMSecs {
+  _planetX_wifiAppendRead
   if (not _planetX_wifiConnected) {
     _planetX_smartiot_lastResponse = '0 Not Connected'
     return _planetX_smartiot_lastResponse
@@ -143,7 +64,7 @@ to '_planetX_smartiotATRequest' command responseKey timeoutMSecs {
     waitMillis 10
   }
   _planetX_smartiot_requestBusy = true
-  _planetX_smartiot_lastResponse = ('_planetX_wifiRequest' command responseKey timeoutMSecs)
+  _planetX_smartiot_lastResponse = (_planetX_wifiRequest command responseKey timeoutMSecs)
   _planetX_smartiot_requestBusy = false
   if ((size _planetX_smartiot_lastResponse) == 0) {
     _planetX_smartiot_lastResponse = '0 No Response'
@@ -151,7 +72,7 @@ to '_planetX_smartiotATRequest' command responseKey timeoutMSecs {
   return _planetX_smartiot_lastResponse
 }
 
-to '_planetX_smartiotEnsureDefaults' {
+to _planetX_smartiotEnsureDefaults {
   if (_planetX_smartiot_host == 0) {_planetX_smartiot_host = 'http://www.smartiot.space'}
   if (_planetX_smartiot_port == 0) {_planetX_smartiot_port = 8080}
   if (_planetX_smartiot_token == 0) {_planetX_smartiot_token = ''}
@@ -160,24 +81,24 @@ to '_planetX_smartiotEnsureDefaults' {
   if (_planetX_smartiot_lastResponse == 0) {_planetX_smartiot_lastResponse = ''}
 }
 
-to '_planetX_smartiotStartSwitchLoop' {
-  '_planetX_smartiotEnsureDefaults'
+to _planetX_smartiotStartSwitchLoop {
+  _planetX_smartiotEnsureDefaults
   if (not _planetX_smartiot_switchListenFlag) {
     _planetX_smartiot_switchListenFlag = true
     sendBroadcast '_planetX_smartiotSwitchLoop'
   }
 }
 
-to '_planetX_smartiotStatusCommand' {
-  return ('_planetX_smartiotATCommand' ('[data:join]' '/iot/iotTopic/getTopicStatus/' _planetX_smartiot_token '/' _planetX_smartiot_topic))
+to _planetX_smartiotStatusCommand {
+  return (_planetX_smartiotATCommand ('[data:join]' '/iot/iotTopic/getTopicStatus/' _planetX_smartiot_token '/' _planetX_smartiot_topic))
 }
 
-to '_planetX_smartiotSwitchLoop' {
+to _planetX_smartiotSwitchLoop {
   forever {
-    '_planetX_wifiAppendRead'
+    _planetX_wifiAppendRead
     if (and _planetX_wifiConnected _planetX_smartiot_connected) {
-      local 'response' ('_planetX_smartiotATRequest' ('_planetX_smartiotStatusCommand') '"code":200' 2000)
-      '_planetX_smartiotUpdateSwitchFromResponse' response true
+      local 'response' (_planetX_smartiotATRequest (_planetX_smartiotStatusCommand) '"code":200' 2000)
+      _planetX_smartiotUpdateSwitchFromResponse response true
     } else {
       if (not _planetX_wifiConnected) {_planetX_smartiot_connected = false}
     }
@@ -185,7 +106,7 @@ to '_planetX_smartiotSwitchLoop' {
   }
 }
 
-to '_planetX_smartiotUpdateSwitchFromResponse' response fireEvent {
+to _planetX_smartiotUpdateSwitchFromResponse response fireEvent {
   local 'newStatus' _planetX_smartiot_switchStatus
   local 'knownStatus' false
   if (('[data:find]' 'switchOn' response) > 0) {
@@ -206,7 +127,7 @@ to '_planetX_smartiotUpdateSwitchFromResponse' response fireEvent {
   }
 }
 
-to '_planetX_wifiAppendRead' {
+to _planetX_wifiAppendRead {
   if (not _planetX_wifiReady) {return ''}
   local 'newData' ('[data:convertType]' ('[serial:read]') 'string')
   if ((size newData) > 0) {
@@ -221,22 +142,22 @@ to '_planetX_wifiAppendRead' {
   return _planetX_wifiLastResponse
 }
 
-to '_planetX_wifiRequest' command responseKey timeoutMSecs {
-  '_planetX_wifiAppendRead'
+to _planetX_wifiRequest command responseKey timeoutMSecs {
+  _planetX_wifiAppendRead
   _planetX_wifiLastResponse = ''
-  if (not ('_planetX_wifiWriteAT' command)) {
+  if (not (_planetX_wifiWriteAT command)) {
     return ''
   }
-  '_planetX_wifiWaitFor' responseKey timeoutMSecs
-  '_planetX_wifiAppendRead'
+  _planetX_wifiWaitFor responseKey timeoutMSecs
+  _planetX_wifiAppendRead
   return _planetX_wifiLastResponse
 }
 
-to '_planetX_wifiWaitFor' key timeoutMSecs {
+to _planetX_wifiWaitFor key timeoutMSecs {
   if (not _planetX_wifiReady) {return false}
   local 'start' (millisOp)
   repeatUntil ((millisSince start) > timeoutMSecs) {
-    '_planetX_wifiAppendRead'
+    _planetX_wifiAppendRead
     if (('[data:find]' key _planetX_wifiLastResponse) > 0) {
       return true
     }
@@ -245,7 +166,7 @@ to '_planetX_wifiWaitFor' key timeoutMSecs {
   return false
 }
 
-to '_planetX_wifiWriteAT' command {
+to _planetX_wifiWriteAT command {
   if (not _planetX_wifiReady) {return false}
   local 'atcmd' ('[data:join]' command ('[data:unicodeString]' 13) ('[data:unicodeString]' 10))
   local 'bytes' ('[data:asByteArray]' atcmd)
@@ -259,15 +180,15 @@ to '_planetX_wifiWriteAT' command {
 }
 
 to planetX_connectSmartiot userToken topic {
-  '_planetX_smartiotEnsureDefaults'
+  _planetX_smartiotEnsureDefaults
   _planetX_smartiot_token = userToken
   _planetX_smartiot_topic = topic
   _planetX_smartiot_connected = false
   repeat 3 {
-    local 'response' ('_planetX_smartiotATRequest' ('_planetX_smartiotStatusCommand') '"code":200' 2000)
+    local 'response' (_planetX_smartiotATRequest (_planetX_smartiotStatusCommand) '"code":200' 2000)
     if (('[data:find]' '"code":200' response) > 0) {
       _planetX_smartiot_connected = true
-      '_planetX_smartiotUpdateSwitchFromResponse' response false
+      _planetX_smartiotUpdateSwitchFromResponse response false
       return
     }
     waitMillis 200
@@ -275,7 +196,7 @@ to planetX_connectSmartiot userToken topic {
 }
 
 to planetX_iotSwitchEvent state {
-  '_planetX_smartiotStartSwitchLoop'
+  _planetX_smartiotStartSwitchLoop
   if (state == 'on') {
     if _planetX_smartiot_switchOnEvent {
       _planetX_smartiot_switchOnEvent = false
@@ -290,29 +211,8 @@ to planetX_iotSwitchEvent state {
   return false
 }
 
-to planetX_joystickAnalog axis {
-  local 'value' ('_planetX_attentionRequest' ('_planetX_joystickAnalogCode' axis))
-  if (value < 0) {
-    return 0
-  }
-  if (or (axis == 'RY') (axis == 'LY')) {
-    if (value != 0) {value += 1}
-  } else {
-    if (and (value != 128) (value != 0)) {value += 1}
-  }
-  return (value * 4)
-}
-
-to planetX_joystickButton button {
-  local 'code' ('_planetX_attentionCode' button)
-  if (code == 0) {
-    return false
-  }
-  return (('_planetX_attentionRequest' code) == 1)
-}
-
 to planetX_setSmartIotUploadData n1 n2 n3 n4 n5 n6 n7 n8 {
-  '_planetX_smartiotEnsureDefaults'
+  _planetX_smartiotEnsureDefaults
   local 'data1' (argOrDefault 1 0)
   local 'data2' (argOrDefault 2 0)
   local 'data3' (argOrDefault 3 0)
@@ -322,15 +222,15 @@ to planetX_setSmartIotUploadData n1 n2 n3 n4 n5 n6 n7 n8 {
   local 'data7' (argOrDefault 7 0)
   local 'data8' (argOrDefault 8 0)
   local 'path' ('[data:join]' '/iot/iotTopicData/addTopicData?userToken=' _planetX_smartiot_token '&topicName=' _planetX_smartiot_topic '&data1=' data1 '&data2=' data2 '&data3=' data3 '&data4=' data4 '&data5=' data5 '&data6=' data6 '&data7=' data7 '&data8=' data8)
-  _planetX_smartiot_sendMsg = ('_planetX_smartiotATCommand' path)
+  _planetX_smartiot_sendMsg = (_planetX_smartiotATCommand path)
 }
 
 to planetX_smartIotSwitchState state {
-  '_planetX_smartiotEnsureDefaults'
+  _planetX_smartiotEnsureDefaults
   if (or ((size _planetX_smartiot_token) == 0) ((size _planetX_smartiot_topic) == 0)) {
     return false
   }
-  local 'response' ('_planetX_smartiotATRequest' ('_planetX_smartiotStatusCommand') '"code":200' 2000)
+  local 'response' (_planetX_smartiotATRequest (_planetX_smartiotStatusCommand) '"code":200' 2000)
   if (('[data:find]' '"code":200' response) < 1) {
     return false
   }
@@ -338,7 +238,7 @@ to planetX_smartIotSwitchState state {
     return false
   }
   _planetX_smartiot_connected = true
-  '_planetX_smartiotUpdateSwitchFromResponse' response false
+  _planetX_smartiotUpdateSwitchFromResponse response false
   if (state == 'on') {
     return (_planetX_smartiot_switchStatus == true)
   }
@@ -346,7 +246,7 @@ to planetX_smartIotSwitchState state {
 }
 
 to planetX_smartiotConnected {
-  '_planetX_wifiAppendRead'
+  _planetX_wifiAppendRead
   if (not _planetX_wifiConnected) {
     _planetX_smartiot_connected = false
   }
@@ -354,7 +254,7 @@ to planetX_smartiotConnected {
 }
 
 to planetX_uploadSmartIotData {
-  '_planetX_smartiotEnsureDefaults'
+  _planetX_smartiotEnsureDefaults
   if (not _planetX_smartiot_connected) {
     return
   }
@@ -370,33 +270,35 @@ to planetX_uploadSmartIotData {
       waitMillis (1000 - elapsed)
     }
   }
-  '_planetX_smartiotATRequest' _planetX_smartiot_sendMsg '"code":200' 3000
+  _planetX_smartiotATRequest _planetX_smartiot_sendMsg '"code":200' 3000
   _planetX_smartiot_lastSendTime = (millisOp)
 }
 
 to planetX_wifiConnect ssid password {
   _planetX_wifiConnected = false
   _planetX_smartiot_connected = false
-  if (not _planetX_wifiReady) {return}
+  if (not _planetX_wifiReady) {
+    return
+  }
   repeat 3 {
     local 'cmd' ('[data:join]' 'AT+CWJAP="' ssid '","' password '"')
     planetX_wifiSendAT cmd 200
-    if ('_planetX_wifiWaitFor' 'WIFI GOT IP' 5000) {
+    if (_planetX_wifiWaitFor 'WIFI GOT IP' 5000) {
       _planetX_wifiConnected = true
       return
     }
-    if ('_planetX_wifiWaitFor' 'OK' 500) {
+    if (_planetX_wifiWaitFor 'OK' 500) {
       _planetX_wifiConnected = true
       return
     }
     planetX_wifiSendAT 'AT+RST' 2000
-    '_planetX_wifiWaitFor' 'ready' 2000
+    _planetX_wifiWaitFor 'ready' 2000
     planetX_wifiSendAT 'AT+CWMODE=1' 500
   }
 }
 
 to planetX_wifiConnected {
-  '_planetX_wifiAppendRead'
+  _planetX_wifiAppendRead
   return (_planetX_wifiConnected == true)
 }
 
@@ -415,8 +317,8 @@ to planetX_wifiInit port baudrate {
     sayIt 'Planet X WiFi: baud rate must be positive.'
     return
   }
-  local 'rxPin' ('_planetX_jPortPin' port 'A')
-  local 'txPin' ('_planetX_jPortPin' port 'B')
+  local 'rxPin' (_planetX_jPortPin port 'A')
+  local 'txPin' (_planetX_jPortPin port 'B')
   '[serial:close]'
   if (board == 'micro:bit v2') {
     local 'released' (digitalReadOp rxPin 'none')
@@ -432,15 +334,15 @@ to planetX_wifiInit port baudrate {
 }
 
 to planetX_wifiRead {
-  return ('_planetX_wifiAppendRead')
+  return (_planetX_wifiAppendRead)
 }
 
 to planetX_wifiSendAT command waitMSecs {
   _planetX_wifiLastResponse = ''
-  if (not ('_planetX_wifiWriteAT' command)) {
+  if (not (_planetX_wifiWriteAT command)) {
     return
   }
   waitMillis waitMSecs
-  '_planetX_wifiAppendRead'
+  _planetX_wifiAppendRead
 }
 

@@ -22,7 +22,6 @@ class MB_CodeManager {
 		this.lastRcvMSecs = null;
 		this.crc32Table = null;
 		this.buildCRC32Table();
-		this.assignFunctionIDs();
 	}
 
 	// --- run/stop ---
@@ -39,7 +38,12 @@ class MB_CodeManager {
 		}
 		if (!(aBlock.parent instanceof ScriptsMorph)) {
 			// running a block from the palette
-			await this.saveAllChunks(true, aBlock);
+			try {
+				await this.saveAllChunks(true, aBlock);
+			} catch (e) {
+				MB_editor.showError(aBlock, e.message); // e.g. too many code chunks
+				return;
+			}
 		}
 		const chunkID = this.lookupChunkID(aBlock);
 		if (chunkID != null) this.runChunk(chunkID); // null: nothing has been stored for it yet
@@ -349,10 +353,38 @@ class MB_CodeManager {
 		for (const entry of this.chunkIDs.values()) {
 			inUse.add(entry[0]);
 		}
-		for (let id = 0; id < 256; id++) {
+		for (let id = 0; id < 255; id++) { // the VM has 255 chunks, so 255 is not an ID
 			if (!inUse.has(id)) return id;
 		}
-		throw new Error('Too many code chunks (functions and scripts). Max is 256.');
+		if (this.reclaimUnreachableFunctionIDs()) return this.unusedChunkID();
+		throw new Error('Too many code chunks (functions and scripts). Max is 255.');
+	}
+
+	reclaimUnreachableFunctionIDs() {
+		// Free the IDs of functions that are no longer reachable. Return true if any were freed.
+		// Every remaining chunk is recompiled on its next save, so none keeps calling a freed ID.
+		const unused = new Set(this.unusedFuncsInSync || this.project.unusedFunctions());
+		for (const key of this.chunkIDs.keys()) {
+			if (key instanceof BlockMorph) { // a palette block's chunk may still be running
+				const unusedByIt = this.project.unusedFunctions(key);
+				for (const fName of unused) if (!unusedByIt.includes(fName)) unused.delete(fName);
+			}
+		}
+		let freed = false;
+		for (const [key, entry] of this.chunkIDs.entries()) {
+			if (entry[5] && unused.has(key)) {
+				this.chunkIDs.delete(key);
+				this.functionChunkIDs.delete(key);
+				freed = true;
+			}
+		}
+		if (freed) {
+			for (const entry of this.chunkIDs.values()) {
+				entry[3] = ''; // clear the last source
+				entry[4] = true; // and recompile hidden functions too
+			}
+		}
+		return freed;
 	}
 
 	ensureChunkIdFor(aBlock) {
@@ -385,19 +417,28 @@ class MB_CodeManager {
 		return result;
 	}
 
-	assignFunctionIDs() {
-		// Ensure that there is a chunk ID for every user-defined function.
-		// This must be done before generating any code to allow for recursive calls.
+	assignFunctionIDs(unusedFuncs) {
+		// Ensure that there is a chunk ID for every function that will be downloaded.
+		// Unused functions get one only if something compiles a call to them.
 		if (!this.project) return; // no project: nothing to assign (e.g. the decompiler's opcode-table compiler)
+		if (unusedFuncs == null) unusedFuncs = this.project.unusedFunctions();
 		for (const func of this.project.allFunctions()) {
-			const fName = func.functionName;
-			if (!this.chunkIDs.has(fName)) {
-				const id = this.unusedChunkID();
-				const entry = [id, null, this.chunkTypeFor(func), '', true, true];
-				this.chunkIDs.set(fName, entry); // fName -> [id, crc, chunkType, lastSrc, functionMayHaveChanged, isFunction]
-				this.functionChunkIDs.set(fName, id);
-			}
+			if (!unusedFuncs.includes(func.functionName)) this.functionChunkID(func.functionName);
 		}
+	}
+
+	functionChunkID(fName) {
+		// Return the chunk ID for the named function, assigning one if needed.
+		// Return null if there is no such function.
+		const existing = this.functionChunkIDs.get(fName);
+		if (existing != null) return existing;
+		const func = this.project ? this.project.functionNamed(fName) : null;
+		if (func == null) return null;
+		const id = this.unusedChunkID();
+		const entry = [id, null, this.chunkTypeFor(func), '', true, true];
+		this.chunkIDs.set(fName, entry); // fName -> [id, crc, chunkType, lastSrc, functionMayHaveChanged, isFunction]
+		this.functionChunkIDs.set(fName, id);
+		return id;
 	}
 
 	functionNameForID(chunkID) {
@@ -417,7 +458,7 @@ class MB_CodeManager {
 			const chunkID = entry[0];
 			await MB_connection.sendMsgSync('deleteChunkMsg', chunkID);
 			this.chunkIDs.delete(key);
-			if (entry[5]) this.functionChunkIDs.delete(key); // so calls to it compile as unknown ops, as in GP
+			if (entry[5]) this.functionChunkIDs.delete(key);
 		}
 	}
 
@@ -425,10 +466,15 @@ class MB_CodeManager {
 		// Save the code for all scripts and user-defined functions.
 		// Counted, so that the editor's step does not start a second download meanwhile.
 		this.savesInProgress += 1;
+		this.unusedFuncsInSync = this.project.unusedFunctions(paletteBlock); // what this download leaves out
 		try {
 			await this.saveAllChunksNow(checkCRCs, paletteBlock);
+		} catch (e) {
+			MB_connection.resumeCodeFileUpdates(); // this download, or its caller, may have suspended them
+			throw e;
 		} finally {
 			this.savesInProgress -= 1;
+			this.unusedFuncsInSync = null;
 		}
 	}
 
@@ -454,10 +500,14 @@ class MB_CodeManager {
 			}
 			skipHiddenFunctions = false;
 		}
-		this.assignFunctionIDs();
 		await this.removeObsoleteChunks();
+		const unusedFuncs = this.unusedFuncsInSync || this.project.unusedFunctions(paletteBlock);
+		this.assignFunctionIDs(unusedFuncs);
+		for (const aBlock of this.project.allScripts()) { // so running out of IDs stops it before anything is stored
+			if (!aBlock.isFunctionDefinition()) this.ensureChunkIdFor(aBlock);
+		}
+		if (paletteBlock != null) this.ensureChunkIdFor(paletteBlock);
 
-		const unusedFuncs = this.project.unusedFunctions(paletteBlock);
 		let functionsSaved = 0;
 		for (const aFunction of this.project.allFunctions()) {
 			if (!unusedFuncs.includes(aFunction.functionName)) {
@@ -548,7 +598,7 @@ class MB_CodeManager {
 		let chunkID, entry, currentSrc;
 		if (aBlockOrFunction instanceof MB_Function) {
 			const functionName = aBlockOrFunction.functionName;
-			chunkID = this.lookupChunkID(functionName);
+			chunkID = this.functionChunkID(functionName);
 			entry = this.chunkIDs.get(functionName);
 			if (skipHiddenFunctions && !entry[4]) return false; // function is not in scripting area so has not changed
 			entry[4] = false;
@@ -687,11 +737,8 @@ class MB_CodeManager {
 			if (entry[5]) { // a function, keyed on its name
 				if (this.project.functionNamed(key) == null) {
 					this.chunkIDs.delete(key); // remove reference to deleted function (rarely needed)
-				}
-				if (unusedFuncs.includes(key)) {
-					this.chunkIDs.delete(key); // unused function; does not need to be saved to board
-				}
-				if (this.chunkIDs.has(key)) { // function is still in use, so verify it like any other chunk
+					this.functionChunkIDs.delete(key);
+				} else if (!unusedFuncs.includes(key)) { // an unused function need not be on the board
 					ideChunks.set(id, key);
 					crcForChunkID.set(id, entry[1]);
 				}
@@ -802,8 +849,13 @@ class MB_CodeManager {
 			if (!knownIDs.has(chunkID)) {
 				console.log('Deleting chunk not in project:', chunkID);
 				if (!(await MB_connection.sendMsgSync('deleteChunkMsg', chunkID))) return;
-				// forget it too, so a later call to the function sends it again
-				if (unusedKeys.has(chunkID)) this.chunkIDs.delete(unusedKeys.get(chunkID));
+				// keep its ID, but forget what was sent, so a later call to the function sends it again
+				const entry = unusedKeys.has(chunkID) ? this.chunkIDs.get(unusedKeys.get(chunkID)) : null;
+				if (entry) {
+					entry[1] = null; // CRC
+					entry[3] = ''; // last source
+					entry[4] = true; // function may have changed
+				}
 			}
 		}
 	}

@@ -227,6 +227,7 @@ void initTasks(void);
 void startAll();
 void stopAllTasksButThis(Task *task);
 void startReceiversOfBroadcast(char *msg, int byteCount);
+void startReceiversOfBroadcastInternal(char *msg, int byteCount);
 void processMessage(void);
 int hasOutputSpace(int byteCount);
 void logData(char *s);

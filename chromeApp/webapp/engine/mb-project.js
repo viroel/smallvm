@@ -369,6 +369,14 @@ class MB_Project {
 			}
 		}
 
+		// the project's own functions are always downloaded, so whatever they call is reachable
+		for (const f of this.main.functions) {
+			if (functionCalled.get(f.functionName) === false) {
+				functionCalled.set(f.functionName, true);
+				todo.push(f.functionName);
+			}
+		}
+
 		// mark all reachable functions
 		while (todo.length > 0) {
 			let f = this.functionNamed(todo.shift());

@@ -44,14 +44,8 @@
 		<!-- Localization -->
 		<script type="text/javascript" src="ui/gettext.js" defer></script>
 
-		<!-- Utils -->
-		<script type="text/javascript" src="ui/elements.js"></script>
-		<script type="text/javascript" src="lib/marked.umd.js" defer></script>
-
 		<!-- Window Components -->
 		<script type="text/javascript" src="ui/windows.js" defer></script>
-		<script type="text/javascript" src="ui/libraryinfo.js" defer></script>
-		<script type="text/javascript" src="ui/filebrowser.js" defer></script>
 		<script type="text/javascript" src="ui/graph.js" defer></script>
 
 		<!-- Firmware upload support -->
@@ -62,13 +56,16 @@
 
 	<body oncontextmenu="return false;">
 
+
 		<!-- Force HTTPS. Otherwise WebSerial can't be accessed. -->
 		<script>
 			if (location.protocol === 'http:') { location.protocol = 'https:'; }
 		</script>
 
+
 		<!-- FileUploader -->
 		<input type="file" id="FileUploader" multiple style="display:none">
+
 
 		<!-- Loader -->
 		<div class="app-preloader" data-ide="app-preloader">
@@ -77,6 +74,14 @@
 				<div class="app-preloader__spinner"></div>
 			</div>
 			<p class="app-preloader__text">Loading</p>
+		</div>
+
+
+		<!-- Emcripten -->
+		<div class="spinner" id="spinner"></div>
+		<div class="emscripten" id="status"></div>
+		<div class="emscripten">
+			<progress value="0" max="100" id="progress" hidden="1"></progress>
 		</div>
 
 
@@ -108,7 +113,7 @@
 					<div class="libraries">
 						<h2 class="libraries__title"><l->LIBRARIES</l-></h2>
 						<nav class="libraries__add-button-wrapper">
-							<button class="button-rounded libraries__add-button" onclick="(new FileBrowser((path)=>{MB_editor.openLibraryFile(path)},'Libraries',['.ubl'])).popUp();">
+							<button class="button-rounded libraries__add-button" onclick="GP.apiCall('ide.showLibraryDialog');">
 								<l->Add Library</l->
 								<span class="libraries__add-button-icon">
 									<svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -126,9 +131,8 @@
 					</button>
 				</div>
 
-				<div class="workspace__canvas-wrapper">
-					<!-- Canvas for Morphic world -->
-					<canvas id="canvas"></canvas>
+				<div class="emscripten workspace__canvas-wrapper">
+					<canvas id="canvas" class="emscripten" width="100px" height="100px"></canvas>
 					<div class="scripts-pane-controls --can-drag-through" data-ide="scripts-pane-controls"></div>
 				</div>
 
@@ -152,91 +156,26 @@
 		</div>
 
 
-		<!-- Snap Blocks -->
-		<script type="text/javascript" src="engine/morphic.js"></script>
-		<script type="text/javascript" src="engine/mb-support.js"></script>
-		<script type="text/javascript" src="engine/mb-blocks.js"></script>
-		<script type="text/javascript" src="engine/mb-slots.js"></script>
-		<script type="text/javascript" src="engine/mb-block-search.js"></script>
-		<script type="text/javascript" src="engine/mb-code-manager.js"></script>
-		<script type="text/javascript" src="engine/mb-comm-port.js"></script>
-		<script type="text/javascript" src="engine/mb-compare.js"></script>
-		<script type="text/javascript" src="engine/mb-compiler.js"></script>
-		<script type="text/javascript" src="engine/mb-connection.js"></script>
-		<script type="text/javascript" src="engine/mb-decompiler.js"></script>
-		<script type="text/javascript" src="engine/mb-file-picker.js"></script>
-		<script type="text/javascript" src="engine/mb-firmware.js"></script>
-		<script type="text/javascript" src="engine/mb-esptool.js"></script>
-		<script type="text/javascript" src="engine/mb-esptool-stubs.js"></script>
-		<script type="text/javascript" src="engine/mb-files.js"></script>
-		<script type="text/javascript" src="engine/mb-function.js"></script>
-		<script type="text/javascript" src="engine/mb-help-strings.js"></script>
-		<script type="text/javascript" src="engine/mb-help.js"></script>
-		<script type="text/javascript" src="engine/mb-jsAPI.js"></script>
-		<script type="text/javascript" src="engine/mb-library-widgets.js"></script>
-		<script type="text/javascript" src="engine/mb-boardie.js"></script>
-		<script type="text/javascript" src="engine/mb-parser.js"></script>
-		<script type="text/javascript" src="engine/mb-project.js"></script>
-		<script type="text/javascript" src="engine/mb-specs.js"></script>
-		<script type="text/javascript" src="engine/mb-tips.js"></script>
-		<script type="text/javascript" src="engine/mb-autosave.js"></script>
-		<script type="text/javascript" src="engine/mb-editor.js"></script>
+		<!-- Functional JS -->
+		<script type="text/javascript" src="emModule.js"></script>
+		<script type="text/javascript" src="gpSupport.js"></script>
+		<script type="text/javascript" src="lib/FileSaver.js"></script>
+		<script type="text/javascript" src="gp_wasm.js"></script>
+
 
 		<!-- IDE -->
+		<script type="text/javascript" src="ui/elements.js"></script>
 		<script type="text/javascript" src="ui/ide.js"></script>
 		<script type="text/javascript" src="ui/menus.js"></script>
 		<script type="text/javascript" src="ui/buttons.js"></script>
 		<script type="text/javascript" src="ui/categories.js"></script>
 
-		<!-- Start IDE when page is loaded -->
+		<!-- GP Init -->
 		<script>
-			var world, mbEditor;
-			window.onload = function () {
-				var FPS = 60,
-					lastTime = 0,
-					lastStep = 0,
-
-				// Morphic UI loop
-				loop = (timestamp) => {
-					requestAnimationFrame(loop);
-					if (timestamp - lastStep >= 250) { // four times a second, as GP steps its scripter
-						lastStep = timestamp;
-						MB_editor.updateStopping();
-						MB_editor.step();
-					}
-					if (timestamp - lastTime < 1000 / FPS) {
-						return;
-					}
-					world.doOneCycle();
-					lastTime = Math.max(
-						lastTime + 1000 / FPS,
-						timestamp - 1000 / FPS
-					);
-				};
-
-				setTimeout(async () => {
-					// Hack: Wait a bit before starting to let everything finish loading...
-					MorphicPreferences.isFlat = true;
-					world = new WorldMorph(document.getElementById('canvas'), false);
-					IDE.init();
-					mbEditor = MB_editor.open(world);
-					IDE.resize(); // place the world canvas over the workspace slot
-					MB_editor.logUsage();
-					// Started first, so the IDE keeps running while a link's project asks a question.
-					requestAnimationFrame(loop);
-					// Before a link's project, so the work a crash left behind is offered first.
-					// Restored work stands in for the link, which may be a different project.
-					const restored = MB_editor.autosave && (await MB_editor.autosave.start());
-					try {
-						// A link the page was opened with.
-						if (!restored) await MB_editor.importFromURL(location.href);
-					} catch (error) {
-						// The IDE still runs: a link nobody can open is not a dead page.
-						console.error('Could not open this link:', error);
-					}
-				}, 500);
-			};
+			// emitted by GP (MicroBlocksEditor.gp → openMicroBlocksEditor)
+			document.addEventListener('ready', () => { IDE.init(); });
 		</script>
+
 
 	</body>
 </html>

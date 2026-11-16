@@ -371,14 +371,29 @@ int broadcastMatches(uint8 chunkIndex, char *msg, int byteCount) {
 
 extern OBJ lastBroadcast;
 
-void startReceiversOfBroadcast(char *msg, int byteCount) {
-	// Start tasks for chunks with hat blocks matching the given broadcast if not already running.
+void startReceiversOfBroadcastInternal(char *msg, int byteCount) {
+	// Broadcast primitive. Start 'when _ received' hats AND zero argument functions matching
+	// the broadcast if they are not already running.
 
 	// save the last broadcast message
 	lastBroadcast = newStringFromBytes(msg, byteCount);
 	for (int i = 0; i < MAX_CHUNKS; i++) {
 		int chunkType = chunks[i].chunkType;
 		if (((broadcastHat == chunkType) || (functionHat == chunkType)) && (broadcastMatches(i, msg, byteCount))) {
+			startTaskForChunk(i); // only starts a new task if if chunk is not already running
+		}
+	}
+}
+
+void startReceiversOfBroadcast(char *msg, int byteCount) {
+	// External broadcast. Start 'when _ received' hats matching the broadcast if they are not
+	// already running. Does NOT start zero argument functions.
+
+	// save the last broadcast message
+	lastBroadcast = newStringFromBytes(msg, byteCount);
+	for (int i = 0; i < MAX_CHUNKS; i++) {
+		int chunkType = chunks[i].chunkType;
+		if ((broadcastHat == chunkType) && (broadcastMatches(i, msg, byteCount))) {
 			startTaskForChunk(i); // only starts a new task if if chunk is not already running
 		}
 	}

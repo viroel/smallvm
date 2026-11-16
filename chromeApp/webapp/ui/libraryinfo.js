@@ -20,10 +20,10 @@ class LibraryInfoWindow extends FloatingWindow {
 			title: library.moduleName,
 			body: contents,
 			buttons: buttons,
-			height: 350,
-			width: 350,
-			resizable: true,
-			className: '--library'
+			height: forEditing ? 520 : 420,
+			width: 420,
+			resizable: forEditing,
+			className: ['--library', forEditing ? '--editing' : '--not-editing']
 		});
 		this.cachedLibraryName = library.moduleName;
 		this.library = library;
@@ -72,28 +72,21 @@ class LibraryInfoWindow extends FloatingWindow {
 		div.appendChild(this.fieldFor('moduleName'));
 		div.appendChild(this.fieldFor('description'));
 
-		// let fieldGroup = newDiv('window__field_group');
-		// fieldGroup.appendChild(this.fieldFor('author'));
-		// fieldGroup.appendChild(this.fieldFor('version'));
-		// div.appendChild(fieldGroup);
+		let fieldGroup = newDiv('window__library-blocks-row');
+		fieldGroup.appendChild(this.fieldFor('author'));
+		fieldGroup.appendChild(this.fieldFor('version'));
+		div.appendChild(fieldGroup);
 
-		// fieldGroup = newDiv('window__field_group');
-		// fieldGroup.appendChild(this.fieldFor('dependencies'));
-		// fieldGroup.appendChild(this.fieldFor('moduleCategory'));
-		// div.appendChild(fieldGroup);
-
-		div.appendChild(this.fieldFor('author'));
-		div.appendChild(this.fieldFor('version'));
-		div.appendChild(this.fieldFor('dependencies'));
-		div.appendChild(this.fieldFor('moduleCategory'));
-
+		fieldGroup = newDiv('window__library-blocks-row');
+		fieldGroup.appendChild(this.fieldFor('dependencies'));
+		fieldGroup.appendChild(this.fieldFor('moduleCategory'));
+		div.appendChild(fieldGroup);
 
 		return div;
 	}
 
 	fieldFor(selector) {
 		let field = newDiv('window__library-block');
-
 		let title = newElement('h3');
 		let label = newLabel(this.labelFor(selector));
 		title.appendChild(label);
@@ -102,6 +95,7 @@ class LibraryInfoWindow extends FloatingWindow {
 			['moduleName', 'author'].includes(selector) ?
 				this.textInput(selector) :
 				this[selector + 'Input']();
+
 		field.classList.add(`--${selector}`);
 
 		field.appendChild(title);
@@ -110,23 +104,35 @@ class LibraryInfoWindow extends FloatingWindow {
 		return field;
 	}
 
+	// BERNAT & JOHN:
+	// - Review this
+	// - Switch 'input' to 'value'?
 	textInput(selector, value) {
-		let input = document.createElement('input');
+		let input;
+		if (this.forEditing) {
+			input = document.createElement('input');
+			input.type = 'text';
+			input.value = value ?? this.library[selector];
+		} else {
+			input = newDiv();
+			input.innerHTML = value ?? this.library[selector];
+		}
 		input.setAttribute('data-undraggable', true);
 		input.classList.add('window__input');
-		input.type = 'text';
-		input.value = value ?? this.library[selector];
 		input.readOnly = !this.forEditing;
 		return input;
 	}
 
+	// BERNAT & JOHN:
+	// - Review this
+	// - Switch 'input' to 'value'?
 	descriptionInput() {
 		let textarea;
 		if (this.forEditing) {
 			textarea = document.createElement('textarea');
 			textarea.textContent = this.library.description;
 		} else {
-			textarea = document.createElement('span');
+			textarea = newDiv();
 			textarea.innerHTML = marked.parse(this.library.description);
 		}
 		textarea.setAttribute('data-undraggable', true);
@@ -243,6 +249,10 @@ class LibraryInfoWindow extends FloatingWindow {
 		button.setAttribute('data-value', this.library.moduleCategory);
 		button.classList.add('window__library-color-button');
 		button.classList.add('--' + slugify(this.library.moduleCategory));
+
+		// Button only in editing mode
+		if (!this.forEditing) return button;
+
 		button.onclick = (event) => {
 			Menus.popUpFromDescriptor(
 				{
@@ -290,7 +300,7 @@ class LibraryInfoWindow extends FloatingWindow {
 			author: 'Author',
 			version: 'Version',
 			dependencies: 'Dependencies',
-			moduleCategory: 'Color'
+			moduleCategory: 'Category'
 		}[selector];
 	}
 }

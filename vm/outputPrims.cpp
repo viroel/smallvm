@@ -1144,18 +1144,20 @@ static void IRAM_ATTR sendNeoPixelData(int val) { // ESP32
 	uint32 oldIRQ;
 	asm volatile ("rsil %0, 15" : "=r" (oldIRQ));
 	for (uint32 mask = (1 << (neoPixelBits - 1)); mask > 0; mask >>= 1) {
-		if (val & mask) { // one bit; timing goal: high 800 nsecs, low 400 nsecs
+		if (val & mask) { // one bit; timing goal: high 850 nsecs, low 400 nsecs
 			*neoPixelPinSet = neoPixelPinMask;
-			DELAY_CYCLES(185);
+			DELAY_CYCLES(196);
 			*neoPixelPinClr = neoPixelPinMask;
 			DELAY_CYCLES(85);
-		} else { // zero bit; timing goal: high 300 nsecs, low 900 nsecs
+		} else { // zero bit; timing goal: high 300 nsecs, low 950 nsecs
 			*neoPixelPinSet = neoPixelPinMask;
 			DELAY_CYCLES(63);
 			*neoPixelPinClr = neoPixelPinMask;
-			DELAY_CYCLES(200);
+			DELAY_CYCLES(213);
 		}
 	}
+// José: If your NeoPanel still glitches, try uncommenting this:
+//	DELAY_CYCLES(200);
 	asm volatile ("wsr %0, ps; rsync" :: "r" (oldIRQ));
 }
 

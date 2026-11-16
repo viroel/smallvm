@@ -1,23 +1,27 @@
 module 'Planet X Input' Control
 author 'Elecfreaks Team'
-version 2 8
-depends '_Planet X Support' 
-choices planetXBME280State 'temperature (°C)' 'humidity (0-100%)' 'pressure (hPa)' 'altitude (m)' 
-choices planetXRTCReadField year month day weekday hour minute seconds 
-choices planetXDistanceUnit cm mm inch 
-choices planetXRTCSetField year month day hour minute seconds 
-choices planetXTrackBitSense '0' '1' 
-choices planetXTrackBitChannel '1' '2' '3' '4' 
-choices planetXTempUnit Celsius Fahrenheit 
-choices planetXTrackingState '00' '01' '10' '11' 
-choices planetXGas 'carbon monoxide' 'carbon dioxide' smoke alcohol 
-choices planetXTrackBitPattern '0000' '0001' '0010' '0011' '0100' '0101' '0110' '0111' '1000' '1001' '1010' '1011' '1100' '1101' '1110' '1111' 
-choices planetXDHT11State 'temperature (C)' 'humidity (0-100)' 
-choices planetXButton C D 
-choices planetXWaterSpeed slow medium fast 
+version 2 9
+depends '_Planet X Support'
+choices planetXBME280State 'temperature (°C)' 'humidity (0-100%)' 'pressure (hPa)' 'altitude (m)'
+choices planetXRTCReadField year month day weekday hour minute seconds
+choices planetXDistanceUnit cm mm inch
+choices planetXRTCSetField year month day hour minute seconds
+choices planetXTrackBitSense '0' '1'
+choices planetXTrackBitChannel '1' '2' '3' '4'
+choices planetXTempUnit Celsius Fahrenheit
+choices planetXTrackingState '00' '01' '10' '11'
+choices planetXGas 'carbon monoxide' 'carbon dioxide' smoke alcohol
+choices planetXTrackBitPattern '0000' '0001' '0010' '0011' '0100' '0101' '0110' '0111' '1000' '1001' '1010' '1011' '1100' '1101' '1110' '1111'
+choices planetXDHT11State 'temperature (C)' 'humidity (0-100)'
+choices planetXButton C D
+choices planetXWaterSpeed slow medium fast
 description 'button
 WIKI:
 https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05017
+
+joystick
+WIKI:
+https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05068/
 
 crash sensor
 WIKI:
@@ -100,9 +104,13 @@ https://wiki.elecfreaks.com/microbit/planetx-series/sensors/Plant_X_EF05053
 
 On micro:bit, analog sensors require J1 or J2. Digital sensors can use J1-J4.
 '
-variables _planetX_dsLastTemp _planetX_sr04_last _planetX_sr04_misses _planetX_dht_temperature _planetX_dht_humidity _planetX_dhtData _planetX_dhtLastReadTime _planetX_dhtRawPulses _planetX_rfidReady _planetX_rfidRetBits _planetX_rfidRetCount _planetX_rfidAck _planetX_rfidRecv _planetX_rfidUid _planetX_rfidBlock _planetX_rfidWrite _planetX_rfidKey _planetX_bmeReady _planetX_bmeAddr _planetX_bmeDigT1 _planetX_bmeDigT2 _planetX_bmeDigT3 _planetX_bmeDigP1 _planetX_bmeDigP2 _planetX_bmeDigP3 _planetX_bmeDigP4 _planetX_bmeDigP5 _planetX_bmeDigP6 _planetX_bmeDigP7 _planetX_bmeDigP8 _planetX_bmeDigP9 _planetX_bmeDigH1 _planetX_bmeDigH2 _planetX_bmeDigH3 _planetX_bmeDigH4 _planetX_bmeDigH5 _planetX_bmeDigH6 _planetX_bmeTemperature _planetX_bmePressure _planetX_bmeHumidity _planetX_rtcReady _planetX_trackBitReady _planetX_trackBitStateValue _planetX_trackBitStateValid _planetX_rfidStart _planetX_rfidController _planetX_wsResponse  _planetX_rfidPhase _planetX_rfidError _planetX_rfidStep _planetX_rfidCommand _planetX_rfidSoft _planetX_rfidLastTransport _planetX_rfidPreferSoft _planetX_rfidClockOK
+
+variables _planetX_joystickHasRequest _planetX_joystickLastRequest _planetX_dhtCache _planetX_sr04_cache _planetX_dsLastTemp _planetX_sr04_last _planetX_sr04_misses _planetX_dht_temperature _planetX_dht_humidity _planetX_dhtData _planetX_dhtLastReadTime _planetX_dhtRawPulses _planetX_rfidReady _planetX_rfidRetBits _planetX_rfidRetCount _planetX_rfidAck _planetX_rfidRecv _planetX_rfidUid _planetX_rfidBlock _planetX_rfidWrite _planetX_rfidKey _planetX_bmeReady _planetX_bmeAddr _planetX_bmeDigT1 _planetX_bmeDigT2 _planetX_bmeDigT3 _planetX_bmeDigP1 _planetX_bmeDigP2 _planetX_bmeDigP3 _planetX_bmeDigP4 _planetX_bmeDigP5 _planetX_bmeDigP6 _planetX_bmeDigP7 _planetX_bmeDigP8 _planetX_bmeDigP9 _planetX_bmeDigH1 _planetX_bmeDigH2 _planetX_bmeDigH3 _planetX_bmeDigH4 _planetX_bmeDigH5 _planetX_bmeDigH6 _planetX_bmeTemperature _planetX_bmePressure _planetX_bmeHumidity _planetX_rtcReady _planetX_trackBitReady _planetX_trackBitStateValue _planetX_trackBitStateValid _planetX_rfidStart _planetX_rfidController _planetX_wsResponse  _planetX_rfidPhase _planetX_rfidError _planetX_rfidStep _planetX_rfidCommand _planetX_rfidSoft _planetX_rfidLastTransport _planetX_rfidPreferSoft _planetX_rfidClockOK
 
   spec 'r' 'planetX_buttonCD' 'button _ key _ is pressed' 'menu.planetXPort menu.planetXButton' 'J1' 'C'
+  space
+  spec 'r' 'planetX_joystickButton' 'joystick button _ is pressed' 'menu.planetXJoystickButton' '⬆'
+  spec 'r' 'planetX_joystickAnalog' 'joystick _ analog value' 'menu.planetXJoystickAxis' 'LX'
   space
   spec 'r' 'planetX_crash' 'crash sensor _ pressed?' 'menu.planetXPort' 'J1'
   space
@@ -148,23 +156,31 @@ variables _planetX_dsLastTemp _planetX_sr04_last _planetX_sr04_misses _planetX_d
   spec 'r' 'planetX_trackBitState' 'four-channel grayscale line sensor detects state _' 'menu.planetXTrackBitPattern' '0000'
   spec 'r' 'planetX_trackBitGray' 'four-channel grayscale line sensor channel _ gray value' 'menu.planetXTrackBitChannel' '1'
   advanced
-  spec ' ' 'planetX_buttonEventBroadcast' 'when button _ key _ is pressed send broadcast _' 'menu.planetXPort menu.planetXButton str' 'J1' 'C' ''
   spec 'r' '_planetX_analogPinForPort' '_planetX_analogPinForPort _' 'auto' 'J1'
-  spec ' ' '_planetX_buttonEventLoop' '_planetX_buttonEventLoop'
-  spec ' ' '_planetX_pollButtonEvents' '_planetX_pollButtonEvents'
+  space
+  spec 'r' '_planetX_attentionCode' '_planetX_attentionCode _' 'auto' 0
+  spec 'r' '_planetX_attentionReadByte' '_planetX_attentionReadByte'
+  spec 'r' '_planetX_attentionRequest' '_planetX_attentionRequest _' 'auto' 0
+  spec 'r' '_planetX_attentionWaitReady' '_planetX_attentionWaitReady'
+  spec 'r' '_planetX_joystickAnalogCode' '_planetX_joystickAnalogCode _' 'auto' 0
+  space
   spec 'r' '_planetX_sr04PulseWidth' '_planetX_sr04PulseWidth _ _ polling _' 'auto auto bool' 1 8 true
   spec 'r' 'planetX_trackBitOffset' 'four-channel grayscale line sensor offset'
   spec 'r' '_planetX_buttonNow' '_planetX_buttonNow _ _' 'auto auto' 0 0
+  space
   spec 'r' '_planetX_dhtCaptureData' '_planetX_dhtCaptureData _' 'auto' 0
   spec 'r' '_planetX_dhtChecksumOkay' '_planetX_dhtChecksumOkay'
   spec ' ' '_planetX_dhtReadData' '_planetX_dhtReadData _' 'auto' 0
   spec 'r' '_planetX_dhtReady' '_planetX_dhtReady'
   spec ' ' '_planetX_dhtUpdate' '_planetX_dhtUpdate _' 'auto' 0
+  space
   spec 'r' '_planetX_ds18b20Address' '_planetX_ds18b20Address _' 'auto' 0
   spec 'r' '_planetX_ds18b20Raw' '_planetX_ds18b20Raw _' 'auto' 0
+  space
   spec 'r' '_planetX_humidityDHT11' '_planetX_humidityDHT11 _' 'auto' 0
   spec 'r' '_planetX_pinForPort' '_planetX_pinForPort _ _' 'auto auto' 0 0
   spec 'r' '_planetX_temperatureDHT11' '_planetX_temperatureDHT11 _' 'auto' 0
+  space
   spec 'r' '_planetX_bmeEnsure' '_planetX_bmeEnsure'
   spec 'r' '_planetX_bmeReadInt16LE' '_planetX_bmeReadInt16LE _' 'auto' 0
   spec 'r' '_planetX_bmeReadInt8' '_planetX_bmeReadInt8 _' 'auto' 0
@@ -176,7 +192,9 @@ variables _planetX_dsLastTemp _planetX_sr04_last _planetX_sr04_misses _planetX_d
   spec 'r' '_planetX_bmeTryInit' '_planetX_bmeTryInit _' 'auto' 0
   spec ' ' '_planetX_bmeUpdateValues' '_planetX_bmeUpdateValues'
   spec ' ' '_planetX_bmeWriteReg' '_planetX_bmeWriteReg _ _' 'auto auto' 0 0
+  space
   spec 'r' '_planetX_divRound' '_planetX_divRound _ _' 'auto auto' 0 0
+  space
   spec 'r' '_planetX_rfidAckOk' '_planetX_rfidAckOk'
   spec 'r' '_planetX_rfidBlockToText' '_planetX_rfidBlockToText'
   spec 'r' '_planetX_rfidCheckCard' '_planetX_rfidCheckCard'
@@ -194,6 +212,7 @@ variables _planetX_dsLastTemp _planetX_sr04_last _planetX_sr04_misses _planetX_d
   spec 'r' '_planetX_rfidReadReady' '_planetX_rfidReadReady _' 'auto' 0
   spec 'r' '_planetX_rfidWriteAndRead' '_planetX_rfidWriteAndRead _ _' 'auto auto' 0 0
   spec 'r' '_planetX_rfidWriteBlock8' '_planetX_rfidWriteBlock8'
+  space
   spec 'r' '_planetX_rtcDecToHex' '_planetX_rtcDecToHex _' 'auto' 0
   spec 'r' '_planetX_rtcEnsure' '_planetX_rtcEnsure'
   spec 'r' '_planetX_rtcGetSecond' '_planetX_rtcGetSecond'
@@ -201,10 +220,25 @@ variables _planetX_dsLastTemp _planetX_sr04_last _planetX_sr04_misses _planetX_d
   spec 'r' '_planetX_rtcReadReg' '_planetX_rtcReadReg _' 'auto' 0
   spec ' ' '_planetX_rtcStart' '_planetX_rtcStart'
   spec ' ' '_planetX_rtcWriteReg' '_planetX_rtcWriteReg _ _' 'auto auto' 0 0
+  space
   spec 'r' '_planetX_trackBitChannelIndex' '_planetX_trackBitChannelIndex _' 'auto' 0
   spec 'r' '_planetX_trackBitEnsure' '_planetX_trackBitEnsure'
   spec 'r' '_planetX_trackBitPatternCode' '_planetX_trackBitPatternCode _' 'auto' 0
   spec 'r' '_planetX_trackBitReadRaw' '_planetX_trackBitReadRaw _' 'auto' 0
+  space
+  spec 'r' '_planetX_rfidSCLHigh' '_planetX_rfidSCLHigh'
+  spec 'r' '_planetX_rfidStartBus' '_planetX_rfidStartBus'
+  spec ' ' '_planetX_rfidStopBus' '_planetX_rfidStopBus'
+  spec 'r' '_planetX_rfidWriteByte' '_planetX_rfidWriteByte _' 'num' 72
+  spec 'r' '_planetX_rfidReadByte' '_planetX_rfidReadByte _' 'bool' true
+  spec ' ' '_planetX_rfidRecover' '_planetX_rfidRecover'
+  spec 'r' '_planetX_rfidFirmwareOK' '_planetX_rfidFirmwareOK _' 'auto' 0
+  spec 'r' '_planetX_rfidBusRead' '_planetX_rfidBusRead _' 'auto' 0
+  spec 'r' '_planetX_rfidBusWrite' '_planetX_rfidBusWrite _' 'auto' 0
+  spec 'r' '_planetX_rfidSoftBegin' '_planetX_rfidSoftBegin'
+  spec ' ' '_planetX_rfidSoftEnd' '_planetX_rfidSoftEnd'
+  spec 'r' '_planetX_rfidTryPn' '_planetX_rfidTryPn _' 'auto' 0
+  space
   spec 'r' '_planetX_wsAck' '_planetX_wsAck _' 'auto' 0
   spec 'r' '_planetX_wsAttempt' '_planetX_wsAttempt _' 'auto' 0
   spec 'r' '_planetX_wsAuth' '_planetX_wsAuth'
@@ -224,21 +258,6 @@ variables _planetX_dsLastTemp _planetX_sr04_last _planetX_sr04_misses _planetX_d
   spec 'r' '_planetX_wsWrite' '_planetX_wsWrite _ _' 'auto auto' 0 0
   spec 'r' '_planetX_wsWriteBlock' '_planetX_wsWriteBlock'
 
-variables _planetX_buttonListeners _planetX_dhtCache _planetX_sr04_cache
-
-  spec 'r' '_planetX_rfidSCLHigh' '_planetX_rfidSCLHigh'
-  spec 'r' '_planetX_rfidStartBus' '_planetX_rfidStartBus'
-  spec ' ' '_planetX_rfidStopBus' '_planetX_rfidStopBus'
-  spec 'r' '_planetX_rfidWriteByte' '_planetX_rfidWriteByte _' 'num' 72
-  spec 'r' '_planetX_rfidReadByte' '_planetX_rfidReadByte _' 'bool' true
-  spec ' ' '_planetX_rfidRecover' '_planetX_rfidRecover'
-  spec 'r' '_planetX_rfidFirmwareOK' '_planetX_rfidFirmwareOK _' 'auto' 0
-  spec 'r' '_planetX_rfidBusRead' '_planetX_rfidBusRead _' 'auto' 0
-  spec 'r' '_planetX_rfidBusWrite' '_planetX_rfidBusWrite _' 'auto' 0
-  spec 'r' '_planetX_rfidSoftBegin' '_planetX_rfidSoftBegin'
-  spec ' ' '_planetX_rfidSoftEnd' '_planetX_rfidSoftEnd'
-  spec 'r' '_planetX_rfidTryPn' '_planetX_rfidTryPn _' 'auto' 0
-
 to '_planetX_analogPinForPort' port {
   local 'pin' ('_planetX_pinForPort' port 'A')
   local 'board' (boardType)
@@ -248,29 +267,6 @@ to '_planetX_analogPinForPort' port {
     return -1
   }
   return pin
-}
-
-to '_planetX_buttonEventLoop' {
-  forever {
-    '_planetX_pollButtonEvents'
-    waitMillis 10
-  }
-}
-
-to '_planetX_pollButtonEvents' {
-  if (_planetX_buttonListeners == 0) {return}
-  for listener _planetX_buttonListeners {
-    local 'pin' (at 1 listener)
-    local 'pressed' (not (digitalReadOp pin 'up'))
-    waitMillis 1
-    if (pressed == (not (digitalReadOp pin 'up'))) {
-      local 'wasPressed' (at 3 listener)
-      atPut 3 listener pressed
-      if (and pressed (not wasPressed)) {
-        sendBroadcast (at 2 listener)
-      }
-    }
-  }
 }
 
 to '_planetX_bmeEnsure' {
@@ -1291,29 +1287,6 @@ to planetX_buttonCD port button {
   return ('_planetX_buttonNow' port button)
 }
 
-to planetX_buttonEventBroadcast port button message {
-  if (not (or (button == 'C') (button == 'D'))) {
-    stopTask
-    return
-  }
-  local 'signal' 'A'
-  if (button == 'D') {signal = 'B'}
-  local 'pin' ('_planetX_pinForPort' port signal)
-  if (_planetX_buttonListeners == 0) {_planetX_buttonListeners = ('[data:makeList]')}
-  local 'entry' 0
-  for listener _planetX_buttonListeners {
-    if ((at 1 listener) == pin) {entry = listener}
-  }
-  if (entry == 0) {
-    entry = ('[data:makeList]' pin message (not (digitalReadOp pin 'up')))
-    '[data:addLast]' entry _planetX_buttonListeners
-  } else {
-    atPut 2 entry message
-  }
-  comment 'Starting the receiver again also resumes polling after the stop button.'
-  sendBroadcast '_planetX_buttonEventLoop'
-}
-
 to planetX_crash port {
   return (not (digitalReadOp ('_planetX_pinForPort' port 'B') 'up'))
 }
@@ -1865,4 +1838,92 @@ to '_planetX_rfidTryPn' operation {
   if (or (not transportError) (_planetX_rfidPhase == 'write8')) {return false}
   if (not ('_planetX_rfidSoftBegin')) {return false}
   return ('_planetX_rfidPnOperation' operation)
+}
+
+to planetX_joystickAnalog axis {
+  local 'value' ('_planetX_attentionRequest' ('_planetX_joystickAnalogCode' axis))
+  if (value < 0) {
+    return 0
+  }
+  if (or (axis == 'RY') (axis == 'LY')) {
+    if (value != 0) {value += 1}
+  } else {
+    if (and (value != 128) (value != 0)) {value += 1}
+  }
+  return (value * 4)
+}
+
+to planetX_joystickButton button {
+  local 'code' ('_planetX_attentionCode' button)
+  if (code == 0) {
+    return false
+  }
+  return (('_planetX_attentionRequest' code) == 1)
+}
+
+to '_planetX_attentionCode' button {
+  if (button == '⬆') {return 5}
+  if (button == '⬇') {return 7}
+  if (button == '⬅') {return 8}
+  if (button == '➡') {return 6}
+  if (button == '▷') {return 13}
+  if (button == '☐') {return 16}
+  if (button == '𐤏') {return 14}
+  if (button == '⨉') {return 15}
+  if (button == 'L1') {return 11}
+  if (button == 'R1') {return 12}
+  if (button == 'L2') {return 9}
+  if (button == 'R2') {return 10}
+  if (button == 'SELECT') {return 1}
+  if (button == 'START') {return 4}
+  if (button == 'L3') {return 2}
+  if (button == 'R3') {return 3}
+  return 0
+}
+
+to '_planetX_attentionReadByte' {
+  local 'response' ('[data:newByteArray]' 1 0)
+  if (('[sensors:i2cRead]' 8 response) != 1) {
+    return -1
+  }
+  return (at 1 response)
+}
+
+to '_planetX_attentionRequest' command {
+  if (not ('_planetX_i2cAcquire')) {return -1}
+  local 'board' (boardType)
+  local 'pace' (or (board == 'micro:bit v2') (board == 'micro:bit'))
+  if (and pace _planetX_joystickHasRequest) {
+    comment 'A 10 ms gap improved sequential micro:bit reads in the hardware comparison. Recheck under the FIFO lock so parallel callers cannot bypass the gap.'
+    local 'remaining' (10 - (millisSince _planetX_joystickLastRequest))
+    if (remaining > 0) {waitMillis remaining}
+  }
+  '_planetX_i2cSetClock'
+  local 'value' -1
+  if ('_planetX_attentionWaitReady') {
+    '[sensors:i2cWrite]' 8 command
+    value = ('_planetX_attentionReadByte')
+  }
+  if pace {
+    _planetX_joystickLastRequest = (millisOp)
+    _planetX_joystickHasRequest = true
+  }
+  '_planetX_i2cRelease'
+  return value
+}
+
+to '_planetX_attentionWaitReady' {
+  local 'start' (millisOp)
+  repeatUntil (('_planetX_attentionReadByte') == 16) {
+    if ((millisSince start) >= 250) {return false}
+    waitMillis 1
+  }
+  return true
+}
+
+to '_planetX_joystickAnalogCode' axis {
+  if (axis == 'RX') {return 25}
+  if (axis == 'RY') {return 26}
+  if (axis == 'LY') {return 28}
+  return 27
 }

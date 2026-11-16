@@ -1,16 +1,16 @@
 module 'Nezha ESP32' Output
 author 'Elecfreaks Team'
-version 1 5 
-depends 'SmartIoT Space' _Microphone Widgets 
-tags nezha esp32 onboard button rgb display sound gyro 
-choices nezha32_portMenu J1 J2 J3 J4 
-choices nezha32_pressReleaseMenu pressed released 
-choices nezha32_buttonMenu A B C 'A+B' 'A+C' 'B+C' 
-choices nezha32_titleBarState show hide 
-choices nezha32_melodyMenu 'C D E F G A B C5' 'C5 B A G F E D C' 'C E G C5' 'C F A C5' 'C D E C C D E C' 'G G A G C5 B' 
-choices nezha32_soundName 'Chinese style' country symphony lyrical Japanese punk pop 'jazz music' blues 'door opening' 'birthday song' wind rain thunder 
-choices nezha32_axisMenu X Y Z 
-choices nezha32_attitudeMenu pitch yaw roll 
+version 1 5
+depends 'SmartIoT Space' _Microphone
+tags nezha esp32 onboard button rgb display sound gyro
+choices nezha32_portMenu J1 J2 J3 J4
+choices nezha32_pressReleaseMenu pressed released
+choices nezha32_buttonMenu A B C 'A+B' 'A+C' 'B+C'
+choices nezha32_titleBarState show hide
+choices nezha32_melodyMenu 'C D E F G A B C5' 'C5 B A G F E D C' 'C E G C5' 'C F A C5' 'C D E C C D E C' 'G G A G C5 B'
+choices nezha32_soundName 'Chinese style' country symphony lyrical Japanese punk pop 'jazz music' blues 'door opening' 'birthday song' wind rain thunder
+choices nezha32_axisMenu X Y Z
+choices nezha32_attitudeMenu pitch yaw roll
 description 'Onboard buttons
 
 RGB LED
@@ -22,8 +22,7 @@ Sound control
 Gyroscope
 
 Port IO pin lookup'
-
-variables _nezha32_buttonEdges _nezha32_buttonLoopStarted _nezha32_buttonLoopHeartbeat _nezha32_buttonRawMask _nezha32_buttonRawSince _nezha32_buttonStableMask _nezha32_buttonPhase _nezha32_buttonCandidateMask _nezha32_buttonCandidateSince _nezha32_buttonActiveMask _efsound_tempo _efsound_play_id _efsound_bg_melody _efsound_bg_bpm 
+variables _nezha32_buttonEdges _nezha32_buttonLoopStarted _nezha32_buttonLoopHeartbeat _nezha32_buttonRawMask _nezha32_buttonRawSince _nezha32_buttonStableMask _nezha32_buttonPhase _nezha32_buttonCandidateMask _nezha32_buttonCandidateSince _nezha32_buttonActiveMask _efsound_tempo _efsound_play_id _efsound_bg_melody _efsound_bg_bpm
 
   spec 'r' 'nezha32_buttonEvent' 'button _ _ ?' 'menu.nezha32_buttonMenu menu.nezha32_pressReleaseMenu' 'A' 'pressed'
   space
@@ -56,15 +55,15 @@ variables _nezha32_buttonEdges _nezha32_buttonLoopStarted _nezha32_buttonLoopHea
   space
   spec 'r' 'nezha32_getIoNum' 'pin for port _ _' 'menu.nezha32_portMenu menu.range:1-2' 'J1' 1
 
-to '_efsound_background_loop' {
+to _efsound_background_loop {
   local 'my_id' 0
   repeatUntil (or (_efsound_bg_melody == '') (my_id == _efsound_play_id)) {
     my_id = _efsound_play_id
-    '_efsound_play_melody_once' _efsound_bg_melody my_id
+    _efsound_play_melody_once _efsound_bg_melody my_id
   }
 }
 
-to '_efsound_canonical_sound_name' soundName {
+to _efsound_canonical_sound_name soundName {
   if (or (soundName == '中国风') (soundName == '中國風')) {return 'Chinese style'}
   if (or (soundName == '乡村') (soundName == '鄉村')) {return 'country'}
   if (or (soundName == '交响') (soundName == '交響')) {return 'symphony'}
@@ -82,13 +81,13 @@ to '_efsound_canonical_sound_name' soundName {
   return soundName
 }
 
-to '_efsound_init' {
+to _efsound_init {
   if (_efsound_tempo <= 0) {_efsound_tempo = 120}
   if (_efsound_play_id == 0) {_efsound_play_id = 1}
 }
 
-to '_efsound_note_frequency_from_string' note {
-  note = ('_efsound_upper_trimmed' note)
+to _efsound_note_frequency_from_string note {
+  note = (_efsound_upper_trimmed note)
   if (or (note == '') (or (note == '-') (note == 'R'))) {
     return 0
   }
@@ -108,7 +107,7 @@ to '_efsound_note_frequency_from_string' note {
       octave = (ch - 48)
     }
   }
-  local 'semitone' ('_efsound_semitone' name)
+  local 'semitone' (_efsound_semitone name)
   if (semitone <= 0) {
     return 0
   }
@@ -126,21 +125,21 @@ to '_efsound_note_frequency_from_string' note {
   return freq
 }
 
-to '_efsound_play_melody_once' melody playId {
+to _efsound_play_melody_once melody playId {
   local 'tokens' ('[data:split]' melody ' ')
   for i (size tokens) {
     if (and (playId > 0) (playId != _efsound_play_id)) {return (booleanConstant false)}
     local 'token' (at i tokens)
     if (token != '') {
-      '_efsound_play_melody_token' token _efsound_bg_bpm playId
+      _efsound_play_melody_token token _efsound_bg_bpm playId
     }
   }
   return (booleanConstant true)
 }
 
-to '_efsound_play_melody_token' token bpm playId {
+to _efsound_play_melody_token token bpm playId {
   if (and (playId > 0) (playId != _efsound_play_id)) {return 0}
-  token = ('_efsound_upper_trimmed' token)
+  token = (_efsound_upper_trimmed token)
   if (token == '') {
     return 0
   }
@@ -156,7 +155,7 @@ to '_efsound_play_melody_token' token bpm playId {
   }
   local 'duration' (((60000 / bpm) * duration_units) / 4)
   duration = (minimum 60000 duration)
-  local 'freq' ('_efsound_note_frequency_from_string' note_part)
+  local 'freq' (_efsound_note_frequency_from_string note_part)
   if (freq <= 0) {
     '[elfreaks_dev_sensor:stopTone]'
   } else {
@@ -175,8 +174,8 @@ to '_efsound_play_melody_token' token bpm playId {
   }
 }
 
-to '_efsound_semitone' note {
-  note = ('_efsound_upper_trimmed' note)
+to _efsound_semitone note {
+  note = (_efsound_upper_trimmed note)
   if (note == 'C') {
     return 1
   }
@@ -216,8 +215,8 @@ to '_efsound_semitone' note {
   return 0
 }
 
-to '_efsound_sound_asset_name' soundName {
-  soundName = ('_efsound_canonical_sound_name' soundName)
+to _efsound_sound_asset_name soundName {
+  soundName = (_efsound_canonical_sound_name soundName)
   if (soundName == 'Chinese style') {
     return 'china_style'
   }
@@ -263,7 +262,7 @@ to '_efsound_sound_asset_name' soundName {
   return ('[data:join]' '' soundName)
 }
 
-to '_efsound_upper_trimmed' s {
+to _efsound_upper_trimmed s {
   local 'result' (newList (size s))
   '[data:delete]' 'all' result
   for i (size s) {
@@ -276,7 +275,7 @@ to '_efsound_upper_trimmed' s {
   return ('[data:unicodeString]' result)
 }
 
-to '_nezha32_buttonEdgeEntry' key {
+to _nezha32_buttonEdgeEntry key {
   if (_nezha32_buttonEdges == 0) {_nezha32_buttonEdges = ('[data:makeList]')}
   for edge _nezha32_buttonEdges {
     if ((at 1 edge) == key) {return edge}
@@ -286,7 +285,7 @@ to '_nezha32_buttonEdgeEntry' key {
   return newEdge
 }
 
-to '_nezha32_buttonEnsureLoop' {
+to _nezha32_buttonEnsureLoop {
   if _nezha32_buttonLoopStarted {if (and (_nezha32_buttonLoopHeartbeat != 0) ((millisSince _nezha32_buttonLoopHeartbeat) < 200)) {
     return
   }}
@@ -294,15 +293,15 @@ to '_nezha32_buttonEnsureLoop' {
   sendBroadcast '_nezha32_buttonLoop'
 }
 
-to '_nezha32_buttonLoop' {
+to _nezha32_buttonLoop {
   forever {
     _nezha32_buttonLoopHeartbeat = (millisOp)
-    '_nezha32_buttonPoll'
+    _nezha32_buttonPoll
     waitMillis 10
   }
 }
 
-to '_nezha32_buttonMask' {
+to _nezha32_buttonMask {
   local 'mask' 0
   if ('[elfreaks_dev_sensor:buttonA]') {
     mask += 1
@@ -316,7 +315,7 @@ to '_nezha32_buttonMask' {
   return mask
 }
 
-to '_nezha32_buttonName' mask {
+to _nezha32_buttonName mask {
   if (mask == 1) {return 'A'}
   if (mask == 2) {return 'B'}
   if (mask == 4) {return 'C'}
@@ -326,9 +325,9 @@ to '_nezha32_buttonName' mask {
   return ''
 }
 
-to '_nezha32_buttonPoll' {
+to _nezha32_buttonPoll {
   local 'now' (millisOp)
-  local 'raw' ('_nezha32_buttonMask')
+  local 'raw' (_nezha32_buttonMask)
   if (raw != _nezha32_buttonRawMask) {
     _nezha32_buttonRawMask = raw
     _nezha32_buttonRawSince = now
@@ -346,7 +345,7 @@ to '_nezha32_buttonPoll' {
     _nezha32_buttonCandidateMask = mask
     _nezha32_buttonCandidateSince = now
     if (or (mask == 3) (or (mask == 5) (mask == 6))) {
-      '_nezha32_buttonQueueEvent' mask 'pressed'
+      _nezha32_buttonQueueEvent mask 'pressed'
       _nezha32_buttonActiveMask = mask
       _nezha32_buttonPhase = 2
     } else {
@@ -356,13 +355,13 @@ to '_nezha32_buttonPoll' {
   }
   if (_nezha32_buttonPhase == 1) {
     if (mask == 0) {
-      '_nezha32_buttonQueueEvent' _nezha32_buttonCandidateMask 'pressed'
-      '_nezha32_buttonQueueEvent' _nezha32_buttonCandidateMask 'released'
+      _nezha32_buttonQueueEvent _nezha32_buttonCandidateMask 'pressed'
+      _nezha32_buttonQueueEvent _nezha32_buttonCandidateMask 'released'
       _nezha32_buttonPhase = 0
       return
     }
     if ((millisSince _nezha32_buttonCandidateSince) >= 50) {
-      '_nezha32_buttonQueueEvent' _nezha32_buttonCandidateMask 'pressed'
+      _nezha32_buttonQueueEvent _nezha32_buttonCandidateMask 'pressed'
       _nezha32_buttonActiveMask = _nezha32_buttonCandidateMask
       _nezha32_buttonPhase = 2
       return
@@ -373,14 +372,14 @@ to '_nezha32_buttonPoll' {
     }
     if (mask != _nezha32_buttonCandidateMask) {
       if (and ((mask & _nezha32_buttonCandidateMask) != 0) (or (mask == 3) (or (mask == 5) (mask == 6)))) {
-        '_nezha32_buttonQueueEvent' mask 'pressed'
+        _nezha32_buttonQueueEvent mask 'pressed'
         _nezha32_buttonActiveMask = mask
         _nezha32_buttonPhase = 2
         return
       }
       if ((mask & _nezha32_buttonCandidateMask) == 0) {
-        '_nezha32_buttonQueueEvent' _nezha32_buttonCandidateMask 'pressed'
-        '_nezha32_buttonQueueEvent' _nezha32_buttonCandidateMask 'released'
+        _nezha32_buttonQueueEvent _nezha32_buttonCandidateMask 'pressed'
+        _nezha32_buttonQueueEvent _nezha32_buttonCandidateMask 'released'
         _nezha32_buttonCandidateMask = mask
         _nezha32_buttonCandidateSince = now
         return
@@ -390,7 +389,7 @@ to '_nezha32_buttonPoll' {
   }
   if (_nezha32_buttonPhase == 2) {
     if ((mask & _nezha32_buttonActiveMask) != _nezha32_buttonActiveMask) {
-      '_nezha32_buttonQueueEvent' _nezha32_buttonActiveMask 'released'
+      _nezha32_buttonQueueEvent _nezha32_buttonActiveMask 'released'
       _nezha32_buttonPhase = 3
     }
   }
@@ -400,12 +399,12 @@ to '_nezha32_buttonPoll' {
   }
 }
 
-to '_nezha32_buttonQueueEvent' mask event {
-  local 'button' ('_nezha32_buttonName' mask)
+to _nezha32_buttonQueueEvent mask event {
+  local 'button' (_nezha32_buttonName mask)
   if (button == '') {
     return
   }
-  local 'entry' ('_nezha32_buttonEdgeEntry' button)
+  local 'entry' (_nezha32_buttonEdgeEntry button)
   if (event == 'pressed') {
     atPut 3 entry true
   }
@@ -414,7 +413,7 @@ to '_nezha32_buttonQueueEvent' mask event {
   }
 }
 
-to '_nezha32_stop_melody' {
+to _nezha32_stop_melody {
   _efsound_play_id += 1
   _efsound_bg_melody = ''
   '[elfreaks_dev_sensor:stopTone]'
@@ -441,8 +440,8 @@ to nezha32_board_rgb_off_all {
 }
 
 to nezha32_buttonEvent button event {
-  '_nezha32_buttonEnsureLoop'
-  local 'entry' ('_nezha32_buttonEdgeEntry' button)
+  _nezha32_buttonEnsureLoop
+  local 'entry' (_nezha32_buttonEdgeEntry button)
   if (or (event == 'pressed') (event == '按下')) {
     if (at 3 entry) {
       atPut 3 entry false
@@ -523,9 +522,9 @@ the first asynchronous PCM block becomes a valid dB snapshot.'
 }
 
 to nezha32_play_melody melody bpm {
-  '_efsound_init'
-  if (('_efsound_upper_trimmed' melody) == '') {
-    '_nezha32_stop_melody'
+  _efsound_init
+  if ((_efsound_upper_trimmed melody) == '') {
+    _nezha32_stop_melody
     return 0
   }
   if (bpm <= 0) {
@@ -539,7 +538,7 @@ to nezha32_play_melody melody bpm {
 }
 
 to nezha32_play_sound soundName {
-  local 'ok' ('[elfreaks_dev_sensor:playSoundByName]' ('_efsound_sound_asset_name' soundName) true)
+  local 'ok' ('[elfreaks_dev_sensor:playSoundByName]' (_efsound_sound_asset_name soundName) true)
   if ok {
     _efsound_play_id += 1
     _efsound_bg_melody = ''
@@ -563,6 +562,6 @@ to nezha32_sound_set_volume volume {
 }
 
 to nezha32_sound_stop_all_sounds {
-  '_nezha32_stop_melody'
+  _nezha32_stop_melody
 }
 
