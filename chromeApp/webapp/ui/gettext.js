@@ -19,7 +19,8 @@ const GetText = {
 };
 
 GetText.init = function () {
-	GetText.readLocale('en');
+	// <l-> elements can localize before en.po arrives; redo them once it has
+	GetText.readLocale('en', () => GetText.localizable.forEach(e => e.localize()));
 };
 
 GetText.addLocalizable = function (element) { this.localizable.push(element); }
