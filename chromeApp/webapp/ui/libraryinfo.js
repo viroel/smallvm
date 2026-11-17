@@ -265,7 +265,7 @@ class LibraryInfoWindow extends FloatingWindow {
 							colorSlug = slugify(catName);
 
 						color.classList.add(`--${colorSlug}`);
-						label.innerText = catName;
+						label.innerText = 'cat;' + catName;
 						item.appendChild(color);
 						item.appendChild(label);
 
