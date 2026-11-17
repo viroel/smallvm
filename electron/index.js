@@ -115,7 +115,8 @@ const createWindow = () => {
 
 	mainWindow.webContents.session.setPermissionCheckHandler(
 		(webContents, permission, requestingOrigin, details) => {
-			return (permission === 'serial' || permission === 'usb');
+			// 'fileSystem' covers files the user picks in a save or open dialog.
+			return (permission === 'serial' || permission === 'usb' || permission === 'fileSystem');
 		}
 	);
 
