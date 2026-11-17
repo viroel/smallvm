@@ -115,7 +115,7 @@ class LibraryInfoWindow extends FloatingWindow {
 			input.value = value ?? this.library[selector];
 		} else {
 			input = newDiv();
-			input.innerHTML = value ?? this.library[selector];
+			input.innerHTML = `<l->${value ?? this.library[selector]}</l->`;
 		}
 		input.setAttribute('data-undraggable', true);
 		input.classList.add('window__input');
