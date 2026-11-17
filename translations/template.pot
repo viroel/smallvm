@@ -1509,6 +1509,10 @@ msgstr ""
 msgid "display character _"
 msgstr ""
 
+#. 5x5 LED Display library block
+msgid "display number (0-99) _"
+msgstr""
+
 #. Image name for the "display image" block
 msgid "heart"
 msgstr ""
@@ -7704,6 +7708,10 @@ msgstr ""
 msgid "find uses of this block"
 msgstr ""
 
+#. MicroBlocks IDE 'find uses of this block' message.
+msgid "This block is not being used in this project"
+msgstr ""
+
 #. Block right-click context menu tooltip
 msgid "find scripts or block definitions using this block"
 msgstr ""
@@ -7956,8 +7964,48 @@ msgstr ""
 msgid "Load Library"
 msgstr ""
 
-#. Load project window title
+#. In Load Library and Open Project windows
+msgid "Locations"
+msgstr ""
+
+#. Load project window title. Obsolete in MicroBlocks v3.0.0
 msgid "Load Project"
+msgstr ""
+
+#. Open project window title.
+msgid "Open Project"
+msgstr ""
+
+#. In Library Information window
+msgid "Library Name"
+msgstr ""
+
+#. In Library Information window
+msgid "Description"
+msgstr ""
+
+#. In Library Information window
+msgid "Author"
+msgstr ""
+
+#. In Library Information window
+msgid "Version"
+msgstr ""
+
+#. In Library Information window
+msgid "Dependencies"
+msgstr ""
+
+#. In Library Information window
+msgid "Category"
+msgstr ""
+
+#. In Library Information window. Button label
+msgid "Add"
+msgstr ""
+
+#. In Library Information window. Button label
+msgid "Remove"
 msgstr ""
 
 #. MicroBlocks IDE information

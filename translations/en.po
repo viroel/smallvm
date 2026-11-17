@@ -1509,6 +1509,10 @@ msgstr "unplot x _ y _"
 msgid "display character _"
 msgstr "display character _"
 
+#. 5x5 LED Display library block
+msgid "display number (0-99) _"
+msgstr"display number (0-99) _"
+
 #. Image name for the "display image" block
 msgid "heart"
 msgstr "heart"
@@ -7704,6 +7708,10 @@ msgstr "find scripts or block definitions where this variable is being set or ch
 msgid "find uses of this block"
 msgstr "find uses of this block"
 
+#. MicroBlocks IDE 'find uses of this block' message.
+msgid "This block is not being used in this project"
+msgstr "This block is not being used in this project"
+
 #. Block right-click context menu tooltip
 msgid "find scripts or block definitions using this block"
 msgstr "find scripts or block definitions using this block"
@@ -7956,9 +7964,49 @@ msgstr "Libraries"
 msgid "Load Library"
 msgstr "Load Library"
 
+#. Label in Load Library and Open Project windows
+msgid "Locations"
+msgstr "Locations"
+
 #. Load project window title
 msgid "Load Project"
 msgstr "Load Project"
+
+#. Open project window title.
+msgid "Open Project"
+msgstr "Open Project"
+
+#. In Library Information window
+msgid "Library Name"
+msgstr "Library Name"
+
+#. In Library Information window
+msgid "Description"
+msgstr "Description"
+
+#. In Library Information window
+msgid "Author"
+msgstr "Author"
+
+#. In Library Information window
+msgid "Version"
+msgstr "Version"
+
+#. In Library Information window
+msgid "Dependencies"
+msgstr "Dependencies"
+
+#. In Library Information window
+msgid "Category"
+msgstr "Category"
+
+#. In Library Information window. Button label
+msgid "Add"
+msgstr "Add"
+
+#. In Library Information window. Button label
+msgid "Remove"
+msgstr "Remove"
 
 #. MicroBlocks IDE information
 msgid "MicroBlocks hit an error, so the last thing it was doing may not have finished. Your project is still open: check that it looks right before you save it."
